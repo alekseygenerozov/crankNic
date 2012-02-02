@@ -17,22 +17,30 @@ import numpy
 #
 
 def grabData(fileName,type):
-	f = open(fileName,'r')
-	dataString = f.read()
-	f.close()
-	dataLines = dataString.split('\n');
-	N = len(dataLines) - 1
-	data = numpy.zeros((N,2))
 
-	for i in range(N):
-	  line = dataLines[i].split('\t')
-	  data[i][0] = float( line[0] )
-	  data[i][1] = float( line[1] )
+	exists = 1
+	try:
+		f = open(fileName,'r')
+	except IOError as e:
+		print "WARNING ...  file '" + fileName + "' does not exist."
+		exists = 0
 
-	if(type == 0):
-		plt.plot( data[:,0] , data[:,1]*3.14159 ) 
-	else:
-		plt.plot( data[:,0] , data[:,1]*3.14159 , 'k.')
+	if( exists == 1 ):
+		dataString = f.read()
+		f.close()
+		dataLines = dataString.split('\n');
+		N = len(dataLines) - 1
+		data = numpy.zeros((N,2))
+	
+		for i in range(N):
+		  line = dataLines[i].split('\t')
+		  data[i][0] = float( line[0] )
+		  data[i][1] = float( line[1] )
+	
+		if(type == 0):
+			plt.plot( data[:,0] , data[:,1]*3.14159 ) 
+		else:
+			plt.plot( data[:,0] , data[:,1]*3.14159 , 'k.')
 
 grabData("T008.dat",0)
 grabData("T032.dat",0)
