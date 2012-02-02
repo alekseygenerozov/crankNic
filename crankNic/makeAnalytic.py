@@ -11,8 +11,8 @@
 #
 #	*** Numpy, scipy and matplotlib are all required
 #
-#		created by: 	Munier Salem
-#		on:		October 19, 2011
+#		created by:		Munier Salem
+#		on:						October 19, 2011
 #
 
 import matplotlib.pyplot as plt
@@ -24,6 +24,36 @@ R0 = 1.0 		# initial radius of delta fcn
 M  = 1.0		# intiial mass
 pi = 3.14159
 
+N = 500
+rMin = 0.2
+rMax = 2.0
+
+# we read in from param file ...
+f = open('params.dat','r')
+params = f.read()
+f.close()
+params = params.split('\n');
+N = len(params)
+
+for i in range(N):
+	s = params[i]
+	s = s.split('=')
+	var = s[0].strip()
+	if( len(s) > 1 ):
+		num = s[1].split('//')
+		num = float(num[0].strip())
+	
+		if( var == 'r0' ): 	R0 = num
+		if( var == 'rMin' ): rMin = num
+		if( var == 'rMax' ): rMax = num
+		if( var == 'N' ): N = int(num)
+
+print "R0 = " + str(R0)
+print "rMin = " + str(rMin)
+print "rMax = " + str(rMax)
+print "N = " + str(N)
+
+
 #
 # ---- Our analytic expression
 #
@@ -31,15 +61,12 @@ def S(x,t):
     tmp = M/(R0*R0*pi*t)
     return tmp*x**(-.25)*exp(-(1+x*x)/t)*iv(.25,2*x/t)
 
-N = 50
-rMin = 0.0
-rMax = 2.0
 dr = (rMax - rMin)/(N+1.0)
 r = arange(rMin,rMax,dr)
 
-for i in range(4):
+for i in range(1):	# FIXME
 	t = .008*4**i
-	sigma = S(r,t)
+	sigma = S(r/R0,t)
 	plt.plot(r,sigma*pi*R0**2/M)
 	
 	f = open('analytic_T' + str(i) + '.dat','w')
