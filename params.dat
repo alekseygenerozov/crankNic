@@ -1,8 +1,0 @@
-
-N     = 500				// Size of Simulation
-rMax   = 2.0;    		// outer boundary
-rMin = 0.1;      		// inner boundary
-
-r0   = 1.0;      // where delta-fcn starts
-nu   = 0.1;      // viscosity
-
