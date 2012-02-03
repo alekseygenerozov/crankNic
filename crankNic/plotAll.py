@@ -12,6 +12,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy
 
+matplotlib.rc('lines',markersize=4,linewidth=1);
+
+
 #
 # ------ We Read In Data
 #
@@ -40,18 +43,22 @@ def grabData(fileName,type):
 		if(type == 0):
 			plt.plot( data[:,0] , data[:,1]*3.14159 ) 
 		else:
-			plt.plot( data[:,0] , data[:,1]*3.14159 , 'k.')
+			plt.plot( data[::12,0] , data[::12,1]*3.14159 , 'k*')
 
 grabData("T008.dat",0)
 grabData("T032.dat",0)
-grabData("T064.dat",0)
 grabData("T128.dat",0)
+grabData("T512.dat",0)
 
+grabData("analytic_T0.dat",1)
+grabData("analytic_T1.dat",1)
+grabData("analytic_T2.dat",1)
+grabData("analytic_T3.dat",1)
 
 
 #plt.axis((0.0,2.0,0.0,4.0))
 plt.xlabel('$r/R_0$')
 plt.ylabel('$\pi \Sigma R_0^2/m$')
 plt.title('$\Sigma(r)$ for S&S Disk')
-plt.legend(['$\\tau = .008$','$\\tau = .032$','$\\tau = .128$','$\\tau = .512$'],'upper right')
+plt.legend(['$\\tau = .008$','$\\tau = .032$','$\\tau = .128$','$\\tau = .512$','analytic'],'upper right')
 plt.savefig("numerical")

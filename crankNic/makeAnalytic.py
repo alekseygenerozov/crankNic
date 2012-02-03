@@ -64,7 +64,7 @@ def S(x,t):
 dr = (rMax - rMin)/(N+1.0)
 r = arange(rMin,rMax,dr)
 
-for i in range(1):	# FIXME
+for i in range(4):	# FIXME
 	t = .008*4**i
 	sigma = S(r/R0,t)
 	plt.plot(r,sigma*pi*R0**2/M)
