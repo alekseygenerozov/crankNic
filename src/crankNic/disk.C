@@ -2,29 +2,9 @@
 #include <math.h>
 #include <stdlib.h>
 
-// NUMERICAL PARAMETERS
-
-const double PI = 3.14159265358979323846;	// Pi 
-const double twoPI = 2*PI;			// 2*Pi
-
-// RESOLUTION PARAMETERS
-
-int N 				= 500;			// Size of Simulation
-double rMax 	= 2.0;			// outer boundary
-double rMin		= 0.1;			// inner boundary
-double dr			= (rMax-rMin)/(N-1.0);	// cell size
-double dr2		= dr*dr; 								// cell size squared
-
-// PHYSICAL PARAMETERS
-double r0		= 1.0;			// where delta-fcn starts
-double nu		= 0.1;			// viscosity
-
-// FUNCTIONS
-
-void solveMatrix(int,double*,double*,double*,double*,double*);
-int writeOut(char*,double*,double*);
-double max(double a, double b){return (a<b)?a:b;};
-int readParams();
+#include "global.h"
+#include "diagSolvers.h"
+#include "readWrite.h"
 
 int main(){
 
@@ -53,7 +33,7 @@ int main(){
 	}	
 	fclose(fp);
 
-	writeOut("T008.dat",r,sigma);	// FIXME
+	writeOut("T008.dat",r,sigma,N);	// FIXME
 
  double  tMin = .008/(12.0*nu)*r0*r0,
     tMax = .512/(12.0*nu)*r0*r0,
@@ -113,7 +93,7 @@ int main(){
 	      fprintf(stderr,"ERROR: Density negative @ i = %d\n",j);
 	      fprintf(stderr,"\t>> t = %g , Nt = %d\n",t,i);
 	      keepOn = false;
-	      writeOut("ERROR_OUT.dat",r,sNew);
+	      writeOut("ERROR_OUT.dat",r,sNew,N);
 	    }// end error if
 
 		// update sigma
@@ -122,88 +102,12 @@ int main(){
 	  }
 
 
-		if( i == (int)(Nt*(32.0-8.0)/512.0)){writeOut("T032.dat",r,sigma);}		
-		if( i == (int)(Nt*(128.0-8.0)/512.0)){writeOut("T128.dat",r,sigma);}
-/*		if( i == 2){writeOut("T032.dat",r,sigma);}		
-		if( i == 4){writeOut("T064.dat",r,sigma);}		
-		if( i == 8){writeOut("T128.dat",r,sigma);}		*/
+		if( i == (int)(Nt*(32.0-8.0)/512.0)){writeOut("T032.dat",r,sigma,N);}		
+		if( i == (int)(Nt*(128.0-8.0)/512.0)){writeOut("T128.dat",r,sigma,N);}
 
 	}// end time-step loop
 	
-	writeOut("T512.dat",r,sigma);
+	writeOut("T512.dat",r,sigma,N);
 
 	return status;
 }
-
-int writeOut(char* fileName, double* r, double* f){
-	FILE* fp = fopen(fileName,"w");
-	for( int i = 0; i < N ; i++ )
-	  fprintf(fp,"%g\t%g\n",r[i], f[i]);
-	fclose(fp);
-	return 0;
-}// end writeOut
-
-
-
-void solveMatrix (int n, double *a, double *b, double *c, double *v, double *x)
-{
-
-	/*
-	 * n - number of equations
-	 * a - sub-diagonal -- indexed from 1..n-1
-	 * b - the main diagonal
-	 * c - sup-diagonal -- indexed from 0..n-2
-	 * v - right part
-	 * x - the answer
-	 */
-
-	for (int i = 1; i < n; i++){
-		double m = a[i]/b[i-1];
-		b[i] = b[i] - m*c[i-1];
-		v[i] = v[i] - m*v[i-1];
-	}
-
-	x[n-1] = v[n-1]/b[n-1];
-
-	for (int i = n - 2; i >= 0; i--)
-		x[i]=(v[i]-c[i]*x[i+1])/b[i];
-	
-} // end solve matrix
-
-int readParams(){
-
-	int MAX_STRING_LENGTH = 200;
-	char line[MAX_STRING_LENGTH];
-
-	FILE *fp = fopen("params.dat","r");
-	if( ! fp )
-		return EXIT_FAILURE;
-
-	int nV = 0;
-	while( fgets(line, MAX_STRING_LENGTH, fp) ){
-
-		nV += sscanf(line, "N = %d",&N);			
-		nV += sscanf(line, "rMax = %lg",&rMax);			
-		nV += sscanf(line, "rMin = %lg",&rMin);
-		nV += sscanf(line, "r0 = %lg",&r0);
-		nV += sscanf(line, "nu = %lg",&nu);
-
-	} // end read while	
-	
-	fclose(fp);
-
-	// update global variables dependent on these ...
-	dr   = (rMax-rMin)/(N-1.0);
-	dr2  = dr*dr;
-
-
-
-	fprintf(stderr,"%d variables read from file\n-----------------------\n",nV);
-	fprintf(stderr,"N			= %d\n",N);
-	fprintf(stderr,"rMax	= %g\n",rMax);
-	fprintf(stderr,"rMin	= %g\n",rMin);
-	fprintf(stderr,"r0		= %g\n",r0);
-	fprintf(stderr,"nu		= %g\n",nu);
-
-	return EXIT_SUCCESS;
-} // end readParams
