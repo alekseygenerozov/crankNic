@@ -43,7 +43,7 @@ def grabData(fileName,type):
 		if(type == 0):
 			plt.plot( data[:,0] , data[:,1]*3.14159 ) 
 		else:
-			plt.plot( data[:,0] , data[:,1]*3.14159 , 'k*', markersize=4)
+			plt.plot( data[::20,0] , data[::20,1]*3.14159 , 'k*', markersize=4)
 
 grabData("T008.dat",0)
 grabData("T032.dat",0)
