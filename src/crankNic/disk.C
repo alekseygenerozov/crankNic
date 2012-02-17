@@ -5,6 +5,7 @@
 #include "global.h"
 #include "diagSolvers.h"
 #include "readWrite.h"
+#include "torques.h"
 
 int main(){
 

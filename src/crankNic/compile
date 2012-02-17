@@ -1,0 +1,1 @@
+g++ disk.C diagSolvers.h readWrite.h global.h torques.h -o cNsolver

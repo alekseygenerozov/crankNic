@@ -21,6 +21,10 @@ int readParams(){
 		nV += sscanf(line, "rMin = %lg",&rMin);
 		nV += sscanf(line, "r0 = %lg",&r0);
 		nV += sscanf(line, "nu = %lg",&nu);
+		nV += sscanf(line, "h = %lg",&h);
+		nV += sscanf(line, "q = %lg",&q);
+		nV += sscanf(line, "M = %lg",&M);
+		nV += sscanf(line, "f = %lg",&f);
 
 	} // end read while	
 	
@@ -38,6 +42,10 @@ int readParams(){
 	fprintf(stderr,"rMin	= %g\n",rMin);
 	fprintf(stderr,"r0		= %g\n",r0);
 	fprintf(stderr,"nu		= %g\n",nu);
+	fprintf(stderr,"h			= %g\n",h);
+	fprintf(stderr,"q			= %g\n",q);
+	fprintf(stderr,"M			= %g\n",M);
+	fprintf(stderr,"f			= %g\n",f);
 
 	return EXIT_SUCCESS;
 } // end readParams
