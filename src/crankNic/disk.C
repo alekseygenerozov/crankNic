@@ -34,6 +34,16 @@ int main(){
 	}	
 	fclose(fp);
 
+	double Lambda[N], Gamma[N];
+	for( int i = 0 ; i < N ; i++ ){
+		Lambda[i] = lambda( r[i] , 1.0 , .03 );
+		Gamma[i]	= gamma(	r[i] , 1.0 , .03 );
+	}
+	writeOut("TorqueProfile.dat",r,Lambda,N);
+	writeOut("GammaProfile.dat", r,Gamma ,N);
+
+	return EXIT_SUCCESS;
+
 	writeOut("T008.dat",r,sigma,N);	// FIXME
 
  double  tMin = .008/(12.0*nu)*r0*r0,

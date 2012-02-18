@@ -18,7 +18,6 @@ double dr2    = dr*dr;                // cell size squared
 
 // PHYSICAL PARAMETERS
 double r0   = 1.0;      // where delta-fcn starts
-double h		= 10.0*dr;	// disk scale height
 double q		= 0.1;			// binary mass ratio
 double M		= 1.0;			// primary mass
 double f		= .01;			// numerical parameter for torque density

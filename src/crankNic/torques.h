@@ -1,4 +1,6 @@
 #include "global.h"
+#include <stdio.h>
+#include <math.h>
 
 /*
  *  LAMBDA
@@ -11,10 +13,15 @@ double lambda( 	double r , 		// radial position in disk
 								double h 			// scale height of disk
 							){
 	double	tmp1 = f*q*q*M*0.5,
-					Dl = max(fabs(r-a),h);
+					Dl;
+
+	if( fabs(r-a) > h )
+		Dl = fabs(r-a);
+	else
+		Dl = h;
 
 	if( r < a )
-		return -tmp1*r*r*r/Dl*Dl*Dl*Dl;
+		return -tmp1*r*r*r/Dl/Dl/Dl/Dl;
 	
 	double tmp2 = a/Dl;
 
