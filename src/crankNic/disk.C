@@ -18,6 +18,9 @@ int main(){
 	double r[N];
 	double sigma[N];
 	double sNew[N];		// sigma of t + 1
+
+	double a = 1.0;	// binary separation FIXME
+	double h = .03;	// disk scale height
 	
 	FILE* fp = fopen("analytic_T0.dat","r");
 	double tmp1,tmp2;
@@ -34,16 +37,6 @@ int main(){
 	}	
 	fclose(fp);
 
-	double Lambda[N], Gamma[N];
-	for( int i = 0 ; i < N ; i++ ){
-		Lambda[i] = lambda( r[i] , 1.0 , .03 );
-		Gamma[i]	= gamma(	r[i] , 1.0 , .03 );
-	}
-	writeOut("TorqueProfile.dat",r,Lambda,N);
-	writeOut("GammaProfile.dat", r,Gamma ,N);
-
-	return EXIT_SUCCESS;
-
 	writeOut("T008.dat",r,sigma,N);	// FIXME
 
  double  tMin = .008/(12.0*nu)*r0*r0,
@@ -54,7 +47,7 @@ int main(){
 	fprintf(stderr,"\t>> Time Steps: %d\n", Nt);
 	bool keepOn = true;
 
-	double alpha = 3.0*nu*dt/(2.0*dr2), delR;
+	double alpha = 3.0*nu*dt/(2.0*dr2), delR, beta;
 
 	fprintf(stderr,"alpha = %e \ndelMin = %e\n",alpha,dr/.1);
 	
@@ -66,6 +59,7 @@ int main(){
 
 	for( int j = 0 ; j < N ; j++ ){
 		delR = dr/r[j];
+		beta = lambda(r[j],a,h)*dt/(omega_k(r[j])*dr2);
 		L[j] = -alpha*(1.0-0.75*delR);
 		C[j] = 1.0 + 2.0*alpha;
 		R[j] = -alpha*(1.0+0.75*delR);
@@ -83,9 +77,15 @@ int main(){
 		// ----- SOLVER HERE
 		for( int j = 1 ; j < N-1 ; j++ ){
 			delR = dr/r[j];
-			C[j] = 1.0 + 2.0*alpha;
-			d[j] = alpha*(1.0+0.75*delR)*sigma[j+1] + (1.0-2.0*alpha)*sigma[j]
-						+ alpha*(1.0-0.75*delR)*sigma[j-1];
+			beta = lambda(r[j],a,h)*dt/(omega_k(r[j])*dr2);
+
+			L[j] = -(alpha*(1.0-0.75*delR)+0.5*beta*delR);
+			C[j] = 1.0 + 2.0*alpha + delR*delR*beta*(1.5+gamma(r[j],a,h));
+			R[j] = -(alpha*(1.0+0.75*delR)-0.5*beta*delR);
+
+			d[j] = (alpha*(1.0+0.75*delR)-0.5*beta*delR)*sigma[j+1] 
+							+ (1.0-2.0*alpha-beta*delR*delR*(1.5+gamma(r[j],a,h)))*sigma[j]
+							+ (alpha*(1.0-0.75*delR)+0.5*beta*delR)*sigma[j-1];
 		} // end j for
 
 		// boundary conditions

@@ -24,5 +24,6 @@ double f		= .01;			// numerical parameter for torque density
 double nu   = 0.1;      // viscosity
 
 double max(double a, double b){return (a<b)?a:b;};
+double omega_k(double r){ return sqrt(M/(r*r*r));};
 
 #endif
