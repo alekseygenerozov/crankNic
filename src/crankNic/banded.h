@@ -61,4 +61,24 @@ Bandec::Bandec(MatDoub_I &a, const int mm1, const int mm2)
 	}//end k for
 } // end bandec constructor
 
-
+// Solves matrix, having already decomposed in previous part
+void Bandec::solve(VecDoub_I &b, VecDoub_O &x )
+{
+	int i,j,k,l=m1,mm=m1+m2+1;
+	double tmp;
+	for(k=0;k<n;k++) x[k]=b[k];
+	// forward substitution
+	for(k=0;k<n;k++) {
+		j=indx[k]-1;
+		if(j!=k) SWAP(x[k],x[j]);
+		if(l<n) l++;
+		for(j=k+1;j<l;j++) x[j] -= al[k][j-k-1]*x[k];
+	} // end k for
+	l=1;
+	for(i=n-1;i>=0;i--){
+		tmp=x[i];
+		for(k=1;k<l;k++) tmp -= au[i][k]*x[k+i];
+		x[i]=tmp/au[i][0];
+		if(l<mm) l++;
+	}// end i for
+} // end solve
