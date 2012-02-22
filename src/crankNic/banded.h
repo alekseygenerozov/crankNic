@@ -1,4 +1,5 @@
 #include "nr3.h"
+#include <stdio.h>
 
 /*
  *  BANDED.h
@@ -14,11 +15,11 @@ struct Bandec {
 	double d;
 	Bandec(MatDoub_I &a, const int mm1, const int mm2);
 	void solve( VecDoub_I &b, VecDoub &x );
-}
+};
 
 // constructor, which also does LU decomposition
 Bandec::Bandec(MatDoub_I &a, const int mm1, const int mm2)
-	: n(a.rows()), au(a), m1(mm1), m2(mm2), al(n,m1),indx(n)
+	: n(a.nrows()), au(a), m1(mm1), m2(mm2), al(n,m1),indx(n)
 {
 	int i,j,k,l=m1,mm=m1+m2+1;
 	double tmp;
@@ -38,14 +39,17 @@ Bandec::Bandec(MatDoub_I &a, const int mm1, const int mm2)
 		for(j=k+1;j<l;j++){		// find the pivot element
 			if(abs(au[j][0]) > abs(tmp)){
 				tmp = au[j][0];
-				i=j
+				i=j;
 			}// end if
 		}// end j for
 		
 		indx[k]=i+1;
 
 		// check for singular matrix
-		if(tmp==0.0) au[k][0]=TINY;	
+		if(tmp==0.0){
+			au[k][0]=TINY;	
+			fprintf(stderr,"WARNING -- Singular Matrix\n");
+		}
 
 		// interchange rows
 		if(i!=k){
@@ -53,7 +57,7 @@ Bandec::Bandec(MatDoub_I &a, const int mm1, const int mm2)
 			for(j=0;j<mm;j++) SWAP(au[k][j],au[i][j]);
 		}
 		for(i=k+1;i<1;i++){
-			dum = au[i][0]/au[k][0];
+			tmp = au[i][0]/au[k][0];
 			al[k][i-k-1]=tmp;
 			for(j=1;j<mm;j++) au[i][j-1]=au[i][j]-tmp*au[k][j];
 			au[i][mm-1]=0.0;
