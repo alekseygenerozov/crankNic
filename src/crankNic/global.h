@@ -31,4 +31,14 @@ double nu   = 0.1;      // viscosity
 double max(double a, double b){return (a<b)?a:b;};
 double omega_k(double r){ return sqrt(M/(r*r*r));};
 
+// BOUNDARY CONDITIONS
+//
+//		0 - Zero-gradient
+//		1 - Dirichlet
+//
+int outer_bndry_type = 0;		
+int inner_bndry_type = 0;
+double outer_bndry_value = -1.0;
+double inner_bndry_value = -1.0;
+
 #endif

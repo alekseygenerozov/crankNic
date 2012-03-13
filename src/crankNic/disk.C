@@ -8,42 +8,49 @@
 #include "torques.h"
 
 int main(){
-
+	
+	// read in from parameter file, params.in
 	int status = readParams();
 	if( status != EXIT_SUCCESS ){
 		fprintf(stderr,"ERROR READING INPUT FILE\n");
 		return EXIT_FAILURE;
 	}
+  dr   = (rMax-rMin)/(N-1.0);		// update globals 
+  dr2  = dr*dr;
 
 	int fileCount = 0;
 
-	double r[N];
-	double sigma[N];
-	double sNew[N];		// sigma of t + 1
+	// Create arrays for data
+	double r[N];				// radial position
+	double sigma[N];		// surface density (azimuthally averaged)
+	double sNew[N];			// sigma of current time step
 
-	double a = 1.0;	// binary separation FIXME
+	double a = 1.0;	// binary separation
 	double h = .03;	// disk scale height
-	
+
+	// We intialize from file ...
 	FILE* fp = fopen("analytic_T0.dat","r");
 	double tmp1,tmp2;
-
-	/*
-	 *   We intialize from file ...
-	 */
-
 	for( int i = 0 ; i < N ; i++ ){
 		fscanf(fp,"%lg",&tmp1);
 		fscanf(fp,"%lg",&tmp2);
 		r[i] = tmp1;
 		sigma[i] = tmp2;
-	}	
+	}// end i for	
 	fclose(fp);
 
+	// If Dirichlet BVs and no value set, use IC file:
+	if(-1.0==outer_bndry_value)
+		outer_bndry_value = sigma[N-1];
+	if(-1.0==inner_bndry_value)
+		inner_bndry_value = sigma[0];
+	
 	double tork[N];
 	for(int i=0;i<N;i++)
 		tork[i] = lambda(r[i],a,h);
 
-	// print ICs
+	// print ICs & Parameters we'll use
+	writeParams();
 	writeStandard(fileCount++,N,r,sigma,tork);
 
 	double t,
@@ -121,10 +128,11 @@ int main(){
 
 		if( t >= nextWrite ){
 			nextWrite += tWrite;
-			if(EXIT_SUCCESS != writeStandard(fileCount++,N,r,sigma,tork)){
-				fprintf(stderr,"ERROR IN SOLVER -- Failed to open output file #%d\n",fileCount-1);
+			if(EXIT_SUCCESS != writeStandard(fileCount,N,r,sigma,tork)){
+				fprintf(stderr,"ERROR IN SOLVER -- Failed to open output file #%d\n",fileCount);
 				return EXIT_FAILURE;
 			}// end error if
+			fprintf(stderr,"	>> Wrote Output #%d at T = %e\n",fileCount++,t);
 		} // end write if
 
 	}// end time-step loop

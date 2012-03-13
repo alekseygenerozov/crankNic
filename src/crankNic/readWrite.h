@@ -9,50 +9,90 @@ int readParams(){
 	int MAX_STRING_LENGTH = 200;
 	char line[MAX_STRING_LENGTH];
 
-	FILE *fp = fopen("params.dat","r");
+	FILE *fp = fopen("params.in","r");
 	if( ! fp )
 		return EXIT_FAILURE;
 
 	int nV = 0;
 	while( fgets(line, MAX_STRING_LENGTH, fp) ){
 
+		// dimensions
 		nV += sscanf(line, "N = %d",&N);			
 		nV += sscanf(line, "rMax = %lg",&rMax);			
 		nV += sscanf(line, "rMin = %lg",&rMin);
+
+		// physical params
 		nV += sscanf(line, "r0 = %lg",&r0);
 		nV += sscanf(line, "nu = %lg",&nu);
 		nV += sscanf(line, "q = %lg",&q);
 		nV += sscanf(line, "M = %lg",&M);
 		nV += sscanf(line, "f = %lg",&f);
+
+		// timing
 		nV += sscanf(line, "tStart = %lg",&tStart);
 		nV += sscanf(line, "tEnd = %lg",&tEnd);
 		nV += sscanf(line, "tWrite = %lg",&tWrite);
+
+		// Boundary Conditions
+		nV += sscanf(line, "outer_bndry_type = %d",&outer_bndry_type);
+		nV += sscanf(line, "inner_bndry_type = %d",&inner_bndry_type);
+		nV += sscanf(line, "outer_bndry_value = %lg",&outer_bndry_value);
+		nV += sscanf(line, "inner_bndry_value = %lg",&inner_bndry_value);
 
 	} // end read while	
 	
 	fclose(fp);
 
-	// update global variables dependent on these ...
-	dr   = (rMax-rMin)/(N-1.0);
-	dr2  = dr*dr;
-
-
-
 	fprintf(stderr,"%d variables read from file\n-----------------------\n",nV);
-	fprintf(stderr,"N				= %d\n",N);
-	fprintf(stderr,"rMax		= %g\n",rMax);
-	fprintf(stderr,"rMin		= %g\n",rMin);
-	fprintf(stderr,"r0			= %g\n",r0);
-	fprintf(stderr,"nu			= %g\n",nu);
-	fprintf(stderr,"q				= %g\n",q);
-	fprintf(stderr,"M				= %g\n",M);
-	fprintf(stderr,"f				= %g\n",f);
-	fprintf(stderr,"tStart	= %g\n",tStart);
-	fprintf(stderr,"tEnd		= %g\n",tEnd);
-	fprintf(stderr,"tWrite	= %g\n",tWrite);
 
 	return EXIT_SUCCESS;
-} // end readParams
+}// end readParams
+
+/*
+ *	WRITE_PARAMS
+ *
+ *		Writes out parameters we'll use throughout the simulation 
+ *		to file params.out
+ */
+int writeParams(){
+
+	FILE *fp;
+	if(!(fp=fopen("params.out","w"))){
+		return EXIT_FAILURE;
+		fprintf(stderr,"ERROR IN WRITE PARAMS\n	>> Failed to open params.out\n");
+	} // end error if
+	
+	// Dimensions
+	fprintf(fp,"N    = %d\n",N);
+	fprintf(fp,"rMax = %g\n",rMax);
+	fprintf(fp,"rMin = %g\n",rMin);
+	fprintf(fp,"\n");
+
+	// Physical Params
+	fprintf(fp,"r0 = %g\n",r0);
+	fprintf(fp,"nu = %g\n",nu);
+	fprintf(fp,"q  = %g\n",q);
+	fprintf(fp,"M  = %g\n",M);
+	fprintf(fp,"f  = %g\n",f);
+	fprintf(fp,"\n");
+
+	// Timing
+	fprintf(fp,"tStart = %g\n",tStart);
+	fprintf(fp,"tEnd   = %g\n",tEnd);
+	fprintf(fp,"tWrite = %g\n",tWrite);
+	fprintf(fp,"\n");
+
+	// Boundary Conditions
+	fprintf(fp,"outer_bndry_type  = %d\n",outer_bndry_type);
+	fprintf(fp,"inner_bndry_type  = %d\n",inner_bndry_type);
+	fprintf(fp,"outer_bndry_value = %g\n",outer_bndry_value);
+	fprintf(fp,"inner_bndry_value = %g\n",inner_bndry_value);
+	fprintf(fp,"\n");
+
+	fclose(fp);
+
+	return EXIT_SUCCESS;
+} // end writeParams
 
 int writeOut(	char* fileName,
 							int n, 
