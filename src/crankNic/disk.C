@@ -15,6 +15,8 @@ int main(){
 		return EXIT_FAILURE;
 	}
 
+	int fileCount = 0;
+
 	double r[N];
 	double sigma[N];
 	double sNew[N];		// sigma of t + 1
@@ -42,13 +44,12 @@ int main(){
 		tork[i] = lambda(r[i],a,h);
 
 	// print ICs
-	writeOut("T008.dat",N,r,sigma,tork);
+	writeStandard(fileCount++,N,r,sigma,tork);
 
- double  tMin = .008/(12.0*nu)*r0*r0,
-    tMax = .512/(12.0*nu)*r0*r0,
-		t,
-		dt= 0.01*dr/nu;
-	int Nt = 1 + (int)((tMax-tMin)/dt);
+	double t,
+		dt= 0.01*dr/nu,
+		nextWrite = tStart + tWrite;
+	int Nt = 1 + (int)((tEnd-tStart)/dt);
 	fprintf(stderr,"\t>> Time Steps: %d\n", Nt);
 	bool keepOn = true;
 
@@ -77,7 +78,7 @@ int main(){
 
 	for( int i = 0 ; i < Nt && keepOn; i++ ){
 
-		t = i*dt + tMin;
+		t = i*dt + tStart;
 
 		// ----- SOLVER HERE
 		for( int j = 1 ; j < N-1 ; j++ ){
@@ -118,12 +119,15 @@ int main(){
 	  }
 
 
-		if( i == (int)(Nt*(32.0-8.0)/512.0)){writeOut("T032.dat",N,r,sigma,tork);}		
-		if( i == (int)(Nt*(128.0-8.0)/512.0)){writeOut("T128.dat",N,r,sigma,tork);}
+		if( t >= nextWrite ){
+			nextWrite += tWrite;
+			if(EXIT_SUCCESS != writeStandard(fileCount++,N,r,sigma,tork)){
+				fprintf(stderr,"ERROR IN SOLVER -- Failed to open output file #%d\n",fileCount-1);
+				return EXIT_FAILURE;
+			}// end error if
+		} // end write if
 
 	}// end time-step loop
 	
-	writeOut("T512.dat",N,r,sigma,tork);
-
 	return status;
 }

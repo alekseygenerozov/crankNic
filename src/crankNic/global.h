@@ -8,6 +8,11 @@
 const double PI = 3.14159265358979323846; // Pi 
 const double twoPI = 2*PI;      // 2*Pi
 
+// TIMING
+double tStart = 0.0;
+double tEnd = 1.0;
+double tWrite = 0.1;
+
 // RESOLUTION PARAMETERS
 
 int N         = 500;      // Size of Simulation
