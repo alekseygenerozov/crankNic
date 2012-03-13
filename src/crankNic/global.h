@@ -32,10 +32,8 @@ double max(double a, double b){return (a<b)?a:b;};
 double omega_k(double r){ return sqrt(M/(r*r*r));};
 
 // BOUNDARY CONDITIONS
-//
-//		0 - Zero-gradient
-//		1 - Dirichlet
-//
+const int ZERO_GRAD = 0;
+const int DIRICHLET = 1;
 int outer_bndry_type = 0;		
 int inner_bndry_type = 0;
 double outer_bndry_value = -1.0;
