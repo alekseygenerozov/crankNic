@@ -37,13 +37,12 @@ int main(){
 	}	
 	fclose(fp);
 
-	writeOut("T008.dat",r,sigma,N);	// FIXME
-
-	// Produce torque profile
 	double tork[N];
 	for(int i=0;i<N;i++)
 		tork[i] = lambda(r[i],a,h);
-	writeOut("torqueProfile.dat",r,tork,N);
+
+	// print ICs
+	writeOut("T008.dat",N,r,sigma,tork);
 
  double  tMin = .008/(12.0*nu)*r0*r0,
     tMax = .512/(12.0*nu)*r0*r0,
@@ -110,7 +109,7 @@ int main(){
 	      fprintf(stderr,"ERROR: Density negative @ i = %d\n",j);
 	      fprintf(stderr,"\t>> t = %g , Nt = %d\n",t,i);
 	      keepOn = false;
-	      writeOut("ERROR_OUT.dat",r,sNew,N);
+	      writeOut("ERROR_OUT.dat",N,r,sNew,tork);
 	    }// end error if
 
 		// update sigma
@@ -119,12 +118,12 @@ int main(){
 	  }
 
 
-		if( i == (int)(Nt*(32.0-8.0)/512.0)){writeOut("T032.dat",r,sigma,N);}		
-		if( i == (int)(Nt*(128.0-8.0)/512.0)){writeOut("T128.dat",r,sigma,N);}
+		if( i == (int)(Nt*(32.0-8.0)/512.0)){writeOut("T032.dat",N,r,sigma,tork);}		
+		if( i == (int)(Nt*(128.0-8.0)/512.0)){writeOut("T128.dat",N,r,sigma,tork);}
 
 	}// end time-step loop
 	
-	writeOut("T512.dat",r,sigma,N);
+	writeOut("T512.dat",N,r,sigma,tork);
 
 	return status;
 }

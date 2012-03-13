@@ -48,10 +48,19 @@ int readParams(){
 	return EXIT_SUCCESS;
 } // end readParams
 
-int writeOut(char* fileName, double* r, double* f, int n){
+int writeOut(	char* fileName,
+							int n, 
+							double* r, 
+							double* f1, 
+							double* f2 = NULL	// optional second field
+						){
   FILE* fp = fopen(fileName,"w");
   for( int i = 0; i < n ; i++ )
-    fprintf(fp,"%g\t%g\n",r[i], f[i]);
+		if(f2)
+	    fprintf(fp,"%e\t%e\t%e\n",r[i],f1[i],f2[i]);
+		else
+	    fprintf(fp,"%e\t%e\n",r[i],f1[i]);
+			
   fclose(fp);
   return 0;
 }// end writeOut
