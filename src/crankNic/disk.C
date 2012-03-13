@@ -39,6 +39,12 @@ int main(){
 
 	writeOut("T008.dat",r,sigma,N);	// FIXME
 
+	// Produce torque profile
+	double tork[N];
+	for(int i=0;i<N;i++)
+		tork[i] = lambda(r[i],a,h);
+	writeOut("torqueProfile.dat",r,tork,N);
+
  double  tMin = .008/(12.0*nu)*r0*r0,
     tMax = .512/(12.0*nu)*r0*r0,
 		t,
