@@ -30,6 +30,10 @@ int main(){
 
 	// We intialize from file ...
 	FILE* fp = fopen("analytic_T0.dat","r");
+	if(!fp){
+		fprintf(stderr,"ERROR IN DISK.C --- Failed to Open IC file:\n");
+		return EXIT_FAILURE;
+	} // end error if
 	double tmp1,tmp2;
 	for( int i = 0 ; i < N ; i++ ){
 		fscanf(fp,"%lg",&tmp1);
@@ -177,6 +181,14 @@ int main(){
 		} // end write if
 
 	}// end time-step loop
+
+	// print last file:
+	if(EXIT_SUCCESS != writeStandard(fileCount,N,r,sigma,tork)){
+		fprintf(stderr,"ERROR IN SOLVER -- Failed to open output file #%d\n",fileCount);
+		return EXIT_FAILURE;
+	}// end error if
+	fprintf(stderr,"  >> Wrote Output #%d at T = %e\n",fileCount++,t);
+
 	
 	return status;
 } // end main
