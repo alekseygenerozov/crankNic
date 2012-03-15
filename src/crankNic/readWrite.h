@@ -4,6 +4,9 @@
 
 #include "global.h"
 
+#ifndef INC_READ_PARAMS
+#define INC_READ_PARAMS
+
 int readParams(){
 
 	int MAX_STRING_LENGTH = 200;
@@ -130,3 +133,5 @@ int writeStandard(int i,int n,double* r,double* f1, double* f2 = NULL){
 	sprintf(fileName,"outputFiles/T%s.dat",str);
 	return writeOut(fileName,n,r,f1,f2);
 }
+
+#endif

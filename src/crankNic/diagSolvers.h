@@ -2,6 +2,9 @@
 #include <math.h>
 #include <stdlib.h>
 
+#ifndef INC_DIAG_SOLVERS
+#define INC_DIAG_SOLVERS
+
 /*
  *  Tridiagonal matrix solver (from wikipedia)
  */
@@ -29,3 +32,5 @@ void solveMatrix (int n, double *a, double *b, double *c, double *v, double *x)
 		x[i]=(v[i]-c[i]*x[i+1])/b[i];
 	
 } // end solve matrix
+
+#endif

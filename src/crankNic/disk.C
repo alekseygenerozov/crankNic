@@ -3,9 +3,10 @@
 #include <stdlib.h>
 
 #include "global.h"
+#include "cnSolver.h"
 #include "diagSolvers.h"
-#include "readWrite.h"
 #include "torques.h"
+#include "readWrite.h"
 
 int main(){
 	
@@ -64,98 +65,15 @@ int main(){
 	fprintf(stderr,"\t>> Time Steps: %d\n", Nt);
 	bool keepOn = true;
 
-	double alpha = 3.0*nu*dt/(2.0*dr2), delR, beta;
+	// intialize our Crank-Nicolson solver	
+	cnSolver solver;
 
-	fprintf(stderr,"alpha = %e \ndelMin = %e\n",alpha,dr/.1);
-	
-	// Vectors for Crank-Nicolson solver
-	double	d[N],	  // RHS of matrix eq
-					L[N], 	// left (lower) diagonal of matrix
-					R[N],		// right (upper) " "
-					C[N];		// central ""
-
-	for( int j = 0 ; j < N ; j++ ){
-		delR = dr/r[j];
-		beta = lambda(r[j],a,h)*dt/(omega_k(r[j])*dr2);
-		L[j] = -alpha*(1.0-0.75*delR);
-		C[j] = 1.0 + 2.0*alpha;
-		R[j] = -alpha*(1.0+0.75*delR);
-	} // end j for
-
-	// Setup Boundary Conditions
-	if( ZERO_GRAD == inner_bndry_type){				// Inner Boundary
-		R[0] = 1.0;	
-		C[0] = -1.0;	
-	} else if( DIRICHLET == inner_bndry_type){
-		R[0] = 0.0;
-		C[0] = 1.0;
-	} else{
-		fprintf(stderr,"ERROR --- Inner Bndry Type Improperly Specified as %d \n",
-			inner_bndry_type);
-		return EXIT_FAILURE;
-	}// end inner BC if/else
-
-	if( ZERO_GRAD == outer_bndry_type ){			// Outer Boundary
-		L[N-1] = -1.0; 
-		C[N-1] = 1.0;		
-	} else if( DIRICHLET == outer_bndry_type ){
-		L[N-1] = 0.0;
-		C[N-1] = 1.0;	
-	} else {
-		fprintf(stderr,"ERROR --- Outer Bndry Type Improperly Specified as %d \n",
-			outer_bndry_type);
-		return EXIT_FAILURE;
-	} // end outer BC if/else
-		
-
-
+	// step through time ...
 	for( int i = 0 ; i < Nt && keepOn; i++ ){
 
-		t = i*dt + tStart;
-
-		// ----- SOLVER HERE
-		for( int j = 1 ; j < N-1 ; j++ ){
-			delR = dr/r[j];
-			beta = lambda(r[j],a,h)*dt/(omega_k(r[j])*dr2);
-
-			L[j] = -(alpha*(1.0-0.75*delR)+0.5*beta*delR);
-			C[j] = 1.0 + 2.0*alpha + delR*delR*beta*(1.5+gamma(r[j],a,h));
-			R[j] = -(alpha*(1.0+0.75*delR)-0.5*beta*delR);
-
-			d[j] = (alpha*(1.0+0.75*delR)-0.5*beta*delR)*sigma[j+1] 
-							+ (1.0-2.0*alpha-beta*delR*delR*(1.5+gamma(r[j],a,h)))*sigma[j]
-							+ (alpha*(1.0-0.75*delR)+0.5*beta*delR)*sigma[j-1];
-		} // end j for
-
-		// update boundary conditions
-		if( ZERO_GRAD == inner_bndry_type ){			// Inner Boundary
-			C[0] = -1.0;
-			d[0] = 0;
-		} else if( DIRICHLET == inner_bndry_type ){
-			C[0] = 1.0;
-			d[0] = inner_bndry_value;
-		} else {
-			fprintf(stderr,"ERROR --- Inner Bndry Type Improperly Specified as %d \n",
-				inner_bndry_type);
-			return EXIT_FAILURE;
-		} // end outer BC if/else
-
-		if( ZERO_GRAD == outer_bndry_type ){			// Outer Boundary
-			C[N-1] = 1.0;
-			d[N-1] = 0;
-		} else if( DIRICHLET == outer_bndry_type){
-			C[N-1] = 1.0;
-			d[N-1] = outer_bndry_value;
-		} else {
-			fprintf(stderr,"ERROR --- Outer Bndry Type Improperly Specified as %d \n",
-				outer_bndry_type);
-			return EXIT_FAILURE;
-		} // end outer BC if/else
-
-		solveMatrix(N,L,C,R,d,sNew);
-		
-		// ----- END SOLVER
-
+		t = i*dt + tStart;	
+		solver.step(r,sigma,sNew,t,dt,a,h);
+				
 		// check for negatives
 		for( int j = 0 ; j < N ; j++ )
 	    if( sNew[j] < 0.0 ){

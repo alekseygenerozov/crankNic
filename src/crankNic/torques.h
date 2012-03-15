@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifndef INC_TORQUES
+#define INC_TORQUES
+
 /*
  *  LAMBDA
  *
@@ -44,3 +47,5 @@ double gamma(	double r, double a, double h ){
 		return -1.0;
 	return -1.0 - 4.0*r/(r-a);
 }// end gamma
+
+#endif
