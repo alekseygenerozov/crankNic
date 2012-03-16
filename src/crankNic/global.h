@@ -16,6 +16,7 @@ double tWrite = 0.1;
 // RESOLUTION PARAMETERS
 
 int N         = 500;      // Size of Simulation
+double lambda = 1.0;			// stretch factor of log grid
 double rMax   = 2.0;      // outer boundary
 double rMin   = 0.1;      // inner boundary
 double dr     = (rMax-rMin)/(N-1.0);  // cell size

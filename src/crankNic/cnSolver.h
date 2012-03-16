@@ -11,16 +11,41 @@
 
 struct cnSolver{
 	double 	*d,		// RHS of matrix eq
-					*L,		// left (lower) diagonal of matrix
-					*R,		// right (upper) ""
-					*C;		// central ""
+					*L2,		// twice leftward (lower) diagonal of matrix
+					*L1,		// once leftward (lower) diagonal of matrix
+					*C,			// central ""
+					*R1,		// once rightward (upper) ""
+					*R2;		// twice rightward (upper) ""
+	double coeffs[8];		// finite difference coefficients
 	cnSolver();
 	int step(double *r,double *sigma,double *sNew,double t,double dt,double &a,double &h);
 };
 
 // Constructor
 cnSolver::cnSolver() 
-	: d(new double[N]),L(new double[N]),R(new double[N]),C(new double[N]) {} 
+	: d(new double[N]),L2(new double[N]),L1(new double[N]),
+			C(new double[N]),R1(new double[N]),R2(new double[N])
+{
+	
+	// prep some CN constants based on log-grid stretch factor
+	double 	l2 = lambda*lambda,
+					lp1 = lambda + 1.0,
+					tmp1 = l2+lambda+1.0,
+					tmp2 = tmp1*(l2+1.0)*lp1*lp1;
+
+	// for laplacian term ...
+	coeffs[0] = -2.0/lambda*(2.0*l2-1.0)/tmp2;									// j+2
+	coeffs[1] = 2.0/lambda*lp1*(2.0*lambda-1.0)/tmp1;						// j+1
+	coeffs[3] = -2.0*pow(lambda,3)*(lambda-2.0)*lp1/tmp1;				// j-1
+	coeffs[4] = 2.0*pow(lambda,7)*(l2-2.0)/tmp2;								// j-2
+	coeffs[2] = -1.0*(coeffs[0]+coeffs[1]+coeffs[3]+coeffs[4]);	// j
+
+	// for gradient term ...
+	tmp1 = (l2+1.0)/lambda;
+	coeffs[5] = 1.0/tmp1;
+	coeffs[6] = (l2-1.0)/tmp1;
+	coeffs[7] = -l2/tmp1;
+} 
 
 /*
  *	STEP
@@ -39,23 +64,31 @@ int cnSolver::step(
 									double &h				// disk scale height
 ){
 
-	double delR, beta, alpha = 3.0*nu*dt/(2.0*dr2);
+	double delR, beta, alpha = 3.0*nu*dt/(2.0*dr2),tmp0,tmp1,tmp2;
 
 	// Build vectors for matrix solver
 	for( int j = 1 ; j < N-1 ; j++ ){
+		
 		delR = dr/r[j];
 		beta = lambda(r[j],a,h)*dt/(omega_k(r[j])*dr2);
+		
+		tmp0 = pow(lambda,-2.0*j)*alpha;
+		tmp1 = pow(lambda,-1.0*j)*delR/4.0*(3.0*alpha-2.0*beta);
+		tmp2 = -1.0*beta*delR*delR*(3.0/2.0+gamma(r[j],a,h));	
 
-		L[j] = -(alpha*(1.0-0.75*delR)+0.5*beta*delR);
-		C[j] = 1.0 + 2.0*alpha + delR*delR*beta*(1.5+gamma(r[j],a,h));
-		R[j] = -(alpha*(1.0+0.75*delR)-0.5*beta*delR);
+		L2[j] = -tmp0*coeffs[4]; 
+		L1[j] = -tmp0*coeffs[3]-tmp1*coeffs[7];
+		 C[j] = -tmp0*coeffs[2]-tmp1*coeffs[6]-tmp2+1.0;
+		R1[j] = -tmp0*coeffs[1]-tmp1*coeffs[5];
+		R2[j] = -tmp0*coeffs[0];
 
-		d[j] = (alpha*(1.0+0.75*delR)-0.5*beta*delR)*sigma[j+1] 
-						+ (1.0-2.0*alpha-beta*delR*delR*(1.5+gamma(r[j],a,h)))*sigma[j]
-						+ (alpha*(1.0-0.75*delR)+0.5*beta*delR)*sigma[j-1];
+		d[j] = tmp0*coeffs[0]*sigma[j+2] + (tmp0*coeffs[1]+tmp1*coeffs[5])*sigma[j+1]
+						+ (tmp0*coeffs[2]+tmp1*coeffs[6]+tmp2+1.0)*sigma[j]
+						+ (tmp0*coeffs[3]+tmp1*coeffs[7])*sigma[j-1] + tmp0*coeffs[4]*sigma[j-2];
+
 	} // end j for
 
-	// update boundary conditions
+	// update boundary conditions   FIXME
 	if( ZERO_GRAD == inner_bndry_type ){			// Inner Boundary
 		R[0] = 1.0;
 		C[0] = -1.0;

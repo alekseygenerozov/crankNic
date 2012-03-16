@@ -21,6 +21,7 @@ int readParams(){
 
 		// dimensions
 		nV += sscanf(line, "N = %d",&N);			
+		nV += sscanf(line, "lambda = %lg",&lambda);			
 		nV += sscanf(line, "rMax = %lg",&rMax);			
 		nV += sscanf(line, "rMin = %lg",&rMin);
 
@@ -66,9 +67,10 @@ int writeParams(){
 	} // end error if
 	
 	// Dimensions
-	fprintf(fp,"N    = %d\n",N);
-	fprintf(fp,"rMax = %g\n",rMax);
-	fprintf(fp,"rMin = %g\n",rMin);
+	fprintf(fp,"N      = %d\n",N);
+	fprintf(fp,"lambda = %g\n",lambda);
+	fprintf(fp,"rMax   = %g\n",rMax);
+	fprintf(fp,"rMin   = %g\n",rMin);
 	fprintf(fp,"\n");
 
 	// Physical Params
