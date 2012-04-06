@@ -6,15 +6,15 @@
 #define INC_TORQUES
 
 /*
- *  LAMBDA
+ *  TIDAL_TORQUE
  *
  *		Smoothed torque density of secondary on disk, due to
  *		to linblad resonances.
  */
-double lambda( 	double r , 		// radial position in disk
-								double a, 		// binary separation
-								double h 			// scale height of disk
-							){
+double tidalTorque( 	double r , 		// radial position in disk
+											double a, 		// binary separation
+											double h 			// scale height of disk
+									){
 	double	tmp1 = f*q*q*M*0.5,
 					Dl;
 
@@ -29,7 +29,7 @@ double lambda( 	double r , 		// radial position in disk
 	double tmp2 = a/Dl;
 
 	return 	tmp1*tmp2*tmp2*tmp2*tmp2/r;
-}// end lambda
+}// end tidal torque
 
 /*
  *	GAMMA

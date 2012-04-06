@@ -52,7 +52,7 @@ int main(){
 	
 	double tork[N];
 	for(int i=0;i<N;i++)
-		tork[i] = lambda(r[i],a,h);
+		tork[i] = tidal_torque(r[i],a,h);
 
 	// print ICs & Parameters we'll use
 	writeParams();
@@ -87,7 +87,6 @@ int main(){
 	  for( int j = 0 ; j < N ; j++ ){
 	    sigma[j] = sNew[j];
 	  }
-
 
 		if( t >= nextWrite ){
 			nextWrite += tWrite;

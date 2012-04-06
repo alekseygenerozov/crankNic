@@ -2,7 +2,8 @@
 #include <math.h>
 
 #include "global.h"
-#include "diagSolvers.h"
+#include "nr3.h"
+#include "banded.h"
 #include "readWrite.h"
 #include "torques.h"
 
@@ -10,21 +11,16 @@
 #define CN_SOLVER
 
 struct cnSolver{
-	double 	*d,		// RHS of matrix eq
-					*L2,		// twice leftward (lower) diagonal of matrix
-					*L1,		// once leftward (lower) diagonal of matrix
-					*C,			// central ""
-					*R1,		// once rightward (upper) ""
-					*R2;		// twice rightward (upper) ""
-	double coeffs[8];		// finite difference coefficients
+	double 	*d;					// RHS of matrix eq
+	double coeffs[9];		// finite difference coefficients
+	MatDoub M;					// Matrix of Crank-Nicolson Scheme
 	cnSolver();
 	int step(double *r,double *sigma,double *sNew,double t,double dt,double &a,double &h);
 };
 
 // Constructor
 cnSolver::cnSolver() 
-	: d(new double[N]),L2(new double[N]),L1(new double[N]),
-			C(new double[N]),R1(new double[N]),R2(new double[N])
+	: d(new double[N]),M(N,5)
 {
 	
 	// prep some CN constants based on log-grid stretch factor
@@ -41,11 +37,11 @@ cnSolver::cnSolver()
 	coeffs[2] = -1.0*(coeffs[0]+coeffs[1]+coeffs[3]+coeffs[4]);	// j
 
 	// for gradient term ...
-	tmp1 = (l2+1.0)/lambda;
-	coeffs[5] = 1.0/tmp1;
-	coeffs[6] = (l2-1.0)/tmp1;
-	coeffs[7] = -l2/tmp1;
-} 
+	coeffs[5] = 1.0/tmp1;															// j+1
+	coeffs[7] = -l2;																	// j-1
+	coeffs[8] = pow(lambda,5)/(lp1*tmp1);							// j-2
+	coeffs[6] = -1.0*(coeffs[5]+coeffs[7]+coeffs[8]);	// j
+}// end constructor 
 
 /*
  *	STEP
@@ -65,38 +61,47 @@ int cnSolver::step(
 ){
 
 	double delR, beta, alpha = 3.0*nu*dt/(2.0*dr2),tmp0,tmp1,tmp2;
+	static const double L2=0,L1=1,C=2,R1=3,R2=4;
 
 	// Build vectors for matrix solver
-	for( int j = 1 ; j < N-1 ; j++ ){
+	for( int j = 2 ; j < N-3 ; j++ ){
 		
 		delR = dr/r[j];
-		beta = lambda(r[j],a,h)*dt/(omega_k(r[j])*dr2);
+		beta = tidal_torque(r[j],a,h)*dt/(omega_k(r[j])*dr2);
 		
 		tmp0 = pow(lambda,-2.0*j)*alpha;
 		tmp1 = pow(lambda,-1.0*j)*delR/4.0*(3.0*alpha-2.0*beta);
-		tmp2 = -1.0*beta*delR*delR*(3.0/2.0+gamma(r[j],a,h));	
+		tmp2 = -1.0*beta*delR*delR*(3.0/2.0+gamma(r[j],a,h));
 
-		L2[j] = -tmp0*coeffs[4]; 
-		L1[j] = -tmp0*coeffs[3]-tmp1*coeffs[7];
-		 C[j] = -tmp0*coeffs[2]-tmp1*coeffs[6]-tmp2+1.0;
-		R1[j] = -tmp0*coeffs[1]-tmp1*coeffs[5];
-		R2[j] = -tmp0*coeffs[0];
+		M[j][L2] = -tmp0*coeffs[4]-tmp1*coeffs[8];						// Second sub-diagonal
+		M[j][L1] = -tmp0*coeffs[3]-tmp1*coeffs[7];						// First sub-diagonal
+		M[j][C]  = -tmp0*coeffs[2]-tmp1*coeffs[6]-tmp2+1.0;		// central band
+		M[j][R1] = -tmp0*coeffs[1]-tmp1*coeffs[5];						// first super-diagonal
+		M[j][R2] = -tmp0*coeffs[0];														// second super-diagonal
 
+		// RHS vector
 		d[j] = tmp0*coeffs[0]*sigma[j+2] + (tmp0*coeffs[1]+tmp1*coeffs[5])*sigma[j+1]
 						+ (tmp0*coeffs[2]+tmp1*coeffs[6]+tmp2+1.0)*sigma[j]
-						+ (tmp0*coeffs[3]+tmp1*coeffs[7])*sigma[j-1] + tmp0*coeffs[4]*sigma[j-2];
-
+						+ (tmp0*coeffs[3]+tmp1*coeffs[7])*sigma[j-1] + (tmp0*coeffs[4]+tmp1*coeffs[8])*sigma[j-2];
 	} // end j for
 
-	// update boundary conditions   FIXME
+	// update boundary conditions
 	if( ZERO_GRAD == inner_bndry_type ){			// Inner Boundary
-		R[0] = 1.0;
-		C[0] = -1.0;
-		d[0] = 0;
+
+		double lp1 = lambda+1.0,l2=lambda*lambda,
+			tmp1 = lambda*lambda+lambda+1.0;
+
+		M[0][R1] = lp1;
+		M[0][R2] = -1.0/lp1;
+		M[0][C]  = -1.0*(M[0][R1]+M[0][R2]);
+
+		M[1][L1] = pow(lambda,3)*(lambda+2.0)/tmp1;
+		M[1][R1] = (l2+lambda-1.0)/lambda;
+		M[1][R2] = (lambda-1.0)/lambda/tmp1;
+		M[1][C]  = -1.0*(M[1][L1]+M[1][R1]+M[1][R2]);
+
 	} else if( DIRICHLET == inner_bndry_type ){
-		R[0] = 0.0;
-		C[0] = 1.0;
-		d[0] = inner_bndry_value;
+		fprintf(stderr,"ERROR --- Dirichlet Bndry Type not implemented yet.\n");	// FIXME
 	} else {
 		fprintf(stderr,"ERROR --- Inner Bndry Type Improperly Specified as %d \n",
 			inner_bndry_type);
@@ -104,13 +109,18 @@ int cnSolver::step(
 	} // end outer BC if/else
 
 	if( ZERO_GRAD == outer_bndry_type ){			// Outer Boundary
-		L[N-1] = -1.0;
-		C[N-1] = 1.0;
-		d[N-1] = 0;
+
+		M[N-2][L2] = l2*l2*(lambda-1.0)/tmp1;
+		M[N-2][L1] = -lambda*(l2-lambda-1.0);
+		M[N-2][R1] = (2.0*lambda+1.0)/tmp1;
+		M[N-2][C]  = -1.0*(M[N-2][L2]+M[N-2][L1]+M[N-2][R1]);
+ 
+		M[N-1][L2] = -lambda*lp1;
+		M[N-1][L1] = l2*lambda/lp1;
+		M[N-1][C]  = -(M[N-1][L2]+M[N-1][L1]);
+ 
 	} else if( DIRICHLET == outer_bndry_type){
-		L[N-1] = 0.0;
-		C[N-1] = 1.0;
-		d[N-1] = outer_bndry_value;
+		fprintf(stderr,"ERROR --- Dirichlet Bndry Type not implemented yet.\n");	// FIXME
 	} else {
 		fprintf(stderr,"ERROR --- Outer Bndry Type Improperly Specified as %d \n",
 			outer_bndry_type);
