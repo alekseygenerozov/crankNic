@@ -11,16 +11,16 @@
 #define CN_SOLVER
 
 struct cnSolver{
-	double 	*d;					// RHS of matrix eq
+	VecDoub	d;					// RHS of matrix eq
 	double coeffs[9];		// finite difference coefficients
 	MatDoub M;					// Matrix of Crank-Nicolson Scheme
 	cnSolver();
-	int step(double *r,double *sigma,double *sNew,double t,double dt,double &a,double &h);
+	int step(double *r,double *sigma,VecDoub &sNew,double t,double dt,double &a,double &h);
 };
 
 // Constructor
 cnSolver::cnSolver() 
-	: d(new double[N]),M(N,5)
+	: d(N),M(N,5)
 {
 	
 	// prep some CN constants based on log-grid stretch factor
@@ -53,21 +53,21 @@ cnSolver::cnSolver()
 int cnSolver::step( 
 									double *r, 			// radius
 									double *sigma, 	// current surface density
-									double *sNew,		// updated surface density
+									VecDoub &sNew,	// updated surface density
 									double t, 			// time
 									double dt, 			// width of time step
-									double &a,				// binary separation
+									double &a,			// binary separation
 									double &h				// disk scale height
 ){
 
 	double delR, beta, alpha = 3.0*nu*dt/(2.0*dr2),tmp0,tmp1,tmp2;
-	static const double L2=0,L1=1,C=2,R1=3,R2=4;
+	static const int L2=0,L1=1,C=2,R1=3,R2=4;
 
 	// Build vectors for matrix solver
 	for( int j = 2 ; j < N-3 ; j++ ){
 		
 		delR = dr/r[j];
-		beta = tidal_torque(r[j],a,h)*dt/(omega_k(r[j])*dr2);
+		beta = tidalTorque(r[j],a,h)*dt/(omega_k(r[j])*dr2);
 		
 		tmp0 = pow(lambda,-2.0*j)*alpha;
 		tmp1 = pow(lambda,-1.0*j)*delR/4.0*(3.0*alpha-2.0*beta);
@@ -86,10 +86,10 @@ int cnSolver::step(
 	} // end j for
 
 	// update boundary conditions
+	double lp1 = lambda+1.0,l2=lambda*lambda;
+	tmp1 = lambda*lambda+lambda+1.0;
 	if( ZERO_GRAD == inner_bndry_type ){			// Inner Boundary
 
-		double lp1 = lambda+1.0,l2=lambda*lambda,
-			tmp1 = lambda*lambda+lambda+1.0;
 
 		M[0][R1] = lp1;
 		M[0][R2] = -1.0/lp1;
@@ -127,7 +127,9 @@ int cnSolver::step(
 		return EXIT_FAILURE;
 	} // end outer BC if/else
 
-	solveMatrix(N,L,C,R,d,sNew);
+	// Solve Matrix
+	Bandec banded(M,2,2);
+	banded.solve(d,sNew);
 		
 	return EXIT_SUCCESS;
 } // end solve

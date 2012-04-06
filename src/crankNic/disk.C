@@ -24,7 +24,7 @@ int main(){
 	// Create arrays for data
 	double r[N];				// radial position
 	double sigma[N];		// surface density (azimuthally averaged)
-	double sNew[N];			// sigma of current time step
+	VecDoub sNew(N);		// sigma of current time step
 
 	double a = 1.0;	// binary separation
 	double h = .03;	// disk scale height
@@ -52,7 +52,7 @@ int main(){
 	
 	double tork[N];
 	for(int i=0;i<N;i++)
-		tork[i] = tidal_torque(r[i],a,h);
+		tork[i] = tidalTorque(r[i],a,h);
 
 	// print ICs & Parameters we'll use
 	writeParams();
@@ -80,7 +80,10 @@ int main(){
 	      fprintf(stderr,"ERROR: Density negative @ i = %d\n",j);
 	      fprintf(stderr,"\t>> t = %g , Nt = %d\n",t,i);
 	      keepOn = false;
-	      writeOut("ERROR_OUT.dat",N,r,sNew,tork);
+				for(int j=0;j<N;j++)
+					sigma[j]=sNew[j];
+	      writeOut("ERROR_OUT.dat",N,r,sigma,tork);
+				return EXIT_FAILURE;
 	    }// end error if
 
 		// update sigma
