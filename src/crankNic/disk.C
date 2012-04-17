@@ -59,7 +59,7 @@ int main(){
 	writeStandard(fileCount++,N,r,sigma,tork);
 
 	double t,
-		dt= 0.01*dr2/nu,
+		dt= 0.01*dr/nu,			// FIXME
 		nextWrite = tStart + tWrite;
 	int Nt = 1 + (int)((tEnd-tStart)/dt);
 	fprintf(stderr,"\t>> Time Steps: %d\n", Nt);

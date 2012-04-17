@@ -15,6 +15,10 @@ double tidalTorque( 	double r , 		// radial position in disk
 											double a, 		// binary separation
 											double h 			// scale height of disk
 									){
+
+	if( q == 0.0 ){
+		return 0.0;
+	}// end simple cas if
 	double	tmp1 = f*q*q*M*0.5,
 					Dl;
 

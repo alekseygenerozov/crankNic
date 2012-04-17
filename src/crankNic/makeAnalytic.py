@@ -61,7 +61,7 @@ def S(x,t):
     tmp = M/(R0*R0*pi*t)
     return tmp*x**(-.25)*exp(-(1+x*x)/t)*iv(.25,2*x/t)
 
-dr = (rMax - rMin)/(N+1.0)
+dr = (rMax - rMin)/(N-1.0)
 r = arange(rMin,rMax,dr)
 
 for i in range(4):	# FIXME

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "global.h"
 #include "nr3.h"
@@ -41,6 +42,27 @@ cnSolver::cnSolver()
 	coeffs[7] = -l2;																	// j-1
 	coeffs[8] = pow(lambda,5)/(lp1*tmp1);							// j-2
 	coeffs[6] = -1.0*(coeffs[5]+coeffs[7]+coeffs[8]);	// j
+
+/*
+//	use these to cross-check the new-order solver when lambda=1
+
+	coeffs[0] = 0.0;
+	coeffs[1] = 1.0;
+	coeffs[2] = -2.0;
+	coeffs[3] = 1.0;
+	coeffs[4] = 0.0;
+
+	coeffs[5] = 0.5;
+	coeffs[6] = 0.0;
+	coeffs[7] = -0.5;
+	coeffs[8] = 0.0;
+*/
+
+	fprintf(stderr,"Coeffs:\n");
+	fprintf(stderr,"------------------\n");
+	for( int i = 0; i < 9 ; i++)
+		fprintf(stderr,"\tcoeffs[%d] = %f\n",i,coeffs[i]);
+	fprintf(stderr,"\n");
 }// end constructor 
 
 /*
@@ -64,7 +86,7 @@ int cnSolver::step(
 	static const int L2=0,L1=1,C=2,R1=3,R2=4;
 
 	// Build vectors for matrix solver
-	for( int j = 2 ; j < N-3 ; j++ ){
+	for( int j = 2 ; j < N-2 ; j++ ){
 		
 		delR = dr/r[j];
 		beta = tidalTorque(r[j],a,h)*dt/(omega_k(r[j])*dr2);
@@ -73,6 +95,11 @@ int cnSolver::step(
 		tmp1 = pow(lambda,-1.0*j)*delR/4.0*(3.0*alpha-2.0*beta);
 		tmp2 = -1.0*beta*delR*delR*(3.0/2.0+gamma(r[j],a,h));
 
+/*	FIXME
+		fprintf(stderr,"delR,alpha,beta,tmp0,tmp1,tmp2 = %f\t%f\t%f\t%f\t%f\t%f\t\n",
+			delR,alpha,beta,tmp0,tmp1,tmp2);			// these checkout okay!
+*/
+
 		M[j][L2] = -tmp0*coeffs[4]-tmp1*coeffs[8];						// Second sub-diagonal
 		M[j][L1] = -tmp0*coeffs[3]-tmp1*coeffs[7];						// First sub-diagonal
 		M[j][C]  = -tmp0*coeffs[2]-tmp1*coeffs[6]-tmp2+1.0;		// central band
@@ -80,14 +107,16 @@ int cnSolver::step(
 		M[j][R2] = -tmp0*coeffs[0];														// second super-diagonal
 
 		// RHS vector
-		d[j] = tmp0*coeffs[0]*sigma[j+2] + (tmp0*coeffs[1]+tmp1*coeffs[5])*sigma[j+1]
+		d[j] = 	   tmp0*coeffs[0]*sigma[j+2] 
+						+ (tmp0*coeffs[1]+tmp1*coeffs[5])*sigma[j+1]
 						+ (tmp0*coeffs[2]+tmp1*coeffs[6]+tmp2+1.0)*sigma[j]
-						+ (tmp0*coeffs[3]+tmp1*coeffs[7])*sigma[j-1] + (tmp0*coeffs[4]+tmp1*coeffs[8])*sigma[j-2];
+						+ (tmp0*coeffs[3]+tmp1*coeffs[7])*sigma[j-1] 
+						+ (tmp0*coeffs[4]+tmp1*coeffs[8])*sigma[j-2];
 	} // end j for
 
 	// update boundary conditions
 	double lp1 = lambda+1.0,l2=lambda*lambda;
-	tmp1 = lambda*lambda+lambda+1.0;
+	tmp1 = lambda*lambda+lambda+1.0, tmp2 = lambda*lambda-lambda-1.0;
 	if( ZERO_GRAD == inner_bndry_type ){			// Inner Boundary
 
 
@@ -100,6 +129,8 @@ int cnSolver::step(
 		M[1][R2] = (lambda-1.0)/lambda/tmp1;
 		M[1][C]  = -1.0*(M[1][L1]+M[1][R1]+M[1][R2]);
 
+		d[1] = 0.0; d[0] = 0.0;
+
 	} else if( DIRICHLET == inner_bndry_type ){
 		fprintf(stderr,"ERROR --- Dirichlet Bndry Type not implemented yet.\n");	// FIXME
 	} else {
@@ -111,14 +142,16 @@ int cnSolver::step(
 	if( ZERO_GRAD == outer_bndry_type ){			// Outer Boundary
 
 		M[N-2][L2] = l2*l2*(lambda-1.0)/tmp1;
-		M[N-2][L1] = -lambda*(l2-lambda-1.0);
+		M[N-2][L1] = -lambda*tmp2;
 		M[N-2][R1] = (2.0*lambda+1.0)/tmp1;
 		M[N-2][C]  = -1.0*(M[N-2][L2]+M[N-2][L1]+M[N-2][R1]);
  
-		M[N-1][L2] = -lambda*lp1;
-		M[N-1][L1] = l2*lambda/lp1;
+		M[N-1][L2] = -lambda*l2/tmp2/lp1;
+		M[N-1][L1] = lambda*lp1/tmp2;
 		M[N-1][C]  = -(M[N-1][L2]+M[N-1][L1]);
- 
+
+		d[N-1] = 0.0; d[N-2] = 0.0;
+	
 	} else if( DIRICHLET == outer_bndry_type){
 		fprintf(stderr,"ERROR --- Dirichlet Bndry Type not implemented yet.\n");	// FIXME
 	} else {
