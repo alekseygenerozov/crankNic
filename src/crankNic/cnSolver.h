@@ -92,11 +92,11 @@ int cnSolver::step(
 		beta = tidalTorque(r[j],a,h)*dt/(omega_k(r[j])*dr2);
 		
 		tmp0 = pow(lambda,-2.0*j)*alpha;
-		tmp1 = pow(lambda,-1.0*j)*delR/4.0*(3.0*alpha-2.0*beta);
+		tmp1 = pow(lambda,-1.0*j)*delR/2.0*(3.0*alpha-2.0*beta);
 		tmp2 = -1.0*beta*delR*delR*(3.0/2.0+gamma(r[j],a,h));
 
-/*	FIXME
-		fprintf(stderr,"delR,alpha,beta,tmp0,tmp1,tmp2 = %f\t%f\t%f\t%f\t%f\t%f\t\n",
+/*	
+		fprintf(stderr,"delR,alpha,beta,tmp0,tmp1,tmp2 = %g\t%g\t%g\t%g\t%g\t%g\t\n",
 			delR,alpha,beta,tmp0,tmp1,tmp2);			// these checkout okay!
 */
 
