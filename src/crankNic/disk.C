@@ -16,7 +16,14 @@ int main(){
 		fprintf(stderr,"ERROR READING INPUT FILE\n");
 		return EXIT_FAILURE;
 	}
-  dr   = (rMax-rMin)/(N-1.0);		// update globals 
+
+	// Update global grid params
+	if( lambda == 1.0 ){
+	  dr = (rMax-rMin)/(N-1.0);
+	} else {
+		dr = (rMax-rMin)*(lambda-1.0)/(pow(lambda,N-1)-1.0);
+	}
+	fprintf(stderr,"dr = %g\n",dr);
   dr2  = dr*dr;
 
 	int fileCount = 0;
