@@ -9,7 +9,7 @@
 #include "readWrite.h"
 
 int main(){
-	
+
 	// read in from parameter file, params.in
 	int status = readParams();
 	if( status != EXIT_SUCCESS ){
@@ -36,20 +36,39 @@ int main(){
 	double a = 1.0;	// binary separation
 	double h = .03;	// disk scale height
 
-	// We intialize from file ...
-	FILE* fp = fopen("analytic_T0.dat","r");
-	if(!fp){
-		fprintf(stderr,"ERROR IN DISK.C --- Failed to Open IC file:\n");
-		return EXIT_FAILURE;
-	} // end error if
-	double tmp1,tmp2;
-	for( int i = 0 ; i < N ; i++ ){
-		fscanf(fp,"%lg",&tmp1);
-		fscanf(fp,"%lg",&tmp2);
-		r[i] = tmp1;
-		sigma[i] = tmp2;
-	}// end i for	
-	fclose(fp);
+
+	if( problemType == 1 ){
+		// We intialize from file ...
+		FILE* fp = fopen("analytic_T0.dat","r");
+		if(!fp){
+			fprintf(stderr,"ERROR IN DISK.C --- Failed to Open IC file:\n");
+			return EXIT_FAILURE;
+		} // end error if
+		double tmp1,tmp2;
+		for( int i = 0 ; i < N ; i++ ){
+			fscanf(fp,"%lg",&tmp1);
+			fscanf(fp,"%lg",&tmp2);
+			r[i] = tmp1;
+			sigma[i] = tmp2;
+		}// end i for	
+		fclose(fp);
+	} // end delta-function initialize
+	else if( problemType == 2 ){
+		for( int i = 0 ; i < N ; i++ ){
+			if( lambda == 1.0 ){
+				r[i] = rMin + i*dr;
+			} else {
+		    if( i == 0 )
+					r[i] = rMin;
+		    else
+					r[i] = rMin + dr*( pow(lambda,i) - 1.0 )/(lambda-1.0);
+			}// end lambda if/else
+			if( r[i] > 0.5 && r[i] < 1.5 )
+				sigma[i] = r[i];
+			else
+				sigma[i] = 0.0;
+		}// end i for	
+	} // end linTorq test problem
 
 	// If Dirichlet BVs and no value set, use IC file:
 	if(-1.0==outer_bndry_value)

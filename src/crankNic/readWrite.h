@@ -19,6 +19,8 @@ int readParams(){
 	int nV = 0;
 	while( fgets(line, MAX_STRING_LENGTH, fp) ){
 
+		nV += sscanf(line, "problemType = %d",&problemType);
+
 		// dimensions
 		nV += sscanf(line, "N = %d",&N);			
 		nV += sscanf(line, "lambda = %lg",&lambda);			
@@ -47,7 +49,7 @@ int readParams(){
 	
 	fclose(fp);
 
-	fprintf(stderr,"%d variables read from file\n-----------------------\n",nV);
+	fprintf(stderr,"%d variables read from file\n",nV);
 
 	return EXIT_SUCCESS;
 }// end readParams
@@ -66,6 +68,10 @@ int writeParams(){
 		fprintf(stderr,"ERROR IN WRITE PARAMS\n	>> Failed to open params.out\n");
 	} // end error if
 	
+	// Problem Type
+	fprintf(fp,"problemType	= %d\n",problemType);
+	fprintf(fp,"\n");
+
 	// Dimensions
 	fprintf(fp,"N      = %d\n",N);
 	fprintf(fp,"lambda = %g\n",lambda);

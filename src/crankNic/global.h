@@ -3,6 +3,9 @@
 #ifndef INC_GLOBAL
 #define INC_GLOBAL
 
+// Problem Types
+int problemType = 1;			// delta function, no torque
+
 // NUMERICAL PARAMETERS
 
 const double PI = 3.14159265358979323846; // Pi 

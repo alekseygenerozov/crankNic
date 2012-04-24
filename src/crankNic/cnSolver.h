@@ -119,20 +119,34 @@ int cnSolver::step(
 	tmp1 = lambda*lambda+lambda+1.0, tmp2 = lambda*lambda-lambda-1.0;
 	if( ZERO_GRAD == inner_bndry_type ){			// Inner Boundary
 
-
+		// Zero gradient
 		M[0][R1] = lp1;
 		M[0][R2] = -1.0/lp1;
 		M[0][C]  = -1.0*(M[0][R1]+M[0][R2]);
+		d[0] = 0.0;
 
+		// Zero laplacian
 		M[1][L1] = pow(lambda,3)*(lambda+2.0)/tmp1;
 		M[1][R1] = (l2+lambda-1.0)/lambda;
 		M[1][R2] = (lambda-1.0)/lambda/tmp1;
 		M[1][C]  = -1.0*(M[1][L1]+M[1][R1]+M[1][R2]);
-
-		d[1] = 0.0; d[0] = 0.0;
+		d[1] = 0.0;
 
 	} else if( DIRICHLET == inner_bndry_type ){
-		fprintf(stderr,"ERROR --- Dirichlet Bndry Type not implemented yet.\n");	// FIXME
+
+		// Constant Value
+		M[0][R1] = 0.0;
+		M[0][R2] = 0.0;
+		M[0][C]  = 1.0;
+		d[0] = inner_bndry_value;
+
+		// Zero laplacian
+		M[1][L1] = pow(lambda,3)*(lambda+2.0)/tmp1;
+		M[1][R1] = (l2+lambda-1.0)/lambda;
+		M[1][R2] = (lambda-1.0)/lambda/tmp1;
+		M[1][C]  = -1.0*(M[1][L1]+M[1][R1]+M[1][R2]);
+		d[1] = 0.0;
+
 	} else {
 		fprintf(stderr,"ERROR --- Inner Bndry Type Improperly Specified as %d \n",
 			inner_bndry_type);
@@ -141,19 +155,34 @@ int cnSolver::step(
 
 	if( ZERO_GRAD == outer_bndry_type ){			// Outer Boundary
 
+		// Zero Laplacian
 		M[N-2][L2] = l2*l2*(lambda-1.0)/tmp1;
 		M[N-2][L1] = -lambda*tmp2;
 		M[N-2][R1] = (2.0*lambda+1.0)/tmp1;
 		M[N-2][C]  = -1.0*(M[N-2][L2]+M[N-2][L1]+M[N-2][R1]);
+		d[N-2] = 0.0;
  
+		// Zero gradient
 		M[N-1][L2] = -lambda*l2/tmp2/lp1;
 		M[N-1][L1] = lambda*lp1/tmp2;
 		M[N-1][C]  = -(M[N-1][L2]+M[N-1][L1]);
-
-		d[N-1] = 0.0; d[N-2] = 0.0;
+		d[N-1] = 0.0;
 	
 	} else if( DIRICHLET == outer_bndry_type){
-		fprintf(stderr,"ERROR --- Dirichlet Bndry Type not implemented yet.\n");	// FIXME
+
+		// Zero Laplacian
+		M[N-2][L2] = l2*l2*(lambda-1.0)/tmp1;
+		M[N-2][L1] = -lambda*tmp2;
+		M[N-2][R1] = (2.0*lambda+1.0)/tmp1;
+		M[N-2][C]  = -1.0*(M[N-2][L2]+M[N-2][L1]+M[N-2][R1]);
+		d[N-2] = 0.0;
+
+		// Constant Value
+		M[N-1][L2] = 0.0;
+		M[N-1][L1] = 0.0;
+		M[N-1][C]  = 1.0;
+		d[N-1] = outer_bndry_value;
+
 	} else {
 		fprintf(stderr,"ERROR --- Outer Bndry Type Improperly Specified as %d \n",
 			outer_bndry_type);
