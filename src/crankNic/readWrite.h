@@ -29,7 +29,8 @@ int readParams(){
 
 		// physical params
 		nV += sscanf(line, "r0 = %lg",&r0);
-		nV += sscanf(line, "nu = %lg",&nu);
+		nV += sscanf(line, "nu0 = %lg",&nu0);
+		nV += sscanf(line, "n_v = %lg",&n_v);
 		nV += sscanf(line, "q = %lg",&q);
 		nV += sscanf(line, "M = %lg",&M);
 		nV += sscanf(line, "f = %lg",&f);
@@ -80,11 +81,12 @@ int writeParams(){
 	fprintf(fp,"\n");
 
 	// Physical Params
-	fprintf(fp,"r0 = %g\n",r0);
-	fprintf(fp,"nu = %g\n",nu);
-	fprintf(fp,"q  = %g\n",q);
-	fprintf(fp,"M  = %g\n",M);
-	fprintf(fp,"f  = %g\n",f);
+	fprintf(fp,"r0  = %g\n",r0);
+	fprintf(fp,"nu0 = %g\n",nu0);
+	fprintf(fp,"n_v = %g\n",n_v);
+	fprintf(fp,"q   = %g\n",q);
+	fprintf(fp,"M   = %g\n",M);
+	fprintf(fp,"f   = %g\n",f);
 	fprintf(fp,"\n");
 
 	// Timing

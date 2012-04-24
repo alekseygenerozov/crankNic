@@ -42,22 +42,7 @@ cnSolver::cnSolver()
 	coeffs[7] = -l2;																	// j-1
 	coeffs[8] = pow(lambda,5)/(lp1*tmp1);							// j-2
 	coeffs[6] = -1.0*(coeffs[5]+coeffs[7]+coeffs[8]);	// j
-
-/*
-//	use these to cross-check the new-order solver when lambda=1
-
-	coeffs[0] = 0.0;
-	coeffs[1] = 1.0;
-	coeffs[2] = -2.0;
-	coeffs[3] = 1.0;
-	coeffs[4] = 0.0;
-
-	coeffs[5] = 0.5;
-	coeffs[6] = 0.0;
-	coeffs[7] = -0.5;
-	coeffs[8] = 0.0;
-*/
-
+	
 	fprintf(stderr,"Coeffs:\n");
 	fprintf(stderr,"------------------\n");
 	for( int i = 0; i < 9 ; i++)
@@ -82,18 +67,19 @@ int cnSolver::step(
 									double &h				// disk scale height
 ){
 
-	double delR, beta, alpha = 3.0*nu*dt/(2.0*dr2),tmp0,tmp1,tmp2;
+	double delR, beta, alpha,tmp0,tmp1,tmp2;
 	static const int L2=0,L1=1,C=2,R1=3,R2=4;
 
 	// Build vectors for matrix solver
 	for( int j = 2 ; j < N-2 ; j++ ){
-		
-		delR = dr/r[j];
+	
+		alpha = 3.0*nu(r[j])*dt/(2.0*dr2);
 		beta = tidalTorque(r[j],a,h)*dt/(omega_k(r[j])*dr2);
+		delR = dr/r[j];
 		
 		tmp0 = pow(lambda,-2.0*j)*alpha;
-		tmp1 = pow(lambda,-1.0*j)*delR/2.0*(3.0*alpha-2.0*beta);
-		tmp2 = -1.0*beta*delR*delR*(3.0/2.0+gamma(r[j],a,h));
+		tmp1 = pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+3.0/2.0)-beta);
+		tmp2 = -delR*delR*(alpha*n_v*(n_v+1.0)-beta*3.0/2.0+gamma(r[j],a,h));
 
 /*	
 		fprintf(stderr,"delR,alpha,beta,tmp0,tmp1,tmp2 = %g\t%g\t%g\t%g\t%g\t%g\t\n",

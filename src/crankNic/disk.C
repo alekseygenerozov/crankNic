@@ -49,7 +49,7 @@ int main(){
 
 	// Initialize timing parameters
 	double t,
-		dt= 0.01*dr/nu,			// FIXME
+		dt= 0.01*dr/nu(r[0]),			// FIXME
 		nextWrite = tStart + tWrite;
 	int Nt = 1 + (int)((tEnd-tStart)/dt);
 	fprintf(stderr,"\t>> Time Steps: %d\n", Nt);
