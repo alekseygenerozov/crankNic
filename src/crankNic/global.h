@@ -35,7 +35,7 @@ double nu0   = pow(1.0/rMax,n_v);	// viscosity constant
 
 double max(double a, double b){return (a<b)?a:b;};
 double omega_k(double r){ return sqrt(M/(r*r*r));};
-double nu(double r){ return (n_v==0?n0:nu0*pow(r,n_v));};
+double nu(double r){ return (n_v==0?nu0:nu0*pow(r,n_v));};
 
 // BOUNDARY CONDITIONS
 const int ZERO_GRAD = 0;
