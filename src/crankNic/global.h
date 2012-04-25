@@ -27,11 +27,11 @@ double dr2    = dr*dr;                // cell size squared
 
 // PHYSICAL PARAMETERS
 double r0    = 1.0;     					// where delta-fcn starts
-double q		 = 0.1;								// binary mass ratio
+double q		 = 0.0;								// binary mass ratio
 double M		 = 1.0;								// primary mass
 double f		 = .01;								// numerical parameter for torque density
 double n_v	 = 0.0;								// viscosity power-law index
-double nu0   = pow(1.0/rMax,n_v);	// viscosity constant
+double nu0   = -1.0;							// viscosity constant
 
 double max(double a, double b){return (a<b)?a:b;};
 double omega_k(double r){ return sqrt(M/(r*r*r));};

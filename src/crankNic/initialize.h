@@ -55,6 +55,10 @@ int initialize( double *r, double *sigma ){
 		}// end i for	
 	} // end linTorq test problem
 
+	// if not explicitly set, normalize torque at outer boundary
+	if(-1.0==nu0)
+		nu0 = (n_v==0?1.0:pow(1.0/r[N-3],n_v));
+
 	// If Dirichlet BVs and no value set, use IC file:
 	if(-1.0==outer_bndry_value)
 		outer_bndry_value = sigma[N-1];
