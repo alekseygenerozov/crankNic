@@ -33,7 +33,6 @@ int main(){
 	double sigma[N];		// surface density (azimuthally averaged)
 	VecDoub sNew(N);		// sigma of current time step
 
-	double a = 1.0;	// binary separation
 	double h = .03;	// disk scale height
 
 	// Intialize r and sigma
