@@ -79,7 +79,7 @@ int cnSolver::step(
 		
 		tmp0 = pow(lambda,-2.0*j)*alpha;
 		tmp1 = pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+3.0/2.0)-beta);
-		tmp2 = -delR*delR*(alpha*n_v*(n_v+1.0)-beta*3.0/2.0+gamma(r[j],a,h));
+		tmp2 = delR*delR*(alpha*n_v*(n_v+1.0)-beta*(3.0/2.0+gamma(r[j],a,h)));
 
 /*	
 		fprintf(stderr,"delR,alpha,beta,tmp0,tmp1,tmp2 = %g\t%g\t%g\t%g\t%g\t%g\t\n",
