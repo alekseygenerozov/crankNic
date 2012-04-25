@@ -73,13 +73,13 @@ int cnSolver::step(
 	// Build vectors for matrix solver
 	for( int j = 2 ; j < N-2 ; j++ ){
 	
-		alpha = 3.0*nu(r[j])*dt/(2.0*dr2);
+		alpha = 1.5*nu(r[j])*dt/dr2;
 		beta = tidalTorque(r[j],a,h)*dt/(omega_k(r[j])*dr2);
 		delR = dr/r[j];
 		
 		tmp0 = pow(lambda,-2.0*j)*alpha;
-		tmp1 = pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+3.0/2.0)-beta);
-		tmp2 = delR*delR*(alpha*n_v*(n_v+1.0)-beta*(3.0/2.0+gamma(r[j],a,h)));
+		tmp1 = pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+1.5)-beta);
+		tmp2 = delR*delR*(alpha*n_v*(n_v+0.5)-beta*(1.5+gamma(r[j],a,h)));
 
 /*	
 		fprintf(stderr,"delR,alpha,beta,tmp0,tmp1,tmp2 = %g\t%g\t%g\t%g\t%g\t%g\t\n",
