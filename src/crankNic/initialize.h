@@ -39,6 +39,7 @@ int initialize( double *r, double *sigma ){
 	 *			Following Liu & Schapiro
 	 */
 	else if( problemType == 2 ){
+
 		for( int i = 0 ; i < N ; i++ ){
 			if( lambda == 1.0 ){
 				r[i] = rMin + i*dr;
@@ -48,10 +49,7 @@ int initialize( double *r, double *sigma ){
 		    else
 					r[i] = rMin + dr*( pow(lambda,i) - 1.0 )/(lambda-1.0);
 			}// end lambda if/else
-			if( r[i] > 0.5 && r[i] < 1.5 )
-				sigma[i] = r[i];
-			else
-				sigma[i] = 0.0;
+			sigma[i] = (r[i]-rMin)/(rMax-rMin);
 		}// end i for	
 	} // end linTorq test problem
 
