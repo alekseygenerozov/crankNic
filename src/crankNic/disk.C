@@ -33,8 +33,6 @@ int main(){
 	double sigma[N];		// surface density (azimuthally averaged)
 	VecDoub sNew(N);		// sigma of current time step
 
-	double h = .03;	// disk scale height
-
 	// Intialize r and sigma
 	status = initialize(r,sigma);
 	if( EXIT_SUCCESS != status ) return status;
@@ -42,7 +40,7 @@ int main(){
 	// print ICs & Parameters we'll use
 	double tork[N];
 	for(int i=0;i<N;i++)
-		tork[i] = tidalTorque(r[i],a,h);
+		tork[i] = tidalTorque(r[i],a,h(r[i]));
 	writeParams();
 	writeStandard(fileCount++,N,r,sigma,tork);
 
@@ -61,7 +59,7 @@ int main(){
 	for( int i = 0 ; i < Nt && keepOn; i++ ){
 
 		t = i*dt + tStart;	
-		solver.step(r,sigma,sNew,t,dt,a,h);
+		solver.step(r,sigma,sNew,t,dt,a);
 				
 		// check for negatives
 		for( int j = 0 ; j < N ; j++ )

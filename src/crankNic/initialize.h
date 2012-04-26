@@ -50,7 +50,8 @@ int initialize( double *r, double *sigma ){
 					r[i] = rMin + dr*( pow(lambda,i) - 1.0 )/(lambda-1.0);
 			}// end lambda if/else
 			sigma[i] = (r[i]-rMin)/(rMax-rMin);
-		}// end i for	
+		}// end i for
+		sigma[0] = 1E-8;	
 	} // end linTorq test problem
 
 	// if not explicitly set, normalize torque at outer boundary

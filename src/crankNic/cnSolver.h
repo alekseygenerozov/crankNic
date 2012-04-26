@@ -16,7 +16,7 @@ struct cnSolver{
 	double coeffs[9];		// finite difference coefficients
 	MatDoub M;					// Matrix of Crank-Nicolson Scheme
 	cnSolver();
-	int step(double *r,double *sigma,VecDoub &sNew,double t,double dt,double &a,double &h);
+	int step(double *r,double *sigma,VecDoub &sNew,double t,double dt,double &a);
 };
 
 // Constructor
@@ -63,8 +63,7 @@ int cnSolver::step(
 									VecDoub &sNew,	// updated surface density
 									double t, 			// time
 									double dt, 			// width of time step
-									double &a,			// binary separation
-									double &h				// disk scale height
+									double &a			// binary separation
 ){
 
 	double delR, beta, alpha,tmp0,tmp1,tmp2;
@@ -74,12 +73,12 @@ int cnSolver::step(
 	for( int j = 2 ; j < N-2 ; j++ ){
 	
 		alpha = 1.5*nu(r[j])*dt/dr2;
-		beta = tidalTorque(r[j],a,h)*dt/(omega_k(r[j])*dr2);
+		beta = tidalTorque(r[j],a,h(r[j]))*dt/(omega_k(r[j])*dr2);
 		delR = dr/r[j];
 		
 		tmp0 = pow(lambda,-2.0*j)*alpha;
 		tmp1 = pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+1.5)-beta);
-		tmp2 = delR*delR*(alpha*n_v*(n_v+0.5)-beta*(1.5+gamma(r[j],a,h)));
+		tmp2 = delR*delR*(alpha*n_v*(n_v+0.5)-beta*(1.5+gamma(r[j],a,h(r[j]))));
 
 /*	
 		fprintf(stderr,"delR,alpha,beta,tmp0,tmp1,tmp2 = %g\t%g\t%g\t%g\t%g\t%g\t\n",
