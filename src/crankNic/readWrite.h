@@ -48,6 +48,9 @@ int readParams(){
 		nV += sscanf(line, "outer_bndry_value = %lg",&outer_bndry_value);
 		nV += sscanf(line, "inner_bndry_value = %lg",&inner_bndry_value);
 
+		// Debug params
+		nV += sscanf(line, "density_floor = %lg",&density_floor);
+
 	} // end read while	
 	
 	fclose(fp);
@@ -105,6 +108,10 @@ int writeParams(){
 	fprintf(fp,"outer_bndry_value = %g\n",outer_bndry_value);
 	fprintf(fp,"inner_bndry_value = %g\n",inner_bndry_value);
 	fprintf(fp,"\n");
+
+	// Debug Params
+	fprintf(fp,"density_floor = %g\n",density_floor);
+	fprintf(fp,"\n");	
 
 	fclose(fp);
 

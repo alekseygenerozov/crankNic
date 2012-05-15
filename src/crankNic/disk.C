@@ -63,7 +63,7 @@ int main(){
 				
 		// check for negatives
 		for( int j = 0 ; j < N ; j++ )
-	    if( sNew[j] < 0.0 ){
+	    if( sNew[j] < 0.0 && density_floor < 0.0 ){
 	      fprintf(stderr,"ERROR: Density negative @ i = %d\n",j);
 	      fprintf(stderr,"\t>> t = %g , Nt = %d\n",t,i);
 	      keepOn = false;
@@ -71,7 +71,9 @@ int main(){
 					sigma[j]=sNew[j];
 	      writeOut("ERROR_OUT.dat",N,r,sigma,tork);
 				return EXIT_FAILURE;
-	    }// end error if
+	    } else {
+				sNew[j] = density_floor;	// if floor enabled
+			} // end negative if/else
 
 		// update sigma
 	  for( int j = 0 ; j < N ; j++ ){
