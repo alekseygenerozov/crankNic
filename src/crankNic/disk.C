@@ -59,7 +59,7 @@ int main(){
 	for( int i = 0 ; i < Nt && keepOn; i++ ){
 
 		t = i*dt + tStart;	
-		solver.step(r,sigma,sNew,t,dt,a);
+		solver.step(r,sigma,sNew,t,dt,a,t>=nextWrite);
 				
 		// check for negatives
 		for( int j = 0 ; j < N ; j++ ){

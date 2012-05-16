@@ -16,7 +16,7 @@ struct cnSolver{
 	double coeffs[9];		// finite difference coefficients
 	MatDoub M;					// Matrix of Crank-Nicolson Scheme
 	cnSolver();
-	int step(double *r,double *sigma,VecDoub &sNew,double t,double dt,double &a);
+	int step(double *r,double *sigma,VecDoub &sNew,double t,double dt,double &a,bool dWrite);
 };
 
 // Constructor
@@ -63,11 +63,17 @@ int cnSolver::step(
 									VecDoub &sNew,	// updated surface density
 									double t, 			// time
 									double dt, 			// width of time step
-									double &a			// binary separation
+									double &a,			// binary separation
+									bool dWrite			// debug write step
 ){
 
 	double delR, beta, alpha,tmp0,tmp1,tmp2;
 	static const int L2=0,L1=1,C=2,R1=3,R2=4;
+
+	if(DEBUG_MODE && dWrite){
+		fprintf(stdout,"\n\n# ---------------------------------------------------------\n");
+		fprintf(stdout,"#r\tdelR\talpha\tbeta\tgamma\ttmp0\ttmp1\ttmp2\n");
+	} // end debug if
 
 	// Build vectors for matrix solver
 	for( int j = 2 ; j < N-2 ; j++ ){
@@ -80,10 +86,11 @@ int cnSolver::step(
 		tmp1 = pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+1.5)-beta);
 		tmp2 = delR*delR*(alpha*n_v*(n_v+0.5)-beta*(1.5+gamma(r[j],a,h(r[j]))));
 
-/*	
-		fprintf(stderr,"delR,alpha,beta,tmp0,tmp1,tmp2 = %g\t%g\t%g\t%g\t%g\t%g\t\n",
-			delR,alpha,beta,tmp0,tmp1,tmp2);			// these checkout okay!
-*/
+		if(DEBUG_MODE && dWrite ){	
+			fprintf(stdout,"%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t\n",
+				r[j],delR,alpha,beta,gamma(r[j],a,h(r[j])),tmp0,tmp1,tmp2);
+		}// end debug if
+
 
 		M[j][L2] = -tmp0*coeffs[4]-tmp1*coeffs[8];						// Second sub-diagonal
 		M[j][L1] = -tmp0*coeffs[3]-tmp1*coeffs[7];						// First sub-diagonal

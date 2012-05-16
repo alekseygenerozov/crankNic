@@ -49,6 +49,7 @@ int readParams(){
 		nV += sscanf(line, "inner_bndry_value = %lg",&inner_bndry_value);
 
 		// Debug params
+		nV += sscanf(line, "DEBUG_MODE = %d",&DEBUG_MODE);
 		nV += sscanf(line, "density_floor = %lg",&density_floor);
 
 	} // end read while	
@@ -110,6 +111,7 @@ int writeParams(){
 	fprintf(fp,"\n");
 
 	// Debug Params
+	fprintf(fp,"DEBUG_MODE    = %d\n",DEBUG_MODE);
 	fprintf(fp,"density_floor = %g\n",density_floor);
 	fprintf(fp,"\n");	
 

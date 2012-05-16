@@ -49,6 +49,7 @@ double outer_bndry_value = -1.0;
 double inner_bndry_value = -1.0;
 
 // DEBUG PARAMS
+int DEBUG_MODE = 0;							// verbose printing
 double density_floor = -1.0;		// for when density goes negative
 
 #endif
