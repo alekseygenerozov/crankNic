@@ -86,6 +86,11 @@ int cnSolver::step(
 		tmp1 = pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+1.5)-beta);
 		tmp2 = delR*delR*(alpha*n_v*(n_v+0.5)-beta*(1.5+gamma(r[j],a,h(r[j]))));
 
+		if( problemType == 3 ){
+			tmp0 = 0.0; tmp2=0.0;
+			tmp1 = pow(lambda,-1.0*j)*delR;
+		}
+
 		if(DEBUG_MODE && dWrite ){	
 			fprintf(stdout,"%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t\n",
 				r[j],delR,alpha,beta,gamma(r[j],a,h(r[j])),tmp0,tmp1,tmp2);

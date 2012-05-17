@@ -46,11 +46,14 @@ int main(){
 
 	// Initialize timing parameters
 	double t,
-		dt= 0.01*dr/nu(r[0]),			// FIXME
+		dt= 0.01*dr/nu(r[0]),
 		nextWrite = tStart + tWrite;
+	if( problemType == 3 )
+		dt = 0.005*dr;
 	int Nt = 1 + (int)((tEnd-tStart)/dt);
-	fprintf(stderr,"\t>> Time Steps: %d\n", Nt);
+	fprintf(stderr,"\t>> dt = %g\n\t>> Time Steps: %d\n", dt,Nt);
 	bool keepOn = true;
+
 
 	// intialize our Crank-Nicolson solver	
 	cnSolver solver;
