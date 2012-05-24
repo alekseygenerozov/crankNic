@@ -12,9 +12,9 @@
 #define CN_SOLVER
 
 struct cnSolver{
-	VecDoub	d;					// RHS of matrix eq
-	double coeffs[8];		// finite difference coefficients
-	MatDoub M;					// Matrix of Crank-Nicolson Scheme
+	VecDoub	d;						// RHS of matrix eq
+	double coeffs[10];		// finite difference coefficients
+	MatDoub M;						// Matrix of Crank-Nicolson Scheme
 	cnSolver();
 	int step(double *r,double *sigma,VecDoub &sNew,double t,double dt,double &a,bool dWrite);
 };
@@ -38,13 +38,15 @@ cnSolver::cnSolver()
 	coeffs[2] = -1.0*(coeffs[0]+coeffs[1]+coeffs[3]+coeffs[4]);	// j
 
 	// for gradient term ...
-	coeffs[5] = 1.0/lp1;											// j+1
-	coeffs[7] = -l2/lp1;											// j-1
-	coeffs[6] = -1.0*(coeffs[5]+coeffs[7]);		// j
+	coeffs[5] = -1.0/(lambda*lp1*(1.0+l2)*tmp1);								// j+2
+	coeffs[6] = lp1/(lambda*tmp1);															// j+1
+	coeffs[8] = -pow(lambda,3)*lp1/tmp1;												// j-1
+	coeffs[9] = pow(lambda,7)/(lp1*(1.0+l2)*tmp1);							// j-2
+	coeffs[7] = -1.0*(coeffs[5]+coeffs[6]+coeffs[8]+coeffs[9]);	// j
 	
 	fprintf(stderr,"Coeffs:\n");
 	fprintf(stderr,"------------------\n");
-	for( int i = 0; i < 9 ; i++)
+	for( int i = 0; i < 10 ; i++)
 		fprintf(stderr,"\tcoeffs[%d] = %f\n",i,coeffs[i]);
 	fprintf(stderr,"\n");
 }// end constructor 
@@ -103,11 +105,11 @@ int cnSolver::step(
 		}// end debug if
 
 
-		M[j][L2] = -tmp0*coeffs[4];														// Second sub-diagonal
-		M[j][L1] = -tmp0*coeffs[3]-tmp1*coeffs[7];						// First sub-diagonal
-		M[j][C]  = -tmp0*coeffs[2]-tmp1*coeffs[6]-tmp2+1.0;		// central band
-		M[j][R1] = -tmp0*coeffs[1]-tmp1*coeffs[5];						// first super-diagonal
-		M[j][R2] = -tmp0*coeffs[0];														// second super-diagonal
+		M[j][L2] = -tmp0*coeffs[4]-tmp1*coeffs[9];						// Second sub-diagonal
+		M[j][L1] = -tmp0*coeffs[3]-tmp1*coeffs[8];						// First sub-diagonal
+		M[j][C]  = -tmp0*coeffs[2]-tmp1*coeffs[7]-tmp2+1.0;		// central band
+		M[j][R1] = -tmp0*coeffs[1]-tmp1*coeffs[6];						// first super-diagonal
+		M[j][R2] = -tmp0*coeffs[0]-tmp1*coeffs[5];						// second super-diagonal
 
 		// RHS vector
 		d[j] = 	  (tmp0*coeffs[0]													)*sigma[j+2] 

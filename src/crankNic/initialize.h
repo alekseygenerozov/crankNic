@@ -115,7 +115,7 @@ int initialize( double *r, double *sigma ){
 					r[i] = rMin + dr*( pow(lambda,i) - 1.0 )/(lambda-1.0);
 			}// end lambda if/else
 
-			if( r[i] > (rMax-rMin)/2.0 && r[i] < (rMax-rMin)*2.0/3.0 )
+			if( r[i] > (rMax-rMin)*0.7 && r[i] < (rMax-rMin)*(0.8) )
 				sigma[i] = 1.0;
 			else
 				sigma[i] = 0.1;
