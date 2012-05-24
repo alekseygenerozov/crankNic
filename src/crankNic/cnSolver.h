@@ -112,11 +112,11 @@ int cnSolver::step(
 		M[j][R2] = -tmp0*coeffs[0]-tmp1*coeffs[5];						// second super-diagonal
 
 		// RHS vector
-		d[j] = 	  (tmp0*coeffs[0]													)*sigma[j+2] 
-						+ (tmp0*coeffs[1]+tmp1*coeffs[5]					)*sigma[j+1]
-						+ (tmp0*coeffs[2]+tmp1*coeffs[6]+tmp2+1.0	)*sigma[j  ]
-						+ (tmp0*coeffs[3]+tmp1*coeffs[7]					)*sigma[j-1] 
-						+ (tmp0*coeffs[4]													)*sigma[j-2];
+		d[j] = 	  (tmp0*coeffs[0]+tmp1*coeffs[5]					)*sigma[j+2] 
+						+ (tmp0*coeffs[1]+tmp1*coeffs[6]					)*sigma[j+1]
+						+ (tmp0*coeffs[2]+tmp1*coeffs[7]+tmp2+1.0	)*sigma[j  ]
+						+ (tmp0*coeffs[3]+tmp1*coeffs[8]					)*sigma[j-1] 
+						+ (tmp0*coeffs[4]+tmp1*coeffs[9]					)*sigma[j-2];
 	} // end j for
 
 	// update boundary conditions
