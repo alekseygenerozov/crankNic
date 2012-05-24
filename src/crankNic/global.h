@@ -52,4 +52,11 @@ double inner_bndry_value = -1.0;
 int DEBUG_MODE = 0;							// verbose printing
 double density_floor = -1.0;		// for when density goes negative
 
+// Problem 3 Params
+double p3_A = 0.0;
+double p3_B = 1.0;
+double p3_C = 0.0;
+int	p3_CONST = 0;
+double p3_courant = 1.0;
+
 #endif

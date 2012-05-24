@@ -49,7 +49,7 @@ int main(){
 		dt= 0.01*dr/nu(r[0]),
 		nextWrite = tStart + tWrite;
 	if( problemType == 3 )
-		dt = 0.005*dr;
+		dt = p3_courant*dr;
 	int Nt = 1 + (int)((tEnd-tStart)/dt);
 	fprintf(stderr,"\t>> dt = %g\n\t>> Time Steps: %d\n", dt,Nt);
 	bool keepOn = true;

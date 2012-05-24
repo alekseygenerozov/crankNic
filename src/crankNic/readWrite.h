@@ -52,6 +52,13 @@ int readParams(){
 		nV += sscanf(line, "DEBUG_MODE = %d",&DEBUG_MODE);
 		nV += sscanf(line, "density_floor = %lg",&density_floor);
 
+		// Problem 3 Params
+		nV += sscanf(line, "p3_A = %lg",&p3_A);
+		nV += sscanf(line, "p3_B = %lg",&p3_B);
+		nV += sscanf(line, "p3_C = %lg",&p3_C);
+		nV += sscanf(line, "p3_courant = %lg",&p3_courant);
+		nV += sscanf(line, "p3_CONST = %d",&p3_CONST);
+
 	} // end read while	
 	
 	fclose(fp);
@@ -114,6 +121,13 @@ int writeParams(){
 	fprintf(fp,"DEBUG_MODE    = %d\n",DEBUG_MODE);
 	fprintf(fp,"density_floor = %g\n",density_floor);
 	fprintf(fp,"\n");	
+
+	// Problem 3 Params	
+	fprintf(fp,"p3_A       = %g\n",p3_A);
+	fprintf(fp,"p3_B       = %g\n",p3_B);
+	fprintf(fp,"p3_C       = %g\n",p3_C);
+	fprintf(fp,"p3_courant = %g\n",p3_courant);
+	fprintf(fp,"p3_CONST   = %d\n",p3_CONST);	
 
 	fclose(fp);
 

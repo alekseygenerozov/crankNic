@@ -86,10 +86,17 @@ int cnSolver::step(
 		tmp1 = pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+1.5)-beta);
 		tmp2 = delR*delR*(alpha*n_v*(n_v+0.5)-beta*(1.5+gamma(r[j],a,h(r[j]))));
 
+		// Coefficiencts manually set for problem-type 3
 		if( problemType == 3 ){
-			tmp0 = 0.0; tmp2=0.0;
-			tmp1 = pow(lambda,-1.0*j)*delR;
-		}
+			tmp0 = pow(lambda,-2.0*j)*p3_A;
+			if( ! p3_CONST ){
+				tmp1 = pow(lambda,-1.0*j)*p3_B/r[j];
+				tmp2 = p3_C/r[j]/r[j];
+			} else {
+				tmp1 = pow(lambda,-1.0*j)*p3_B;
+				tmp2 = p3_C;	
+			}// end const if
+		} // end problem 3 if
 
 		if(DEBUG_MODE && dWrite ){	
 			fprintf(stdout,"%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t\n",
@@ -104,11 +111,11 @@ int cnSolver::step(
 		M[j][R2] = -tmp0*coeffs[0];														// second super-diagonal
 
 		// RHS vector
-		d[j] = 	   tmp0*coeffs[0]*sigma[j+2] 
-						+ (tmp0*coeffs[1]+tmp1*coeffs[5])*sigma[j+1]
-						+ (tmp0*coeffs[2]+tmp1*coeffs[6]+tmp2+1.0)*sigma[j]
-						+ (tmp0*coeffs[3]+tmp1*coeffs[7])*sigma[j-1] 
-						+ (tmp0*coeffs[4]+tmp1*coeffs[8])*sigma[j-2];
+		d[j] = 	  (tmp0*coeffs[0]													)*sigma[j+2] 
+						+ (tmp0*coeffs[1]+tmp1*coeffs[5]					)*sigma[j+1]
+						+ (tmp0*coeffs[2]+tmp1*coeffs[6]+tmp2+1.0	)*sigma[j  ]
+						+ (tmp0*coeffs[3]+tmp1*coeffs[7]					)*sigma[j-1] 
+						+ (tmp0*coeffs[4]+tmp1*coeffs[8]					)*sigma[j-2];
 	} // end j for
 
 	// update boundary conditions
