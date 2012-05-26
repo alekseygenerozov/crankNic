@@ -26,16 +26,17 @@ cnSolver::cnSolver()
 	
 	// prep some CN constants based on log-grid stretch factor
 	double 	l2 = lambda*lambda,
-					lp1 = lambda + 1.0,
+					l3 = l2*lambda,l4=l3*lambda,l5=l4*lambda,l6=l3*l3;
+					lp1 = lambda+1.0,
 					tmp1 = l2+lambda+1.0,
-					tmp2 = tmp1*(l2+1.0)*lp1*lp1;
+					tmp2 = 1.0+lambda-l3+l5+l6;
 
 	// for laplacian term ...
-	coeffs[0] = -2.0/lambda*(2.0*l2-1.0)/tmp2;									// j+2
-	coeffs[1] = 2.0/lambda*lp1*(2.0*lambda-1.0)/tmp1;						// j+1
-	coeffs[3] = -2.0*pow(lambda,3)*(lambda-2.0)*lp1/tmp1;				// j-1
-	coeffs[4] = 2.0*pow(lambda,7)*(l2-2.0)/tmp2;								// j-2
-	coeffs[2] = -1.0*(coeffs[0]+coeffs[1]+coeffs[3]+coeffs[4]);	// j
+	coeffs[0] = -2.0*l5*(lambda-1.0)/(lp1*(1.0+l6)*tmp1);									// j+2
+	coeffs[1] = 2.0*lambda*(1+2.0*lambda-l2-2.0*l3+2.0*l5+l6)/(lp1*tmp2);	// j+1
+	coeffs[3] = 2.0*l2*(1+2.0*lambda-2.0*l3-l4+2.0*l5+l6)/(lp1*tmp2);			// j-2
+	coeffs[4] = -coeffs[0];																								// j
+	coeffs[2] = -(coeffs[1]+coeffs[4]);																		// j-1
 
 	// for gradient term ...
 	coeffs[5] = -1.0/(lambda*lp1*(1.0+l2)*tmp1);								// j+2
