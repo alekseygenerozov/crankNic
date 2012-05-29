@@ -31,6 +31,7 @@ int main(){
 	// Create arrays for data
 	double r[N];				// radial position
 	double sigma[N];		// surface density (azimuthally averaged)
+	double mDot[N];			// mass flow (for printing only)
 	VecDoub sNew(N);		// sigma of current time step
 
 	// Intialize r and sigma
@@ -39,10 +40,12 @@ int main(){
 
 	// print ICs & Parameters we'll use
 	double tork[N];
-	for(int i=0;i<N;i++)
-		tork[i] = tidalTorque(r[i],a,h(r[i]));
+	for(int j=0;j<N;j++){
+		tork[j] = tidalTorque(r[j],a,h(r[j]));
+		mDot[j] = 3.0*PI*nu(r[j])*sigma[j];
+	}
 	writeParams();
-	writeStandard(fileCount++,N,r,sigma,tork);
+	writeStandard(fileCount++,N,r,sigma,tork,mDot);
 
 	// Initialize timing parameters
 	double t,
@@ -71,9 +74,11 @@ int main(){
 		      fprintf(stderr,"ERROR: Density negative @ i = %d\n",j);
 		      fprintf(stderr,"\t>> t = %g , Nt = %d\n",t,i);
 		      keepOn = false;
-					for(int j=0;j<N;j++)
+					for(int j=0;j<N;j++){
 						sigma[j]=sNew[j];
-		      writeOut("ERROR_OUT.dat",N,r,sigma,tork);
+						mDot[j] = 3.0*PI*nu(r[j])*sigma[j];
+					}
+		      writeOut("ERROR_OUT.dat",N,r,sigma,tork,mDot);
 					return EXIT_FAILURE;
 		    } else {
 					sNew[j] = density_floor;	// if floor enabled
@@ -84,11 +89,12 @@ int main(){
 		// update sigma
 	  for( int j = 0 ; j < N ; j++ ){
 	    sigma[j] = sNew[j];
+			mDot[j] = 3.0*PI*nu(r[j])*sigma[j];
 	  }
 
 		if( t >= nextWrite ){
 			nextWrite += tWrite;
-			if(EXIT_SUCCESS != writeStandard(fileCount,N,r,sigma,tork)){
+			if(EXIT_SUCCESS != writeStandard(fileCount,N,r,sigma,tork,mDot)){
 				fprintf(stderr,"ERROR IN SOLVER -- Failed to open output file #%d\n",fileCount);
 				return EXIT_FAILURE;
 			}// end error if
@@ -98,7 +104,7 @@ int main(){
 	}// end time-step loop
 
 	// print last file:
-	if(EXIT_SUCCESS != writeStandard(fileCount,N,r,sigma,tork)){
+	if(EXIT_SUCCESS != writeStandard(fileCount,N,r,sigma,tork,mDot)){
 		fprintf(stderr,"ERROR IN SOLVER -- Failed to open output file #%d\n",fileCount);
 		return EXIT_FAILURE;
 	}// end error if

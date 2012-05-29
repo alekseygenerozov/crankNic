@@ -137,15 +137,24 @@ int writeParams(){
 int writeOut(	char* fileName,
 							int n, 
 							double* r, 
-							double* f1, 
-							double* f2 = NULL	// optional second field
+							double* f1,
+							double* f2 = NULL,	// Optional extra fields 
+							double* f3 = NULL, 
+							double* f4 = NULL	
 						){
   FILE* fp = fopen(fileName,"w");
-  for( int i = 0; i < n ; i++ )
-		if(f2)
-	    fprintf(fp,"%e\t%e\t%e\n",r[i],f1[i],f2[i]);
-		else
-	    fprintf(fp,"%e\t%e\n",r[i],f1[i]);
+	if(f4)
+		for( int i = 0; i < n ; i++ )
+			fprintf(fp,"%e\t%e\t%e\t%e\t%e\n",r[i],f1[i],f2[i],f3[i],f4[i]);
+	else if(f3)
+		for( int i = 0; i < n ; i++ )
+			fprintf(fp,"%e\t%e\t%e\t%e\n",r[i],f1[i],f2[i],f3[i]);
+	else if(f2)
+		for( int i = 0; i < n ; i++ )
+			fprintf(fp,"%e\t%e\t%e\n",r[i],f1[i],f2[i]);
+	else
+		for( int i = 0; i < n ; i++ )
+			fprintf(fp,"%e\t%e\n",r[i],f1[i]);
 			
   fclose(fp);
   return EXIT_SUCCESS;
@@ -161,14 +170,20 @@ int intToStr(int i, char *str){
 	return EXIT_SUCCESS;
 } // end intToStr
 
-int writeStandard(int i,int n,double* r,double* f1, double* f2 = NULL){
+int writeStandard(	int i,
+										int n,
+										double* r,
+										double* f1, 
+										double* f2 = NULL,
+										double* f3 = NULL,
+										double* f4 = NULL ){
 	char str[3];
 	char fileName[100];
 	if(EXIT_SUCCESS != intToStr(i,str)){
 		return EXIT_FAILURE;
 	}
 	sprintf(fileName,"outputFiles/T%s.dat",str);
-	return writeOut(fileName,n,r,f1,f2);
+	return writeOut(fileName,n,r,f1,f2,f3,f4);
 }
 
 #endif
