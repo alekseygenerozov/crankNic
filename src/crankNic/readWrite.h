@@ -26,6 +26,7 @@ int readParams(){
 		nV += sscanf(line, "lambda = %lg",&lambda);			
 		nV += sscanf(line, "rMax = %lg",&rMax);			
 		nV += sscanf(line, "rMin = %lg",&rMin);
+		nV += sscanf(line, "STENCIL = %d",&STENCIL);			
 
 		// physical params
 		nV += sscanf(line, "r0 = %lg",&r0);
@@ -87,10 +88,11 @@ int writeParams(){
 	fprintf(fp,"\n");
 
 	// Dimensions
-	fprintf(fp,"N      = %d\n",N);
-	fprintf(fp,"lambda = %g\n",lambda);
-	fprintf(fp,"rMax   = %g\n",rMax);
-	fprintf(fp,"rMin   = %g\n",rMin);
+	fprintf(fp,"N       = %d\n",N);
+	fprintf(fp,"lambda  = %g\n",lambda);
+	fprintf(fp,"rMax    = %g\n",rMax);
+	fprintf(fp,"rMin    = %g\n",rMin);
+	fprintf(fp,"STENCIL = %d\n",STENCIL);
 	fprintf(fp,"\n");
 
 	// Physical Params
@@ -140,12 +142,18 @@ int writeOut(	char* fileName,
 							double* f1,
 							double* f2 = NULL,	// Optional extra fields 
 							double* f3 = NULL, 
-							double* f4 = NULL	
+							double* f4 = NULL,
+							double* f5 = NULL	
 						){
   FILE* fp = fopen(fileName,"w");
-	if(f4)
+	if(f5)
 		for( int i = 0; i < n ; i++ )
-			fprintf(fp,"%e\t%e\t%e\t%e\t%e\n",r[i],f1[i],f2[i],f3[i],f4[i]);
+			fprintf(fp,"%e\t%e\t%e\t%e\t%e\t%e\n",
+				r[i],f1[i],f2[i],f3[i],f4[i],f5[i]);
+	else if(f4)
+		for( int i = 0; i < n ; i++ )
+			fprintf(fp,"%e\t%e\t%e\t%e\t%e\n",
+				r[i],f1[i],f2[i],f3[i],f4[i]);
 	else if(f3)
 		for( int i = 0; i < n ; i++ )
 			fprintf(fp,"%e\t%e\t%e\t%e\n",r[i],f1[i],f2[i],f3[i]);
@@ -176,14 +184,16 @@ int writeStandard(	int i,
 										double* f1, 
 										double* f2 = NULL,
 										double* f3 = NULL,
-										double* f4 = NULL ){
+										double* f4 = NULL,
+										double* f5 = NULL 
+){
 	char str[3];
 	char fileName[100];
 	if(EXIT_SUCCESS != intToStr(i,str)){
 		return EXIT_FAILURE;
 	}
 	sprintf(fileName,"outputFiles/T%s.dat",str);
-	return writeOut(fileName,n,r,f1,f2,f3,f4);
+	return writeOut(fileName,n,r,f1,f2,f3,f4,f5);
 }
 
 #endif

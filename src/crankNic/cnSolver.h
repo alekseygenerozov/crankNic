@@ -31,12 +31,34 @@ cnSolver::cnSolver()
 					tmp1 = l2+lambda+1.0,
 					tmp2 = 1.0+lambda-l3+l5+l6;
 
-	// for laplacian term ...
-	coeffs[0] = -2.0*l5*(lambda-1.0)/(lp1*(1.0+l6)*tmp1);									// j+2
-	coeffs[1] = 2.0*lambda*(1+2.0*lambda-l2-2.0*l3+2.0*l5+l6)/(lp1*tmp2);	// j+1
-	coeffs[3] = 2.0*l2*(1+2.0*lambda-2.0*l3-l4+2.0*l5+l6)/(lp1*tmp2);			// j-2
-	coeffs[4] = -coeffs[0];																								// j
-	coeffs[2] = -(coeffs[1]+coeffs[3]);																		// j-1
+	// setup second derivative stencil
+	if( 1 == STENCIL ){	// 3rd order, metastable
+		double tmp3 = tmp1*(l2+1.0)*lp1*lp1;
+
+		coeffs[0] = -2.0/lambda*(2.0*l2-1.0)/tmp3;                  // j+2
+		coeffs[1] = 2.0/lambda*lp1*(2.0*lambda-1.0)/tmp1;           // j+1
+		coeffs[3] = -2.0*pow(lambda,3)*(lambda-2.0)*lp1/tmp1;       // j-1
+		coeffs[4] = 2.0*pow(lambda,7)*(l2-2.0)/tmp3;                // j-2
+		coeffs[2] = -1.0*(coeffs[0]+coeffs[1]+coeffs[3]+coeffs[4]); // j
+
+		if( lambda > 1.3 ){
+			fprintf(stderr,"WARNING in cnSolver.h constructor:\n");
+			fprintf(stderr,"\t>> Stretch factor too large for stability of 3rd order stencil\n");
+			fprintf(stderr,"\t\t ( try setting lambda < 1.3 or change STENCIL to 0 )\n");
+		} // end lambda error warning
+	} else {	// 2nd order, robustly stable
+		coeffs[0] = -2.0*l5*(lambda-1.0)/(lp1*(1.0+l6)*tmp1);									// j+2
+		coeffs[1] = 2.0*lambda*(1+2.0*lambda-l2-2.0*l3+2.0*l5+l6)/(lp1*tmp2);	// j+1
+		coeffs[3] = 2.0*l2*(1+2.0*lambda-2.0*l3-l4+2.0*l5+l6)/(lp1*tmp2);			// j-2
+		coeffs[4] = -coeffs[0];																								// j
+		coeffs[2] = -(coeffs[1]+coeffs[3]);																		// j-1
+		
+		if( 0 != STENCIL ){
+			fprintf(stderr,"WARNING in cnSolver.h constructor:\n");
+			fprintf(stderr,"\t>> Stencil improperly specified, resorting to 2nd order\n");
+			fprintf(stderr,"\t\t (i.e. STENCIL = 0)\n");
+		}// end error if
+	} // end STENCIL if for gradient term	
 
 	// for gradient term ...
 	coeffs[5] = -1.0/(lambda*lp1*(1.0+l2)*tmp1);								// j+2

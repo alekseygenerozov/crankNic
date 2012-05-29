@@ -24,6 +24,7 @@ double rMax   = 2.0;      // outer boundary
 double rMin   = 0.1;      // inner boundary
 double dr     = (rMax-rMin)/(N-1.0);  // cell size
 double dr2    = dr*dr;                // cell size squared
+int STENCIL		= 0;				// For Gradient derivative term
 
 // PHYSICAL PARAMETERS
 double r0    = 1.0;     					// where delta-fcn starts
