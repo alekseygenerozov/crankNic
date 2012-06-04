@@ -15,6 +15,7 @@ const double twoPI = 2*PI;      // 2*Pi
 double tStart = 0.0;
 double tEnd = 1.0;
 double tWrite = 0.1;
+double SAFETY_NUMBER = 1.0;	// diminishes timestep
 
 // RESOLUTION PARAMETERS
 
@@ -36,7 +37,8 @@ double n_v	 = 0.0;								// viscosity power-law index
 double nu0   = -1.0;							// viscosity constant
 double dhdr  = 0.1;								// r/h for disk scale height
 
-double max(double a, double b){return (a<b)?a:b;};
+double max(double a, double b){return (a>b)?a:b;};
+double min(double a, double b){return (a<b)?a:b;};
 double omega_k(double r){ return sqrt(M/(r*r*r));};
 double nu(double r){ return (n_v==0?nu0:nu0*pow(r,n_v));};
 double h(double r){ return dhdr*r;}

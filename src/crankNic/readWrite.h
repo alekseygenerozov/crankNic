@@ -42,6 +42,7 @@ int readParams(){
 		nV += sscanf(line, "tStart = %lg",&tStart);
 		nV += sscanf(line, "tEnd = %lg",&tEnd);
 		nV += sscanf(line, "tWrite = %lg",&tWrite);
+		nV += sscanf(line, "SAFETY_NUMBER = %lg",&SAFETY_NUMBER);
 
 		// Boundary Conditions
 		nV += sscanf(line, "outer_bndry_type = %d",&outer_bndry_type);
@@ -107,9 +108,10 @@ int writeParams(){
 	fprintf(fp,"\n");
 
 	// Timing
-	fprintf(fp,"tStart = %g\n",tStart);
-	fprintf(fp,"tEnd   = %g\n",tEnd);
-	fprintf(fp,"tWrite = %g\n",tWrite);
+	fprintf(fp,"tStart        = %g\n",tStart);
+	fprintf(fp,"tEnd          = %g\n",tEnd);
+	fprintf(fp,"tWrite        = %g\n",tWrite);
+	fprintf(fp,"SAFETY_NUMBER = %g\n",SAFETY_NUMBER);
 	fprintf(fp,"\n");
 
 	// Boundary Conditions

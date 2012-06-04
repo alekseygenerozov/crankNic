@@ -7,6 +7,7 @@
 #include "torques.h"
 #include "readWrite.h"
 #include "initialize.h"
+#include "calculateTimeStep.h"
 
 int main(){
 
@@ -52,13 +53,12 @@ int main(){
 	writeStandard(fileCount++,N,r,sigma,tork,mDot,tVisc,tTork);
 
 	// Initialize timing parameters
-	double t,
-		dt= 0.01*dr/nu(r[0]),
+	double t=tStart,
+		dt= calculateTimeStep(r,sigma,a,dr),
 		nextWrite = tStart + tWrite;
 	if( problemType == 3 )
 		dt = p3_courant*dr;
-	int Nt = 1 + (int)((tEnd-tStart)/dt);
-	fprintf(stderr,"\t>> dt = %g\n\t>> Time Steps: %d\n", dt,Nt);
+	fprintf(stderr,"\t>> dt = %g\n",dt);
 	bool keepOn = true;
 
 
@@ -66,17 +66,18 @@ int main(){
 	cnSolver solver;
 
 	// step through time ...
-	for( int i = 0 ; i < Nt && keepOn; i++ ){
+	while( (t<tEnd) && keepOn ){
 
-		t = i*dt + tStart;	
+		dt = calculateTimeStep(r,sigma,a,dr);	
+		t += dt;
 		solver.step(r,sigma,sNew,t,dt,a,t>=nextWrite);
 				
 		// check for negatives
 		for( int j = 0 ; j < N ; j++ ){
 	    if( sNew[j] < 0.0 ){
 				if( density_floor < 0.0 ){
-		      fprintf(stderr,"ERROR: Density negative @ i = %d\n",j);
-		      fprintf(stderr,"\t>> t = %g , Nt = %d\n",t,i);
+		      fprintf(stderr,"ERROR: Density negative @ j = %d\n",j);
+		      fprintf(stderr,"\t>> t = %g , tStart = %g, dt= %g \n",t,tStart,dt);
 		      keepOn = false;
 					for(int j=0;j<N;j++){
 						sigma[j]=sNew[j];
@@ -107,6 +108,7 @@ int main(){
 				return EXIT_FAILURE;
 			}// end error if
 			fprintf(stderr,"	>> Wrote Output #%d at T = %e\n",fileCount++,t);
+			fprintf(stderr,"		> dt = %g\n", dt);
 		} // end write if
 
 	}// end time-step loop
@@ -116,7 +118,7 @@ int main(){
 		fprintf(stderr,"ERROR IN SOLVER -- Failed to open output file #%d\n",fileCount);
 		return EXIT_FAILURE;
 	}// end error if
-	fprintf(stderr,"  >> Wrote Output #%d at T = %e\n",fileCount++,t);
+	fprintf(stderr,"	>> Wrote Output #%d at T = %e\n",fileCount++,t);
 
 	
 	return status;
