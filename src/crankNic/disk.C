@@ -54,7 +54,7 @@ int main(){
 
 	// Initialize timing parameters
 	double t=tStart,
-		dt= calculateTimeStep(r,sigma,a,dr),
+		dt= .01*dr/nu(r[0]),//calculateTimeStep(r,sigma,a,dr),	FIXME
 		nextWrite = tStart + tWrite;
 	if( problemType == 3 )
 		dt = p3_courant*dr;
@@ -68,7 +68,7 @@ int main(){
 	// step through time ...
 	while( (t<tEnd) && keepOn ){
 
-		dt = calculateTimeStep(r,sigma,a,dr);	
+		//dt = calculateTimeStep(r,sigma,a,dr);	FIXME
 		t += dt;
 		solver.step(r,sigma,sNew,t,dt,a,t>=nextWrite);
 				
