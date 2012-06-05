@@ -19,6 +19,10 @@ double calculateTimeStep(
 					double dr					// resolution of smallest grid cell
 ){
 
+	// manual for problem-type 3
+	if( problemType == 3 )
+		return p3_courant*dr;
+
 	double r2,nu_j,Lambda_j,dt=0.0,omega,dtMin=1E5;
 
 	for( int j = 0 ; j < N ; j++ ){

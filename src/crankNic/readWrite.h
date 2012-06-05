@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "global.h"
+#include "torques.h"
 
 #ifndef INC_READ_PARAMS
 #define INC_READ_PARAMS
@@ -138,38 +139,7 @@ int writeParams(){
 	return EXIT_SUCCESS;
 } // end writeParams
 
-int writeOut(	char* fileName,
-							int n, 
-							double* r, 
-							double* f1,
-							double* f2 = NULL,	// Optional extra fields 
-							double* f3 = NULL, 
-							double* f4 = NULL,
-							double* f5 = NULL	
-						){
-  FILE* fp = fopen(fileName,"w");
-	if(f5)
-		for( int i = 0; i < n ; i++ )
-			fprintf(fp,"%e\t%e\t%e\t%e\t%e\t%e\n",
-				r[i],f1[i],f2[i],f3[i],f4[i],f5[i]);
-	else if(f4)
-		for( int i = 0; i < n ; i++ )
-			fprintf(fp,"%e\t%e\t%e\t%e\t%e\n",
-				r[i],f1[i],f2[i],f3[i],f4[i]);
-	else if(f3)
-		for( int i = 0; i < n ; i++ )
-			fprintf(fp,"%e\t%e\t%e\t%e\n",r[i],f1[i],f2[i],f3[i]);
-	else if(f2)
-		for( int i = 0; i < n ; i++ )
-			fprintf(fp,"%e\t%e\t%e\n",r[i],f1[i],f2[i]);
-	else
-		for( int i = 0; i < n ; i++ )
-			fprintf(fp,"%e\t%e\n",r[i],f1[i]);
-			
-  fclose(fp);
-  return EXIT_SUCCESS;
-}// end writeOut
-
+// small helper function ...
 int intToStr(int i, char *str){
 	if( i < 10 )
 		sprintf(str,"00%d",i);
@@ -180,22 +150,61 @@ int intToStr(int i, char *str){
 	return EXIT_SUCCESS;
 } // end intToStr
 
-int writeStandard(	int i,
-										int n,
-										double* r,
-										double* f1, 
-										double* f2 = NULL,
-										double* f3 = NULL,
-										double* f4 = NULL,
-										double* f5 = NULL 
+/*
+ *	WRITE STANDARD
+ *
+ *		>> Writes data to file, given # of data dump
+ *		   also calculates and prints torque and viscous 
+ *		   timescales and mass flow rate
+ *
+ *		>> Negative datafile # implies an error print
+ */
+int writeStandard(	int fileNum,     // datafile #
+										double* r,       // radius
+										double* sigma,   // surface density
+										double a,        // binary separation
+										double t         // time
 ){
+
+	int status = EXIT_SUCCESS;
 	char str[3];
 	char fileName[100];
-	if(EXIT_SUCCESS != intToStr(i,str)){
+
+	if( fileNum < 0 ){	// error print
+		sprintf(fileName,"ERROR.dat");
+	} else {	// normal print
+		if(EXIT_SUCCESS != intToStr(fileNum,str)){
+			return EXIT_FAILURE;
+		}// end error if
+		sprintf(fileName,"outputFiles/T%s.dat",str);
+	}// end i if
+
+  FILE* fp = fopen(fileName,"w");
+	if(NULL == fp){
+		fprintf(stderr,"ERROR IN WRITE STANDARD\n\t>> File %s failed to open.\n",fileName); 
 		return EXIT_FAILURE;
 	}
-	sprintf(fileName,"outputFiles/T%s.dat",str);
-	return writeOut(fileName,n,r,f1,f2,f3,f4,f5);
+
+	double tork, mDot, tVisc, tTork,r2,nu_j;
+	for( int j = 0 ; j < N ; j++ ){
+	
+		r2 = r[j]*r[j];
+		nu_j = nu(r[j]);
+		tork = tidalTorque(r[j],a,h(r[j]));
+		mDot  = 3.0*PI*nu_j*sigma[j];
+		tVisc = 2.0/3.0*r2/nu_j;
+		tTork = omega_k(r[j])*r2/fabs(tork);
+
+		fprintf(fp,"%e\t%e\t%e\t%e\t%e\t%e\n",
+						r[j],sigma[j],tork,mDot,tVisc,tTork);
+	}// end j for
+
+	status = fclose(fp);
+	if( EXIT_SUCCESS == status ){
+		fprintf(stderr,"	>> Wrote Output #%d at T = %e\n",fileNum,t);
+	}// end status print
+
+	return status;
 }
 
 #endif

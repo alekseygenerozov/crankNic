@@ -13,15 +13,16 @@
 
 struct cnSolver{
 	VecDoub	d;						// RHS of matrix eq
+	VecDoub sNew;					// sigma of current time step
 	double coeffs[10];		// finite difference coefficients
 	MatDoub M;						// Matrix of Crank-Nicolson Scheme
 	cnSolver();
-	int step(double *r,double *sigma,VecDoub &sNew,double t,double dt,double &a,bool dWrite);
+	int step(double *r,double *sigma,double t,double dt,double &a,bool dWrite);
 };
 
 // Constructor
 cnSolver::cnSolver() 
-	: d(N),M(N,5)
+	: d(N),M(N,5),sNew(N)
 {
 	
 	// prep some CN constants based on log-grid stretch factor
@@ -84,13 +85,13 @@ cnSolver::cnSolver()
 int cnSolver::step( 
 									double *r, 			// radius
 									double *sigma, 	// current surface density
-									VecDoub &sNew,	// updated surface density
 									double t, 			// time
 									double dt, 			// width of time step
 									double &a,			// binary separation
 									bool dWrite			// debug write step
 ){
 
+	int status = EXIT_SUCCESS;
 	double delR, beta, alpha,tmp0,tmp1,tmp2;
 	static const int L2=0,L1=1,C=2,R1=3,R2=4;
 
@@ -220,8 +221,28 @@ int cnSolver::step(
 	// Solve Matrix
 	Bandec banded(M,2,2);
 	banded.solve(d,sNew);
-		
-	return EXIT_SUCCESS;
+
+	// Check for negative
+	for( int j = 0 ; j < N ; j++ ){
+		if( sNew[j] < 0.0 ){
+			if( density_floor < 0.0 ){
+				fprintf(stderr,"ERROR IN CN SOLVER: Density negative @ j = %d\n",j);
+				fprintf(stderr,"\t>> t = %g , tStart = %g, dt= %g \n",t,tStart,dt);
+				status = EXIT_FAILURE;
+			} else {
+				sNew[j] = density_floor;  // if floor enabled
+				fprintf(stderr,"WARNING IN CN SOLVER: Density negative @ j = %d\n",j);
+				fprintf(stderr,"\t>> t = %g, tStart = %g, dt = %g\n",t,tStart,dt);
+				fprintf(stderr,"\t\t Density Floor of %g activated\n",density_floor);
+			} // end floor if/else
+		}// end negative density if
+	} // end j for
+	
+	// Copy new density into sigma
+	for( int j = 0 ; j < N ; j++ )
+		sigma[j] = sNew[j];
+	
+	return status;
 } // end solve
 
 #endif

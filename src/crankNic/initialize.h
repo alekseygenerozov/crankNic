@@ -6,6 +6,15 @@
 
 int initialize( double *r, double *sigma ){
 
+  // calcualte innermost grid cell size
+  if( lambda == 1.0 ){
+    dr = (rMax-rMin)/(N-1.0);
+  } else {
+    dr = (rMax-rMin)*(lambda-1.0)/(pow(lambda,N-1)-1.0);
+  }
+  dr2  = dr*dr;
+  fprintf(stderr,"dr = %g\n",dr);
+
 	// setup grid
 	for( int j = 0 ; j < N ; j++ ){
       if( lambda == 1.0 ){
@@ -18,7 +27,7 @@ int initialize( double *r, double *sigma ){
       }// end lambda if/else
 	}// end j for
 
-	// if not explicitly set, normalize torque at outer boundary
+	// if not explicitly set, normalize viscosity at outer boundary
 	if(-1.0==nu0){
 		fprintf(stderr,"WARNING --- nu0 not explicitly set, normalizing nu at rMax\n");
 		nu0 = (n_v==0?1.0:pow(1.0/r[N-3],n_v));
