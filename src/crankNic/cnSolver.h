@@ -226,14 +226,14 @@ int cnSolver::step(
 	for( int j = 0 ; j < N ; j++ ){
 		if( sNew[j] < 0.0 ){
 			if( density_floor < 0.0 ){
-				fprintf(stderr,"ERROR IN CN SOLVER: Density negative @ j = %d\n",j);
-				fprintf(stderr,"\t>> t = %g , tStart = %g, dt= %g \n",t,tStart,dt);
+				fprintf(stdout,"ERROR IN CN SOLVER: Density negative @ j = %d\n",j);
+				fprintf(stdout,"\t>> t = %g , tStart = %g, dt= %g \n",t,tStart,dt);
 				status = EXIT_FAILURE;
 			} else {
 				sNew[j] = density_floor;  // if floor enabled
-				fprintf(stderr,"WARNING IN CN SOLVER: Density negative @ j = %d\n",j);
-				fprintf(stderr,"\t>> t = %g, tStart = %g, dt = %g\n",t,tStart,dt);
-				fprintf(stderr,"\t\t Density Floor of %g activated\n",density_floor);
+				fprintf(stdout,"WARNING IN CN SOLVER: Density negative @ j = %d\n",j);
+				fprintf(stdout,"\t>> t = %g, tStart = %g, dt = %g\n",t,tStart,dt);
+				fprintf(stdout,"\t\t Density Floor of %g activated\n",density_floor);
 			} // end floor if/else
 		}// end negative density if
 	} // end j for

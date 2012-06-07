@@ -8,6 +8,7 @@
 #include "readWrite.h"
 #include "initialize.h"
 #include "calculateTimeStep.h"
+#include "integrator.h"
 
 int main(){
 
