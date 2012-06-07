@@ -21,9 +21,9 @@ double simpsonInt(double* x){
 		oddCoeff  = (lambda+1.0)*(lambda+1.0)/(6.0*lambda*lambda);
 
 	result += (2.0-lambda)/6.0*x[0];
-	for(int j=1;j<N-1;j+=2)
+	for(int j=1;j<N-1;j++)
 			result += ((j%2==0)?evenCoeff:oddCoeff)*x[j]*pow(lambda,j);
 	result += (2.0*lambda-1.0)/(6.0*lambda)*pow(lambda,N-4)*x[N-1];
 
-	return result;
+	return result*dr*(lambda+1.0);
 }// end simpsonInt 
