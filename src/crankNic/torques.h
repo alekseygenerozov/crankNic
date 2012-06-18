@@ -46,9 +46,9 @@ double gamma(	double r, double a, double hh ){
 	if( r < a - hh )
 		return 3.0 - 4.0*r/(r-a);
 	if( r < a )
-		return 3.0;
-	if( r < a + hh )
-		return -1.0;
+		return -1.0;		// !!! ASSUMES h = const * r
+	if( r < a + hh )	
+		return -5.0;		// !!! ASSUMES h = const * r
 	return -1.0 - 4.0*r/(r-a);
 }// end gamma
 
