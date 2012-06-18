@@ -77,23 +77,57 @@ double bodeInterpIntWithTorque(double *r, double* x){
  *	Coefficients included in separate file, quadCoeffs.h, and taken
  *	from Abramowitz & Stegun.
  *	
- */	
-double gaussIntWithTorque(){
+ */
 
-	// define the bounds of intgrtn (in terms of scl hght, h)
-	double gauss_scale_mult = 5.0,
-		gauss_rMin = max(a-gauss_scale_mult*h(a),rMin),
-		gauss_rMax = min(a+gauss_scale_mult*h(a),rMax),
-		bMao2 = (gauss_rMax - gauss_rMin)/2.0,
-		bPao2 = (gauss_rMax + gauss_rMin)/2.0;
+double quadBit(double bit_min, double bit_max,int bit_n){
+	double bMao2 = (bit_max - bit_min)/2.0,
+		bPao2 = (bit_max + bit_min)/2.0;
 
-	// integrate using a 96-point gauss-legendre
+	// figure out how many points to use
+	// only options are 96, 48 and 16
+	double *points;
+	double *weights;
+	if(bit_n == 96){
+		points  = gaussQuad_x_96;
+		weights = gaussQuad_w_96;
+	} else if(bit_n == 48){
+		points  = gaussQuad_x_48;
+		weights = gaussQuad_w_48;
+	} else {	// fall back on 16
+		if(bit_n != 16){
+			fprintf(stderr,"WARNING IN integrate.h quadBit()\n");
+			fprintf(stderr,"\t>> bit_n improperly specified, resorting to 16\n");
+		}// end warning if
+		bit_n = 16;
+		points  = gaussQuad_x_16;
+		weights = gaussQuad_w_16;
+	}// end n_bits if/else	
+
+	// integrate using gauss-legendre
 	double sum = 0.0,x1,x2;
-	for( int i = 0 ; i < 48 ; i++ ){
-		x1 = bPao2 + bMao2*gaussQuad_x_96[i];
-		x2 = bPao2 - bMao2*gaussQuad_x_96[i];
-		sum += gaussQuad_w_96[i]*(tidalTorque(x1,a,h(x1))+tidalTorque(x2,a,h(x2)));
+	int len = bit_n/2;
+	for( int i = 0 ; i < len ; i++ ){
+		x1 = bPao2 + bMao2*points[i];
+		x2 = bPao2 - bMao2*points[i];
+		sum += weights[i]*(tidalTorque(x1,a,h(x1))+tidalTorque(x2,a,h(x2)));
 	}// end i for
-
 	return sum*bMao2;
+}
+	
+double gaussIntWithTorque(int n_pts){
+
+	// we break our integral into regions ...
+	double gauss_scale_mult = 5.0,
+		steep_rMin = max(a-gauss_scale_mult*h(a),rMin),
+		steep_rMax = min(a+gauss_scale_mult*h(a),rMax),
+		sum = 0.0;
+
+	if( rMin < steep_rMin)
+		sum += quadBit(rMin,steep_rMin,n_pts);
+	if( steep_rMax < rMax )
+		sum += quadBit(steep_rMax,rMax,n_pts);
+	sum += quadBit(steep_rMin,a,n_pts);
+	sum += quadBit(a,steep_rMax,n_pts);
+
+	return sum;
 }// end gaussIntWithTorque
