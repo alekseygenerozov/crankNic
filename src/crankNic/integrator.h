@@ -1,6 +1,8 @@
+#include <stdio.h>
 #include <math.h>
 #include "global.h"
 #include "torques.h"
+#include "quadCoeffs.h"
 
 /*
  *	INTEGRATOR
@@ -68,3 +70,30 @@ double bodeInterpIntWithTorque(double *r, double* x){
 
 	return result;
 }// end bodeInterpIntWithTorque
+
+/*
+ *	GAUSS QUADRATURE SCHEME
+ *	
+ *	Coefficients included in separate file, quadCoeffs.h, and taken
+ *	from Abramowitz & Stegun.
+ *	
+ */	
+double gaussIntWithTorque(){
+
+	// define the bounds of intgrtn (in terms of scl hght, h)
+	double gauss_scale_mult = 5.0,
+		gauss_rMin = max(a-gauss_scale_mult*h(a),rMin),
+		gauss_rMax = min(a+gauss_scale_mult*h(a),rMax),
+		bMao2 = (gauss_rMax - gauss_rMin)/2.0,
+		bPao2 = (gauss_rMax + gauss_rMin)/2.0;
+
+	// integrate using a 96-point gauss-legendre
+	double sum = 0.0,x1,x2;
+	for( int i = 0 ; i < 48 ; i++ ){
+		x1 = bPao2 + bMao2*gaussQuad_x_96[i];
+		x2 = bPao2 - bMao2*gaussQuad_x_96[i];
+		sum += gaussQuad_w_96[i]*(tidalTorque(x1,a,h(x1))+tidalTorque(x2,a,h(x2)));
+	}// end i for
+
+	return sum*bMao2;
+}// end gaussIntWithTorque
