@@ -13,7 +13,7 @@
  */
 double tidalTorque( 	double r , 		// radial position in disk
 											double a, 		// binary separation
-											double h 			// scale height of disk
+											double hh 			// scale height of disk
 									){
 
 	if( q == 0.0 ){
@@ -22,10 +22,10 @@ double tidalTorque( 	double r , 		// radial position in disk
 	double	tmp1 = f*q*q*M*0.5,
 					Dl;
 
-	if( fabs(r-a) > h )
+	if( fabs(r-a) > hh )
 		Dl = fabs(r-a);
 	else
-		Dl = h;
+		Dl = hh;
 
 	if( r < a )
 		return -tmp1*r*r*r/Dl/Dl/Dl/Dl;
@@ -42,12 +42,12 @@ double tidalTorque( 	double r , 		// radial position in disk
  *		torque density's derivative to the torque-density itself,
  *		multiplied by radius.
  */
-double gamma(	double r, double a, double h ){
-	if( r < a - h )
+double gamma(	double r, double a, double hh ){
+	if( r < a - hh )
 		return 3.0 - 4.0*r/(r-a);
 	if( r < a )
 		return 3.0;
-	if( r < a + h )
+	if( r < a + hh )
 		return -1.0;
 	return -1.0 - 4.0*r/(r-a);
 }// end gamma
