@@ -31,8 +31,8 @@ int main(){
 	double t         = tStart,
 	       dt        = calculateTimeStep(r,sigma,a,dr),
 	       nextWrite = tStart + tWrite;
-	fprintf(stderr,"\t>> tStart = %g\n\t>> initial dt = %g\n\t>> tEnd = %g\n",
-					tStart,dt,tEnd);
+	fprintf(stderr,"\t>> tStart = %g\n\t>> initial dt = %g\n\t>> tEnd = %g\n", tStart,dt,tEnd);
+	fprintf(stdout,"tStart = %g\ndt = %g\ntEnd = %g\n", tStart,dt,tEnd);
 
 	// print ICs & Parameters we'll use
 	if(EXIT_SUCCESS != (status = writeParams()))
@@ -47,7 +47,7 @@ int main(){
 
 		// take a time step	
 		dt = calculateTimeStep(r,sigma,a,dr);
-		if(EXIT_SUCCESS != (status = solver.step(r,sigma,t,dt,a,t>=nextWrite))){
+		if(EXIT_SUCCESS != (status = solver.step(r,sigma,t,dt,a,(t+dt)>=nextWrite))){
 			writeStandard(-1,r,sigma,a,t);
 			return status;
 		}

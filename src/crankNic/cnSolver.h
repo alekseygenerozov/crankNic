@@ -97,7 +97,7 @@ int cnSolver::step(
 
 	if(DEBUG_MODE && dWrite){
 		fprintf(stdout,"\n\n# ---------------------------------------------------------\n");
-		fprintf(stdout,"#r\tdelR\talpha\tbeta\tgamma\ttmp0\ttmp1\ttmp2\n");
+		fprintf(stdout,"#r\t\th\t\tLambda\t\tdelR\t\talpha\t\tbeta\t\tgamma\t\ttmp0\t\ttmp1\t\ttmp2\n");
 	} // end debug if
 
 	// Build vectors for matrix solver
@@ -124,8 +124,9 @@ int cnSolver::step(
 		} // end problem 3 if
 
 		if(DEBUG_MODE && dWrite ){	
-			fprintf(stdout,"%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t\n",
-				r[j],delR,alpha,beta,gamma(r[j],a,h(r[j])),tmp0,tmp1,tmp2);
+			fprintf(stdout,"%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n",
+				r[j],h(r[j]),tidalTorque(r[j],a,h(r[j])),delR,alpha,beta,
+				gamma(r[j],a,h(r[j])),tmp0,tmp1,tmp2);
 		}// end debug if
 
 

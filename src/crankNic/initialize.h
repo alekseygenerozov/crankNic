@@ -7,12 +7,12 @@
 int initialize( double *r, double *sigma ){
 
 	// Check N is odd
-	if(N%2==0){
-		N++;
-		fprintf(stderr,"WARNING in initialize:\n");
-		fprintf(stderr,"\t\t>> Integrator requires odd # of grid cells,");
-		fprintf(stderr,"\t\t   setting N = %d\n",N);
-	}
+//	if(N%2==0){
+//		N++;
+//		fprintf(stderr,"WARNING in initialize:\n");
+//		fprintf(stderr,"\t\t>> Integrator requires odd # of grid cells,");
+//		fprintf(stderr,"\t\t   setting N = %d\n",N);
+//	}
 
   // calcualte innermost grid cell size
   if( lambda == 1.0 ){
@@ -22,6 +22,7 @@ int initialize( double *r, double *sigma ){
   }
   dr2  = dr*dr;
   fprintf(stderr,"dr = %g\n",dr);
+  fprintf(stdout,"dr = %g\n",dr);
 
 	// setup grid
 	for( int j = 0 ; j < N ; j++ ){

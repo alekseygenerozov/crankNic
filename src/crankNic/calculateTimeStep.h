@@ -41,7 +41,7 @@ double calculateTimeStep(
 		dtMin = min(dtMin,dt);
 
 		// torque exponential timescale
-		dt = fabs(r2*omega/(Lambda_j*(1.5+gamma(r[j],a,h(r[j])))));
+		dt = fabs(r2*omega/(Lambda_j*(1.5+gamma(r[j],a,h(r[j])))))*.001;	// FIXME
 		dtMin = min(dtMin,dt);	
 	} // end j for
 
