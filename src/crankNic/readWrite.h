@@ -25,12 +25,12 @@ int readParams(){
 		// dimensions
 		nV += sscanf(line, "N = %d",&N);			
 		nV += sscanf(line, "lambda = %lg",&lambda);			
-		nV += sscanf(line, "rMax = %lg",&rMax);			
-		nV += sscanf(line, "rMin = %lg",&rMin);
+		nV += sscanf(line, "lMax = %lg",&lMax);			
+		nV += sscanf(line, "lMin = %lg",&lMin);
 		nV += sscanf(line, "STENCIL = %d",&STENCIL);			
 
 		// physical params
-		nV += sscanf(line, "r0 = %lg",&r0);
+		nV += sscanf(line, "l0 = %lg",&l0);
 		nV += sscanf(line, "nu0 = %lg",&nu0);
 		nV += sscanf(line, "n_v = %lg",&n_v);
 		nV += sscanf(line, "dhdr = %lg",&dhdr);
@@ -92,13 +92,13 @@ int writeParams(){
 	// Dimensions
 	fprintf(fp,"N       = %d\n",N);
 	fprintf(fp,"lambda  = %g\n",lambda);
-	fprintf(fp,"rMax    = %g\n",rMax);
-	fprintf(fp,"rMin    = %g\n",rMin);
+	fprintf(fp,"lMax    = %g\n",lMax);
+	fprintf(fp,"lMin    = %g\n",lMin);
 	fprintf(fp,"STENCIL = %d\n",STENCIL);
 	fprintf(fp,"\n");
 
 	// Physical Params
-	fprintf(fp,"r0   = %g\n",r0);
+	fprintf(fp,"l0   = %g\n",l0);
 	fprintf(fp,"nu0  = %g\n",nu0);
 	fprintf(fp,"n_v  = %g\n",n_v);
 	fprintf(fp,"dhdr = %g\n",dhdr);
@@ -160,8 +160,8 @@ int intToStr(int i, char *str){
  *		>> Negative datafile # implies an error print
  */
 int writeStandard(	int fileNum,     // datafile #
-										double* r,       // radius
-										double* sigma,   // surface density
+										double* l,       // radius
+										double* Fj,   // surface density
 										double a,        // binary separation
 										double t         // time
 ){
@@ -185,18 +185,18 @@ int writeStandard(	int fileNum,     // datafile #
 		return EXIT_FAILURE;
 	}
 
-	double tork, mDot, tVisc, tTork,r2,nu_j;
+	double tork, mDot, tVisc, tTork,l2,nu_j;
 	for( int j = 0 ; j < N ; j++ ){
 	
-		r2 = r[j]*r[j];
-		nu_j = nu(r[j]);
-		tork = tidalTorque(r[j],a,h(r[j]));
-		mDot  = 3.0*PI*nu_j*sigma[j];
-		tVisc = 2.0/3.0*r2/nu_j;
-		tTork = omega_k(r[j])*r2/fabs(tork);
+		l2 = l[j]*l[j];
+		nu_j = nu(l[j]);
+//		tork = tidalTorque(r[j],a,h(r[j]));
+//		mDot  = 3.0*PI*nu_j*sigma[j];
+//		tVisc = 2.0/3.0*r2/nu_j;
+//		tTork = omega_k(r[j])*r2/fabs(tork);
 
-		fprintf(fp,"%e\t%e\t%e\t%e\t%e\t%e\n",
-						r[j],sigma[j],tork,mDot,tVisc,tTork);
+		fprintf(fp,"%e\t%e\n",//\t%e\t%e\t%e\t%e\n",
+						l[j],Fj[j]);//,tork,mDot,tVisc,tTork);
 	}// end j for
 
 	status = fclose(fp);

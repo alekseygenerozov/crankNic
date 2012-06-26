@@ -21,15 +21,15 @@ double SAFETY_NUMBER = 1.0;	// diminishes timestep
 
 int N         = 500;      // Size of Simulation
 double lambda = 1.0;			// stretch factor of log grid
-double rMax   = 2.0;      // outer boundary
-double rMin   = 0.1;      // inner boundary
-double dr     = (rMax-rMin)/(N-1.0);  // cell size
-double dr2    = dr*dr;                // cell size squared
+double lMax   = 2.0;      // outer boundary
+double lMin   = 0.1;      // inner boundary
+double dl     = (lMax-lMin)/(N-1.0);  // cell size
+double dl2    = dl*dl;                // cell size squared
 int STENCIL		= 0;				// For Gradient derivative term
 
 // PHYSICAL PARAMETERS
-double r0    = 1.0;     					// where delta-fcn starts
-double a		 = rMax/2.0;					// Initial position of secondary
+double l0    = 1.0;     					// where delta-fcn starts
+double a		 = lMax/2.0;					// Initial position of secondary
 double q		 = 0.0;								// binary mass ratio
 double M		 = 1.0;								// primary mass
 double f		 = .01;								// numerical parameter for torque density
@@ -39,9 +39,10 @@ double dhdr  = 0.1;								// r/h for disk scale height
 
 double max(double x, double y){return (x>y)?x:y;};
 double min(double x, double y){return (x<y)?x:y;};
-double omega_k(double r){ return sqrt(M/(r*r*r));};
-double nu(double r){ return (n_v==0?nu0:nu0*pow(r,n_v));};
-double h(double r){ return dhdr*r;}
+double omega_k(double l){ return M*M/(l*l*l);};
+double nu(double l){ return (n_v==0?nu0:nu0*pow(l,n_v));};
+double h(double r){ return dhdr*r;};	// FIXME
+double Dj(double l){ return 3.0*nu(l)*l*omega_k(l)/4.0;};
 
 // BOUNDARY CONDITIONS
 const int ZERO_GRAD = 0;

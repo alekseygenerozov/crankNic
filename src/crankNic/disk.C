@@ -4,11 +4,11 @@
 
 #include "global.h"
 #include "cnSolver.h"
-#include "torques.h"
+//#include "torques.h" FIXME
 #include "readWrite.h"
 #include "initialize.h"
 #include "calculateTimeStep.h"
-#include "integrator.h"
+//#include "integrator.h" FIXME
 
 int main(){
 
@@ -20,16 +20,16 @@ int main(){
 		return status;
 
 	// Create arrays for data
-	double r[N];				// radial position
-	double sigma[N];		// surface density (azimuthally averaged)
+	double l[N];			// specific angular momentum
+	double Fj[N];			// angular momentum flux
 
 	// Intialize r and sigma
-	if(EXIT_SUCCESS != (status = initialize(r,sigma)))
+	if(EXIT_SUCCESS != (status = initialize(l,Fj)))
 		return status;
 
 	// Initialize timing parameters
 	double t         = tStart,
-	       dt        = calculateTimeStep(r,sigma,a,dr),
+	       dt        = calculateTimeStep(l,Fj,a,dl),
 	       nextWrite = tStart + tWrite;
 	fprintf(stderr,"\t>> tStart = %g\n\t>> initial dt = %g\n\t>> tEnd = %g\n", tStart,dt,tEnd);
 	fprintf(stdout,"tStart = %g\ndt = %g\ntEnd = %g\n", tStart,dt,tEnd);
@@ -37,7 +37,7 @@ int main(){
 	// print ICs & Parameters we'll use
 	if(EXIT_SUCCESS != (status = writeParams()))
 		return status;
-	if(EXIT_SUCCESS != (status = writeStandard(fileCount++,r,sigma,a,t)))
+	if(EXIT_SUCCESS != (status = writeStandard(fileCount++,l,Fj,a,t)))
 		return status;
 
 	// intialize our Crank-Nicolson solver	
@@ -46,9 +46,9 @@ int main(){
 	while(t<tEnd){		// main loop (in time)
 
 		// take a time step	
-		dt = calculateTimeStep(r,sigma,a,dr);
-		if(EXIT_SUCCESS != (status = solver.step(r,sigma,t,dt,a,(t+dt)>=nextWrite))){
-			writeStandard(-1,r,sigma,a,t);
+		dt = calculateTimeStep(l,Fj,a,dl);
+		if(EXIT_SUCCESS != (status = solver.step(l,Fj,t,dt,a,(t+dt)>=nextWrite))){
+			writeStandard(-1,l,Fj,a,t);
 			return status;
 		}
 		t += dt;
@@ -56,14 +56,14 @@ int main(){
 		// check if we write out
 		if( t >= nextWrite ){
 			nextWrite += tWrite;
-			if(EXIT_SUCCESS != (status = writeStandard(fileCount++,r,sigma,a,t)))
+			if(EXIT_SUCCESS != (status = writeStandard(fileCount++,l,Fj,a,t)))
 				return status;
 			fprintf(stderr,"		> dt = %g\n", dt);
 		} // end write if
 	}// end time-step loop
 
 	// print last file:
-	if(EXIT_SUCCESS != (status = writeStandard(fileCount,r,sigma,a,t)))
+	if(EXIT_SUCCESS != (status = writeStandard(fileCount,l,Fj,a,t)))
 		return status;
 	
 	return status;
