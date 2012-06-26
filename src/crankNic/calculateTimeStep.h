@@ -33,7 +33,7 @@ double calculateTimeStep(
 		//omega = omega_k(r[j]);
 
 		// viscous diffusion timescale
-		dt = .5*dl/nu_j*pow(lambda,2.0*j); //FIXME
+		dt = .5*dl/Dj(l[j])*pow(lambda,2.0*j); //FIXME
 		dtMin = min(dtMin,dt);
 
 //		// torque & viscous advection timescale

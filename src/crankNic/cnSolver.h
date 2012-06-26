@@ -103,7 +103,7 @@ int cnSolver::step(
 	// Build vectors for matrix solver
 	for( int j = 2 ; j < N-2 ; j++ ){
 	
-		alpha = .5*dt/dl;
+		alpha = .5*dt/dl2*Dj(l[j]);
 		beta = 0.0;//tidalTorque(r[j],a,h(r[j]))*dt/(omega_k(r[j])*dr2); FIXME
 //		delR = dr/r[j]; FIXME
 		
@@ -123,11 +123,13 @@ int cnSolver::step(
 			}// end const if
 		} // end problem 3 if
 
-//		if(DEBUG_MODE && dWrite ){	FIXME
+		if(DEBUG_MODE && dWrite ){	
+			fprintf(stdout,"%g\t%g\t%g\t%g\t%g\t%g\n", //\t%g\t%g\t%g\t%g\n",
+				l[j],nu(l[j]),alpha,tmp0,tmp1,tmp2);
 //			fprintf(stdout,"%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n",
 //				r[j],h(r[j]),tidalTorque(r[j],a,h(r[j])),delR,alpha,beta,
 //				gamma(r[j],a,h(r[j])),tmp0,tmp1,tmp2);
-//		}// end debug if
+		}// end debug if
 
 
 		M[j][L2] = -tmp0*coeffs[4]-tmp1*coeffs[9];						// Second sub-diagonal
@@ -137,11 +139,11 @@ int cnSolver::step(
 		M[j][R2] = -tmp0*coeffs[0]-tmp1*coeffs[5];						// second super-diagonal
 
 		// RHS vector
-		d[j] = 	  (tmp0*coeffs[0]+tmp1*coeffs[5]					)*Fj[j+2]/Dj(l[j+2]) 
-						+ (tmp0*coeffs[1]+tmp1*coeffs[6]					)*Fj[j+1]/Dj(l[j+1])
-						+ (tmp0*coeffs[2]+tmp1*coeffs[7]+tmp2+1.0	)*Fj[j  ]/Dj(l[j  ])
-						+ (tmp0*coeffs[3]+tmp1*coeffs[8]					)*Fj[j-1]/Dj(l[j-1])
-						+ (tmp0*coeffs[4]+tmp1*coeffs[9]					)*Fj[j-2]/Dj(l[j-2]);
+		d[j] = 	  (tmp0*coeffs[0]+tmp1*coeffs[5]					)*Fj[j+2] 
+						+ (tmp0*coeffs[1]+tmp1*coeffs[6]					)*Fj[j+1]
+						+ (tmp0*coeffs[2]+tmp1*coeffs[7]+tmp2+1.0	)*Fj[j  ]
+						+ (tmp0*coeffs[3]+tmp1*coeffs[8]					)*Fj[j-1]
+						+ (tmp0*coeffs[4]+tmp1*coeffs[9]					)*Fj[j-2];
 	} // end j for
 
 	// update boundary conditions
@@ -193,7 +195,7 @@ int cnSolver::step(
 		d[N-2] = 0.0;
  
 		// Zero gradient
-		M[N-1][L2] = -lambda*la2/tmp2/lp1;		// FIXME
+		M[N-1][L2] = -lambda*la2/tmp2/lp1;
 		M[N-1][L1] = lambda*lp1/tmp2;
 		M[N-1][C]  = -(M[N-1][L2]+M[N-1][L1]);
 		d[N-1] = 0.0;

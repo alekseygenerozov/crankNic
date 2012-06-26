@@ -40,7 +40,7 @@ double dhdr  = 0.1;								// r/h for disk scale height
 double max(double x, double y){return (x>y)?x:y;};
 double min(double x, double y){return (x<y)?x:y;};
 double omega_k(double l){ return M*M/(l*l*l);};
-double nu(double l){ return (n_v==0?nu0:nu0*pow(l,n_v));};
+double nu(double l){ return (n_v==0?nu0:nu0*pow(l,n_v));};	// FIXME
 double h(double r){ return dhdr*r;};	// FIXME
 double Dj(double l){ return 3.0*nu(l)*l*omega_k(l)/4.0;};
 
