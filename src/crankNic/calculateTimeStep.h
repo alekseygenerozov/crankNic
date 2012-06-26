@@ -15,7 +15,7 @@
 double calculateTimeStep( 	
 					double *l,		// specific angular momentum
 					double *Fj,		// angular momentum flux
-					double a, 		// binary separation
+					double l_a, 		// binary separation
 					double dl			// resolution of smallest grid cell
 ){
 

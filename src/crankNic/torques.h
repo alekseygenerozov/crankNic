@@ -11,45 +11,51 @@
  *		Smoothed torque density of secondary on disk, due to
  *		to linblad resonances.
  */
-double tidalTorque( 	double r , 		// radial position in disk
-											double a, 		// binary separation
-											double hh 			// scale height of disk
+double tidalTorque( 	double l , 		// radial position in disk
+											double l_a, 	// binary separation
+											double l_hh		// scale height of disk
 									){
 
 	if( q == 0.0 ){
 		return 0.0;
 	}// end simple cas if
-	double	tmp1 = f*q*q*M*0.5,
-					Dl;
+	double	tmp1 = f*q*q*M*M*0.5,
+					l2 = l*l,
+					la2 = l_a*l_a,
+					lh2 = l_hh*l_hh,
+					tmp2;
 
-	if( fabs(r-a) > hh )
-		Dl = fabs(r-a);
-	else
-		Dl = hh;
-
-	if( r < a )
-		return -tmp1*r*r*r/Dl/Dl/Dl/Dl;
-	
-	double tmp2 = a/Dl;
-
-	return 	tmp1*tmp2*tmp2*tmp2*tmp2/r;
+	if( l2 < la2 - lh2 ){
+		tmp2 = l2/(l2-la2);
+		return -tmp1*tmp2*tmp2*tmp2*tmp2/l2;
+	}
+	if( l2 < la2 ){
+		tmp2 = l2/lh2;
+		return -tmp1*tmp2*tmp2*tmp2/lh2;
+	}
+	if( l2 < la2 + lh2 ){
+		tmp2 = la2/lh2;
+		return tmp1*tmp2*tmp2*tmp2*tmp2/l2;
+	}
+	tmp2 = la2/(l2-la2);
+	return 	tmp1*tmp2*tmp2*tmp2*tmp2/l2;
 }// end tidal torque
 
-/*
- *	GAMMA
- *
- *		Dimensionless parameter defined as the ratio of the
- *		torque density's derivative to the torque-density itself,
- *		multiplied by radius.
- */
-double gamma(	double r, double a, double hh ){
-	if( r < a - hh )
-		return 3.0 - 4.0*r/(r-a);
-	if( r < a )
-		return -1.0;		// !!! ASSUMES h = const * r
-	if( r < a + hh )	
-		return -5.0;		// !!! ASSUMES h = const * r
-	return -1.0 - 4.0*r/(r-a);
-}// end gamma
+///*							FIXME
+// *	GAMMA
+// *
+// *		Dimensionless parameter defined as the ratio of the
+// *		torque density's derivative to the torque-density itself,
+// *		multiplied by radius.
+// */
+//double gamma(	double r, double a, double hh ){
+//	if( r < a - hh )
+//		return 3.0 - 4.0*r/(r-a);
+//	if( r < a )
+//		return -1.0;		// !!! ASSUMES h = const * r
+//	if( r < a + hh )	
+//		return -5.0;		// !!! ASSUMES h = const * r
+//	return -1.0 - 4.0*r/(r-a);
+//}// end gamma
 
 #endif

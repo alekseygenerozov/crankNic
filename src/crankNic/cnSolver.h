@@ -6,7 +6,7 @@
 #include "nr3.h"
 #include "banded.h"
 #include "readWrite.h"
-//#include "torques.h" FIXME
+#include "torques.h"
 
 #ifndef CN_SOLVER
 #define CN_SOLVER
@@ -17,7 +17,7 @@ struct cnSolver{
 	double coeffs[10];		// finite difference coefficients
 	MatDoub M;						// Matrix of Crank-Nicolson Scheme
 	cnSolver();
-	int step(double *l,double *Fj,double t,double dt,double &a,bool dWrite);
+	int step(double *l,double *Fj,double t,double dt,double &l_a,bool dWrite);
 };
 
 // Constructor
@@ -87,7 +87,7 @@ int cnSolver::step(
 									double *Fj, 		// current a.m. flux
 									double t, 			// time
 									double dt, 			// width of time step
-									double &a,			// binary separation
+									double &l_a,			// binary separation
 									bool dWrite			// debug write step
 ){
 

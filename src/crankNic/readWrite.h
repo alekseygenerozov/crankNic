@@ -34,7 +34,7 @@ int readParams(){
 		nV += sscanf(line, "nu0 = %lg",&nu0);
 		nV += sscanf(line, "n_v = %lg",&n_v);
 		nV += sscanf(line, "dhdr = %lg",&dhdr);
-		nV += sscanf(line, "a = %lg",&a);
+		nV += sscanf(line, "l_a = %lg",&l_a);
 		nV += sscanf(line, "q = %lg",&q);
 		nV += sscanf(line, "M = %lg",&M);
 		nV += sscanf(line, "f = %lg",&f);
@@ -102,7 +102,7 @@ int writeParams(){
 	fprintf(fp,"nu0  = %g\n",nu0);
 	fprintf(fp,"n_v  = %g\n",n_v);
 	fprintf(fp,"dhdr = %g\n",dhdr);
-	fprintf(fp,"a    = %g\n",a);
+	fprintf(fp,"l_a    = %g\n",l_a);
 	fprintf(fp,"q    = %g\n",q);
 	fprintf(fp,"M    = %g\n",M);
 	fprintf(fp,"f    = %g\n",f);
@@ -162,7 +162,7 @@ int intToStr(int i, char *str){
 int writeStandard(	int fileNum,     // datafile #
 										double* l,       // radius
 										double* Fj,   // surface density
-										double a,        // binary separation
+										double l_a,        // binary separation
 										double t         // time
 ){
 
@@ -190,13 +190,13 @@ int writeStandard(	int fileNum,     // datafile #
 	
 		l2 = l[j]*l[j];
 		nu_j = nu(l[j]);
-//		tork = tidalTorque(r[j],a,h(r[j]));
+		tork = tidalTorque(l[j],l_a,h(l[j]));
 //		mDot  = 3.0*PI*nu_j*sigma[j];
 //		tVisc = 2.0/3.0*r2/nu_j;
 //		tTork = omega_k(r[j])*r2/fabs(tork);
 
-		fprintf(fp,"%e\t%e\n",//\t%e\t%e\t%e\t%e\n",
-						l[j],Fj[j]);//,tork,mDot,tVisc,tTork);
+		fprintf(fp,"%e\t%e\t%e\n",	//\t%e\t%e\t%e\n",
+						l[j],Fj[j],tork);		//mDot,tVisc,tTork);
 	}// end j for
 
 	status = fclose(fp);

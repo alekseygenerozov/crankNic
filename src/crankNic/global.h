@@ -29,7 +29,7 @@ int STENCIL		= 0;				// For Gradient derivative term
 
 // PHYSICAL PARAMETERS
 double l0    = 1.0;     					// where delta-fcn starts
-double a		 = lMax/2.0;					// Initial position of secondary
+double l_a		 = lMax/2.0;					// Initial position of secondary
 double q		 = 0.0;								// binary mass ratio
 double M		 = 1.0;								// primary mass
 double f		 = .01;								// numerical parameter for torque density
@@ -40,8 +40,8 @@ double dhdr  = 0.1;								// r/h for disk scale height
 double max(double x, double y){return (x>y)?x:y;};
 double min(double x, double y){return (x<y)?x:y;};
 double omega_k(double l){ return M*M/(l*l*l);};
-double nu(double l){ return (n_v==0?nu0:nu0*pow(l,n_v));};	// FIXME
-double h(double r){ return dhdr*r;};	// FIXME
+double nu(double l){ return (n_v==0?nu0:nu0*pow(l*l/M,n_v));};
+double h(double l){ return dhdr*l*l/M;};	// FIXME
 double Dj(double l){ return 3.0*nu(l)*l*omega_k(l)/4.0;};
 
 // BOUNDARY CONDITIONS
