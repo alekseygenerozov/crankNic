@@ -104,7 +104,7 @@ int cnSolver::step(
 	for( int j = 2 ; j < N-2 ; j++ ){
 	
 		tmp0 = pow(lambda,-2.0*j)*.5*dt/dl2*Dj(l[j]);
-		tmp1 = 0.0;//pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+1.5)-beta); FIXME
+		tmp1 = pow(lambda,-1.0*j)*.5*dt/dl*Dj(l[j]);
 
 		// Coefficiencts manually set for problem-type 3
 		if( problemType == 3 ){
@@ -125,18 +125,18 @@ int cnSolver::step(
 		}// end debug if
 
 
-		M[j][L2] = -tmp0*coeffs[4]-tmp1*coeffs[9];     // Second sub-diagonal
-		M[j][L1] = -tmp0*coeffs[3]-tmp1*coeffs[8];     // First sub-diagonal
-		M[j][C]  = -tmp0*coeffs[2]-tmp1*coeffs[7]+1.0; // central band
-		M[j][R1] = -tmp0*coeffs[1]-tmp1*coeffs[6];     // first super-diagonal
-		M[j][R2] = -tmp0*coeffs[0]-tmp1*coeffs[5];     // second super-diagonal
+		M[j][L2] = -tmp0*coeffs[4]-tmp1*coeffs[9]*tidalTorque(l[j-2],l_a)/Dj(l[j-2]);
+		M[j][L1] = -tmp0*coeffs[3]-tmp1*coeffs[8]*tidalTorque(l[j-1],l_a)/Dj(l[j-1]);
+		M[j][C]  = -tmp0*coeffs[2]-tmp1*coeffs[7]*tidalTorque(l[j  ],l_a)/Dj(l[j  ])+1.0;
+		M[j][R1] = -tmp0*coeffs[1]-tmp1*coeffs[6]*tidalTorque(l[j+1],l_a)/Dj(l[j+1]);
+		M[j][R2] = -tmp0*coeffs[0]-tmp1*coeffs[5]*tidalTorque(l[j+2],l_a)/Dj(l[j+2]);     
 
 		// RHS vector
-		d[j] =  (tmp0*coeffs[0]+tmp1*coeffs[5]    )*Fj[j+2] 
-		      + (tmp0*coeffs[1]+tmp1*coeffs[6]    )*Fj[j+1]
-		      + (tmp0*coeffs[2]+tmp1*coeffs[7]+1.0)*Fj[j  ]
-		      + (tmp0*coeffs[3]+tmp1*coeffs[8]    )*Fj[j-1]
-		      + (tmp0*coeffs[4]+tmp1*coeffs[9]    )*Fj[j-2];
+		d[j] =  (tmp0*coeffs[0]+tmp1*coeffs[5]*tidalTorque(l[j-2],l_a)/Dj(l[j-2])    )*Fj[j-2] 
+		      + (tmp0*coeffs[1]+tmp1*coeffs[6]*tidalTorque(l[j-1],l_a)/Dj(l[j-1])    )*Fj[j-1]
+		      + (tmp0*coeffs[2]+tmp1*coeffs[7]*tidalTorque(l[j  ],l_a)/Dj(l[j  ])+1.0)*Fj[j  ]
+		      + (tmp0*coeffs[3]+tmp1*coeffs[8]*tidalTorque(l[j+1],l_a)/Dj(l[j+1])    )*Fj[j+1]
+		      + (tmp0*coeffs[4]+tmp1*coeffs[9]*tidalTorque(l[j+2],l_a)/Dj(l[j+2])    )*Fj[j+2];
 	} // end j for
 
 	// update boundary conditions
