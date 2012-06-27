@@ -13,7 +13,7 @@
 
 struct cnSolver{
 	VecDoub	d;						// RHS of matrix eq
-	VecDoub FjNew;				// angular momentum flux of new timestep
+	VecDoub FoD;					// angular momentum flux / D_J at new timestep
 	double coeffs[10];		// finite difference coefficients
 	MatDoub M;						// Matrix of Crank-Nicolson Scheme
 	cnSolver();
@@ -22,7 +22,7 @@ struct cnSolver{
 
 // Constructor
 cnSolver::cnSolver() 
-	: d(N),M(N,5),FjNew(N)
+	: d(N),M(N,5),FoD(N)
 {
 	
 	// prep some CN constants based on log-grid stretch factor
@@ -92,63 +92,57 @@ int cnSolver::step(
 ){
 
 	int status = EXIT_SUCCESS;
-	double delR, beta, alpha,tmp0,tmp1,tmp2;
+	double tmp0,tmp1;
 	static const int L2=0,L1=1,C=2,R1=3,R2=4;
 
 	if(DEBUG_MODE && dWrite){
 		fprintf(stdout,"\n\n# ---------------------------------------------------------\n");
-		fprintf(stdout,"#l\t\tnu\t\talpha\t\ttmp0\t\ttmp1\t\ttmp2\n");
+		fprintf(stdout,"#l\t\tnu\t\talpha\t\ttmp0\t\ttmp1\n");
 	} // end debug if
 
 	// Build vectors for matrix solver
 	for( int j = 2 ; j < N-2 ; j++ ){
 	
-		alpha = .5*dt/dl2*Dj(l[j]);
-		beta = 0.0;//tidalTorque(r[j],a,h(r[j]))*dt/(omega_k(r[j])*dr2); FIXME
-//		delR = dr/r[j]; FIXME
-		
-		tmp0 = pow(lambda,-2.0*j)*alpha;
+		tmp0 = pow(lambda,-2.0*j)*.5*dt/dl2;
 		tmp1 = 0.0;//pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+1.5)-beta); FIXME
-		tmp2 = 0.0;//delR*delR*(alpha*n_v*(n_v+0.5)-beta*(1.5+gamma(r[j],a,h(r[j])))); FIXME
 
 		// Coefficiencts manually set for problem-type 3
 		if( problemType == 3 ){
 			tmp0 = pow(lambda,-2.0*j)*p3_A;
 			if( ! p3_CONST ){
 				tmp1 = pow(lambda,-1.0*j)*p3_B/l[j];
-				tmp2 = p3_C/l[j]/l[j];
 			} else {
 				tmp1 = pow(lambda,-1.0*j)*p3_B;
-				tmp2 = p3_C;	
 			}// end const if
 		} // end problem 3 if
 
 		if(DEBUG_MODE && dWrite ){	
-			fprintf(stdout,"%g\t%g\t%g\t%g\t%g\t%g\n", //\t%g\t%g\t%g\t%g\n",
-				l[j],nu(l[j]),alpha,tmp0,tmp1,tmp2);
+			fprintf(stdout,"%g\t%g\t%g\t%g\n", //\t%g\t%g\t%g\t%g\n",
+				l[j],nu(l[j]),tmp0,tmp1);
 //			fprintf(stdout,"%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n",
 //				r[j],h(r[j]),tidalTorque(r[j],a,h(r[j])),delR,alpha,beta,
 //				gamma(r[j],a,h(r[j])),tmp0,tmp1,tmp2);
 		}// end debug if
 
 
-		M[j][L2] = -tmp0*coeffs[4]-tmp1*coeffs[9];						// Second sub-diagonal
-		M[j][L1] = -tmp0*coeffs[3]-tmp1*coeffs[8];						// First sub-diagonal
-		M[j][C]  = -tmp0*coeffs[2]-tmp1*coeffs[7]-tmp2+1.0;		// central band
-		M[j][R1] = -tmp0*coeffs[1]-tmp1*coeffs[6];						// first super-diagonal
-		M[j][R2] = -tmp0*coeffs[0]-tmp1*coeffs[5];						// second super-diagonal
+		M[j][L2] = -tmp0*coeffs[4]-tmp1*coeffs[9];     // Second sub-diagonal
+		M[j][L1] = -tmp0*coeffs[3]-tmp1*coeffs[8];     // First sub-diagonal
+		M[j][C]  = -tmp0*coeffs[2]-tmp1*coeffs[7]+1.0; // central band
+		M[j][R1] = -tmp0*coeffs[1]-tmp1*coeffs[6];     // first super-diagonal
+		M[j][R2] = -tmp0*coeffs[0]-tmp1*coeffs[5];     // second super-diagonal
 
 		// RHS vector
-		d[j] = 	  (tmp0*coeffs[0]+tmp1*coeffs[5]					)*Fj[j+2] 
-						+ (tmp0*coeffs[1]+tmp1*coeffs[6]					)*Fj[j+1]
-						+ (tmp0*coeffs[2]+tmp1*coeffs[7]+tmp2+1.0	)*Fj[j  ]
-						+ (tmp0*coeffs[3]+tmp1*coeffs[8]					)*Fj[j-1]
-						+ (tmp0*coeffs[4]+tmp1*coeffs[9]					)*Fj[j-2];
+		d[j] = 	  (tmp0*coeffs[0]+tmp1*coeffs[5]             )*Fj[j+2] 
+						+ (tmp0*coeffs[1]+tmp1*coeffs[6]             )*Fj[j+1]
+						+ (tmp0*coeffs[2]+tmp1*coeffs[7]+1.0/Dj(l[j]))*Fj[j  ]
+						+ (tmp0*coeffs[3]+tmp1*coeffs[8]             )*Fj[j-1]
+						+ (tmp0*coeffs[4]+tmp1*coeffs[9]             )*Fj[j-2];
 	} // end j for
 
 	// update boundary conditions
 	double lp1 = lambda+1.0,la2=lambda*lambda;
-	tmp1 = lambda*lambda+lambda+1.0, tmp2 = lambda*lambda-lambda-1.0;
+	tmp1 = lambda*lambda+lambda+1.0;
+	double tmp2 = lambda*lambda-lambda-1.0;
 	if( ZERO_GRAD == inner_bndry_type ){			// Inner Boundary
 
 		// Zero gradient
@@ -170,7 +164,7 @@ int cnSolver::step(
 		M[0][R1] = 0.0;
 		M[0][R2] = 0.0;
 		M[0][C]  = 1.0;
-		d[0] = inner_bndry_value;
+		d[0] = inner_bndry_value/Dj(l[0]);
 
 		// Zero laplacian
 		M[1][L1] = pow(lambda,3)*(lambda+2.0)/tmp1;
@@ -213,7 +207,7 @@ int cnSolver::step(
 		M[N-1][L2] = 0.0;
 		M[N-1][L1] = 0.0;
 		M[N-1][C]  = 1.0;
-		d[N-1] = outer_bndry_value;
+		d[N-1] = outer_bndry_value/Dj(l[N-1]);
 
 	} else {
 		fprintf(stderr,"ERROR --- Outer Bndry Type Improperly Specified as %d \n",
@@ -223,17 +217,17 @@ int cnSolver::step(
 
 	// Solve Matrix
 	Bandec banded(M,2,2);
-	banded.solve(d,FjNew);
+	banded.solve(d,FoD);
 
 	// Check for negative
 	for( int j = 0 ; j < N ; j++ ){
-		if( FjNew[j] < 0.0 ){
+		if( FoD[j] < 0.0 ){
 			if( density_floor < 0.0 ){
 				fprintf(stdout,"ERROR IN CN SOLVER: Density negative @ j = %d\n",j);
 				fprintf(stdout,"\t>> t = %g , tStart = %g, dt= %g \n",t,tStart,dt);
 				status = EXIT_FAILURE;
 			} else {
-				FjNew[j] = density_floor;  // if floor enabled
+				FoD[j] = density_floor/Dj(l[j]);  // if floor enabled
 				fprintf(stdout,"WARNING IN CN SOLVER: Density negative @ j = %d\n",j);
 				fprintf(stdout,"\t>> t = %g, tStart = %g, dt = %g\n",t,tStart,dt);
 				fprintf(stdout,"\t\t Density Floor of %g activated\n",density_floor);
@@ -243,7 +237,7 @@ int cnSolver::step(
 	
 	// Copy new density into sigma
 	for( int j = 0 ; j < N ; j++ )
-		Fj[j] = FjNew[j];
+		Fj[j] = FoD[j]*Dj(l[j]);
 	
 	return status;
 } // end solve
