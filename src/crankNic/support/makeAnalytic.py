@@ -25,14 +25,15 @@ from matplotlib import rc
 
 from math import isnan
 
-R0 = 1.0 		# initial radius of delta fcn
+l0 = 1.0 		# initial radius of delta fcn
 M  = 1.0		# intiial mass
 pi = 3.14159
 
-N = 1000
-rMin = 0.1
-rMax = 2.0
-Lambda = 1.0
+N = 500
+lMin = 0.1
+lMax = 2.0
+Lambda = 1.03
+nu = 1.0/12.0
 
 # we read in from param file ...
 f = open('params.in','r')
@@ -49,49 +50,52 @@ for i in range(Np):
 		num = s[1].split('//')
 		num = float(num[0].strip())
 	
-		if( var == 'r0' ): 	R0 = num
-		if( var == 'rMin' ): rMin = num
-		if( var == 'rMax' ): rMax = num
+		if( var == 'l0' ): 	l0 = num
+		if( var == 'lMin' ): lMin = num
+		if( var == 'lMax' ): lMax = num
 		if( var == 'N' ): N = int(num)
 		if( var == 'lambda' ): Lambda = num
+		if( var == 'nu0' ): nu = num
 
-print "R0 = " + str(R0)
-print "rMin = " + str(rMin)
-print "rMax = " + str(rMax)
+print "l0 = " + str(l0)
+print "lMin = " + str(lMin)
+print "lMax = " + str(lMax)
 print "N = " + str(N)
 print "lambda = " + str(Lambda)
+print "nu = " + str(nu)
 
 #
 # ---- Our analytic expression
 #
-def S(x,t):
+def Fj(x,t):
 		floor = 1E-4
-		tmp = M/(R0*R0*pi*t)
-		tmp = tmp*x**(-.25)*exp(-(1+x*x)/t)*iv(.25,2*x/t) + floor
+		tmp = 3.0*M*M*M*nu/(l0*l0*l0*t)
+		tmp = tmp*x**(.25)*exp(-(1+x*x)/t)*iv(.25,2*x/t) + floor
 		return tmp
 
-dr = 0
+dl = 0
 if( Lambda == 1 ):
-	dr = (rMax - rMin)/(N-1.0)
+	dl = (lMax - lMin)/(N-1.0)
 else:
-	dr = (rMax - rMin)*(Lambda-1.0)/(pow(Lambda,N-1)-1.0)
+	dl = (lMax - lMin)*(Lambda-1.0)/(pow(Lambda,N-1)-1.0)
 
-r = np.zeros(N)
+l = np.zeros(N)
 
 for i in range(N):
 	if( Lambda == 1 ):
-		r[i] = rMin + i*dr
+		l[i] = lMin + i*dl
 	else:
 		if( i == 0 ):
-			r[i] = rMin
+			l[i] = lMin
 		else:
-			r[i] = rMin + dr*( pow(Lambda,i) - 1.0 )/(Lambda-1.0)
+			l[i] = lMin + dl*( pow(Lambda,i) - 1.0 )/(Lambda-1.0)
 
 for i in range(64):	# FIXME
 	t = .008 + .008*i
-	sigma = S(r/R0,t)
+	x = (l/l0)**2
+	F_j = Fj(x,t)
 
-	plt.plot(r,sigma*pi*R0**2/M)
+#	plt.plot(l,f)
 
 	tmp = ""
 	fNum = i
@@ -104,7 +108,7 @@ for i in range(64):	# FIXME
 
 	f = open('analytic/T' + tmp + '.dat','w')
 	for i in range(N):
-		f.write(str(r[i]) + '\t' + str(sigma[i]) + '\n')
+		f.write(str(l[i]) + '\t' + str(F_j[i]) + '\n')
 	f.close()
 
 #

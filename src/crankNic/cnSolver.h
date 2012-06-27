@@ -97,7 +97,7 @@ int cnSolver::step(
 
 	if(DEBUG_MODE && dWrite){
 		fprintf(stdout,"\n\n# ---------------------------------------------------------\n");
-		fprintf(stdout,"#r\t\th\t\tLambda\t\tdelR\t\talpha\t\tbeta\t\tgamma\t\ttmp0\t\ttmp1\t\ttmp2\n");
+		fprintf(stdout,"#l\t\tnu\t\talpha\t\ttmp0\t\ttmp1\t\ttmp2\n");
 	} // end debug if
 
 	// Build vectors for matrix solver
