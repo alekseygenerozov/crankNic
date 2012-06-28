@@ -55,7 +55,7 @@ for i in range(Np):
 		if( var == 'lMax' ): lMax = num
 		if( var == 'N' ): N = int(num)
 		if( var == 'lambda' ): Lambda = num
-		if( var == 'nu0' ): nu = num
+		if( var == 'D0' ): nu = num*4.0/3.0			# conversion assumes M = 1
 
 print "l0 = " + str(l0)
 print "lMin = " + str(lMin)

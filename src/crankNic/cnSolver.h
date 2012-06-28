@@ -97,13 +97,13 @@ int cnSolver::step(
 
 	if(DEBUG_MODE && dWrite){
 		fprintf(stdout,"\n\n# ---------------------------------------------------------\n");
-		fprintf(stdout,"#l\t\tnu\t\talpha\t\ttmp0\t\ttmp1\t\ttmp2\n");
+		fprintf(stdout,"#l\t\tD_J\t\ttmp0\t\ttmp1\n");
 	} // end debug if
 
 	// Build vectors for matrix solver
 	for( int j = 2 ; j < N-2 ; j++ ){
 	
-		tmp0 = pow(lambda,-2.0*j)*.5*dt/dl2*Dj(l[j]);
+		tmp0 = pow(lambda,-2.0*j)*.5*dt/dl2*Dj(Fj[j],l[j]);
 		tmp1 = 0.0;//pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+1.5)-beta); FIXME
 
 		// Coefficiencts manually set for problem-type 3
@@ -117,7 +117,7 @@ int cnSolver::step(
 		} // end problem 3 if
 
 		if(DEBUG_MODE && dWrite ){	
-			fprintf(stdout,"%g\t%g\t%g\t%g\n",l[j],nu(l[j]),tmp0,tmp1);
+			fprintf(stdout,"%g\t%g\t%g\t%g\n",l[j],Dj(Fj[j],l[j]),tmp0,tmp1);
 		}// end debug if
 
 

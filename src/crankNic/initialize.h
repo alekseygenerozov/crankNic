@@ -36,12 +36,6 @@ int initialize( double *l, double *Fj ){
       }// end lambda if/else
 	}// end j for
 
-	// if not explicitly set, normalize viscosity at outer boundary
-	if(-1.0==nu0){
-		fprintf(stderr,"WARNING --- nu0 not explicitly set, normalizing nu at rMax\n");
-		nu0 = (n_v==0?1.0:pow(1.0/l[N-3],n_v));
-	}// end nu if
-
 	/*
 	 * PROBLEM 1
 	 *

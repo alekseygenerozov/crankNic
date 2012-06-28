@@ -31,8 +31,9 @@ int readParams(){
 
 		// physical params
 		nV += sscanf(line, "l0 = %lg",&l0);
-		nV += sscanf(line, "nu0 = %lg",&nu0);
-		nV += sscanf(line, "n_v = %lg",&n_v);
+		nV += sscanf(line, "D0 = %lg",&D0);
+		nV += sscanf(line, "nd = %lg",&nd);
+		nV += sscanf(line, "np = %lg",&np);
 		nV += sscanf(line, "dhdr = %lg",&dhdr);
 		nV += sscanf(line, "l_a = %lg",&l_a);
 		nV += sscanf(line, "q = %lg",&q);
@@ -99,10 +100,11 @@ int writeParams(){
 
 	// Physical Params
 	fprintf(fp,"l0   = %g\n",l0);
-	fprintf(fp,"nu0  = %g\n",nu0);
-	fprintf(fp,"n_v  = %g\n",n_v);
+	fprintf(fp,"D0   = %g\n",D0);
+	fprintf(fp,"nd   = %g\n",nd);
+	fprintf(fp,"np   = %g\n",np);
 	fprintf(fp,"dhdr = %g\n",dhdr);
-	fprintf(fp,"l_a    = %g\n",l_a);
+	fprintf(fp,"l_a  = %g\n",l_a);
 	fprintf(fp,"q    = %g\n",q);
 	fprintf(fp,"M    = %g\n",M);
 	fprintf(fp,"f    = %g\n",f);
@@ -185,18 +187,10 @@ int writeStandard(	int fileNum,     // datafile #
 		return EXIT_FAILURE;
 	}
 
-	double tork, mDot, tVisc, tTork,l2,nu_j;
+	double tork;
 	for( int j = 0 ; j < N ; j++ ){
-	
-		l2 = l[j]*l[j];
-		nu_j = nu(l[j]);
 		tork = tidalTorque(l[j],l_a,h(l[j]));
-//		mDot  = 3.0*PI*nu_j*sigma[j];
-//		tVisc = 2.0/3.0*r2/nu_j;
-//		tTork = omega_k(r[j])*r2/fabs(tork);
-
-		fprintf(fp,"%e\t%e\t%e\n",	//\t%e\t%e\t%e\n",
-						l[j],Fj[j],tork);		//mDot,tVisc,tTork);
+		fprintf(fp,"%e\t%e\t%e\n",l[j],Fj[j],tork);
 	}// end j for
 
 	status = fclose(fp);
