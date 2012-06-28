@@ -190,7 +190,7 @@ int writeStandard(	int fileNum,     // datafile #
 	
 		l2 = l[j]*l[j];
 		nu_j = nu(l[j]);
-		tork = tidalTorque(l[j],l_a);
+		tork = tidalTorque(l[j],l_a,h(l[j]));
 //		mDot  = 3.0*PI*nu_j*sigma[j];
 //		tVisc = 2.0/3.0*r2/nu_j;
 //		tTork = omega_k(r[j])*r2/fabs(tork);

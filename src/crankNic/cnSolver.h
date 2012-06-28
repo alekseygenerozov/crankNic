@@ -92,57 +92,63 @@ int cnSolver::step(
 ){
 
 	int status = EXIT_SUCCESS;
-	double tmp0,tmp1;
+	double delR, beta, alpha,tmp0,tmp1,tmp2;
 	static const int L2=0,L1=1,C=2,R1=3,R2=4;
 
 	if(DEBUG_MODE && dWrite){
 		fprintf(stdout,"\n\n# ---------------------------------------------------------\n");
-		fprintf(stdout,"#l\t\tnu\t\ttmp0\t\ttmp1\n");
+		fprintf(stdout,"#l\t\tnu\t\talpha\t\ttmp0\t\ttmp1\t\ttmp2\n");
 	} // end debug if
 
 	// Build vectors for matrix solver
 	for( int j = 2 ; j < N-2 ; j++ ){
 	
-		tmp0 = pow(lambda,-2.0*j)*.5*dt/dl2*Dj(l[j]);
-		tmp1 = pow(lambda,-1.0*j)*.5*dt/dl*Dj(l[j]);
+		alpha = .5*dt/dl2*Dj(l[j]);
+		beta = 0.0;//tidalTorque(r[j],a,h(r[j]))*dt/(omega_k(r[j])*dr2); FIXME
+//		delR = dr/r[j]; FIXME
+		
+		tmp0 = pow(lambda,-2.0*j)*alpha;
+		tmp1 = 0.0;//pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+1.5)-beta); FIXME
+		tmp2 = 0.0;//delR*delR*(alpha*n_v*(n_v+0.5)-beta*(1.5+gamma(r[j],a,h(r[j])))); FIXME
 
 		// Coefficiencts manually set for problem-type 3
 		if( problemType == 3 ){
 			tmp0 = pow(lambda,-2.0*j)*p3_A;
 			if( ! p3_CONST ){
 				tmp1 = pow(lambda,-1.0*j)*p3_B/l[j];
+				tmp2 = p3_C/l[j]/l[j];
 			} else {
 				tmp1 = pow(lambda,-1.0*j)*p3_B;
+				tmp2 = p3_C;	
 			}// end const if
 		} // end problem 3 if
 
 		if(DEBUG_MODE && dWrite ){	
-			fprintf(stdout,"%g\t%g\t%g\t%g\n", //\t%g\t%g\t%g\t%g\n",
-				l[j],nu(l[j]),tmp0,tmp1);
-//			fprintf(stdout,"%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n",
+			fprintf(stdout,"%g\t%g\t%g\t%g\t%g\t%g\n", //\t%g\t%g\t%g\t%g\n",
+				l[j],nu(l[j]),alpha,tmp0,tmp1,tmp2);
+//			fprintf(stdout,"%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n",
 //				r[j],h(r[j]),tidalTorque(r[j],a,h(r[j])),delR,alpha,beta,
-//				gamma(r[j],a,h(r[j])),tmp0,tmp1);
+//				gamma(r[j],a,h(r[j])),tmp0,tmp1,tmp2);
 		}// end debug if
 
 
-		M[j][L2] = -tmp0*coeffs[4]-tmp1*coeffs[9]*tidalTorque(l[j-2],l_a)/Dj(l[j-2]);
-		M[j][L1] = -tmp0*coeffs[3]-tmp1*coeffs[8]*tidalTorque(l[j-1],l_a)/Dj(l[j-1]);
-		M[j][C]  = -tmp0*coeffs[2]-tmp1*coeffs[7]*tidalTorque(l[j  ],l_a)/Dj(l[j  ])+1.0;
-		M[j][R1] = -tmp0*coeffs[1]-tmp1*coeffs[6]*tidalTorque(l[j+1],l_a)/Dj(l[j+1]);
-		M[j][R2] = -tmp0*coeffs[0]-tmp1*coeffs[5]*tidalTorque(l[j+2],l_a)/Dj(l[j+2]);     
+		M[j][L2] = -tmp0*coeffs[4]-tmp1*coeffs[9];						// Second sub-diagonal
+		M[j][L1] = -tmp0*coeffs[3]-tmp1*coeffs[8];						// First sub-diagonal
+		M[j][C]  = -tmp0*coeffs[2]-tmp1*coeffs[7]-tmp2+1.0;		// central band
+		M[j][R1] = -tmp0*coeffs[1]-tmp1*coeffs[6];						// first super-diagonal
+		M[j][R2] = -tmp0*coeffs[0]-tmp1*coeffs[5];						// second super-diagonal
 
 		// RHS vector
-		d[j] =  (tmp0*coeffs[0]+tmp1*coeffs[5]*tidalTorque(l[j-2],l_a)/Dj(l[j-2])    )*Fj[j-2] 
-		      + (tmp0*coeffs[1]+tmp1*coeffs[6]*tidalTorque(l[j-1],l_a)/Dj(l[j-1])    )*Fj[j-1]
-		      + (tmp0*coeffs[2]+tmp1*coeffs[7]*tidalTorque(l[j  ],l_a)/Dj(l[j  ])+1.0)*Fj[j  ]
-		      + (tmp0*coeffs[3]+tmp1*coeffs[8]*tidalTorque(l[j+1],l_a)/Dj(l[j+1])    )*Fj[j+1]
-		      + (tmp0*coeffs[4]+tmp1*coeffs[9]*tidalTorque(l[j+2],l_a)/Dj(l[j+2])    )*Fj[j+2];
+		d[j] = 	  (tmp0*coeffs[0]+tmp1*coeffs[5]					)*Fj[j+2] 
+						+ (tmp0*coeffs[1]+tmp1*coeffs[6]					)*Fj[j+1]
+						+ (tmp0*coeffs[2]+tmp1*coeffs[7]+tmp2+1.0	)*Fj[j  ]
+						+ (tmp0*coeffs[3]+tmp1*coeffs[8]					)*Fj[j-1]
+						+ (tmp0*coeffs[4]+tmp1*coeffs[9]					)*Fj[j-2];
 	} // end j for
 
 	// update boundary conditions
 	double lp1 = lambda+1.0,la2=lambda*lambda;
-	tmp1 = lambda*lambda+lambda+1.0;
-	double tmp2 = lambda*lambda-lambda-1.0;
+	tmp1 = lambda*lambda+lambda+1.0, tmp2 = lambda*lambda-lambda-1.0;
 	if( ZERO_GRAD == inner_bndry_type ){			// Inner Boundary
 
 		// Zero gradient
