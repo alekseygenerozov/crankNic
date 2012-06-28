@@ -65,14 +65,13 @@ int initialize( double *l, double *Fj ){
 	/*
 	 * PROBLEM 2
 	 *
-	 *		Static Secondary, constant viscosity
-	 *			Following Liu & Schapiro
+	 *		Steady-state ramp of F_J
+	 *			F = l			(assumes M-dot infty = 1.0)
 	 */
-//	else if( problemType == 2 ){
-//		for( int i = 0 ; i < N ; i++ )
-//			sigma[i] = 1.0/nu(r[i]);
-//			sigma[0] = 1E-8;	
-//	} // end linTorq test problem
+	else if( problemType == 2 ){
+		for( int j = 0; j < N ; ++j )
+			Fj[j] = l[j];
+	} // end ramp test problem
 
 	/*
 	 *	PROBLEM 3 -- Square Pulse
