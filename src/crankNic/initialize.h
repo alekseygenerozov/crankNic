@@ -88,12 +88,37 @@ int initialize( double *l, double *Fj ){
 //		}// end i for
 //	}// end square test problem
 
-	// If Dirichlet BVs and no value set, use IC file:
+	// Check outer boundary type/value
 	if(-1.0==outer_bndry_value)
-		outer_bndry_value = Fj[N-1];
+		if( outer_bndry_type == DIRICHLET )
+			outer_bndry_value = Fj[N-1];
+		else if( outer_bndry_type == NEUMANN )
+		{
+			outer_bndry_value = 0.0;
+			fprintf(stderr,"WARNING -- Outer bndry value not set.\n");
+			fprintf(stderr,"\t>> Setting value to 0.0 (zero mass flow\n");
+		}
+	if( DIRICHLET < outer_bndry_type )
+	{
+		fprintf(stderr,"ERROR IN INITIALIZE.H\n\t>> Outer boundry type improperly set\n");
+		return EXIT_FAILURE;
+	}
+	
+	// Check inner boundary type/value
 	if(-1.0==inner_bndry_value)
-		inner_bndry_value = Fj[0];
+		if( inner_bndry_type == DIRICHLET )
+			inner_bndry_value = Fj[0];
+		else if( inner_bndry_type == NEUMANN )
+		{
+			inner_bndry_value = 0.0;
+			fprintf(stderr,"WARNING -- Inner bndry value not set.\n");
+			fprintf(stderr,"\t>> Setting value to 0.0 (zero mass flow\n");
+		}
+	if( DIRICHLET < inner_bndry_type )
+	{
+		fprintf(stderr,"ERROR IN INITIALIZE.H\n\t>> Inner boundry type improperly set\n");
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
-
-} // end main
+} // end initialize

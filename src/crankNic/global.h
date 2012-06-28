@@ -45,7 +45,7 @@ double h(double l){ return dhdr*l*l/M;};	// FIXME
 double Dj(double Fj, double l){ return D0*pow(Fj,nd)*pow(l,np);};
 
 // BOUNDARY CONDITIONS
-const int ZERO_GRAD = 0;
+const int NEUMANN = 0;
 const int DIRICHLET = 1;
 int outer_bndry_type = 0;		
 int inner_bndry_type = 0;

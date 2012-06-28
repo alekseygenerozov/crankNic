@@ -138,13 +138,13 @@ int cnSolver::step(
 	// update boundary conditions
 	double lp1 = lambda+1.0,la2=lambda*lambda;
 	tmp1 = lambda*lambda+lambda+1.0, tmp2 = lambda*lambda-lambda-1.0;
-	if( ZERO_GRAD == inner_bndry_type ){			// Inner Boundary
+	if( NEUMANN == inner_bndry_type ){			// Inner Boundary
 
-		// Zero gradient
-		M[0][R1] = lp1;
-		M[0][R2] = -1.0/lp1;
-		M[0][C]  = -1.0*(M[0][R1]+M[0][R2]);
-		d[0] = 0.0;
+		// Fixed gradient
+		M[0][R1] = lp1/(dl*lambda);
+		M[0][R2] = -1.0/(dl*lambda*lp1);
+		M[0][C]  = -(M[0][R1]+M[0][R2]);
+		d[0] = inner_bndry_value;
 
 		// Zero laplacian
 		M[1][L1] = pow(lambda,3)*(lambda+2.0)/tmp1;
@@ -174,7 +174,7 @@ int cnSolver::step(
 			return EXIT_FAILURE;
 	} // end outer BC if/else
 
-	if( ZERO_GRAD == outer_bndry_type ){			// Outer Boundary
+	if( NEUMANN == outer_bndry_type ){			// Outer Boundary
 
 		// Zero Laplacian
 		M[N-2][L2] = la2*la2*(lambda-1.0)/tmp1;
@@ -183,11 +183,11 @@ int cnSolver::step(
 		M[N-2][C]  = -1.0*(M[N-2][L2]+M[N-2][L1]+M[N-2][R1]);
 		d[N-2] = 0.0;
  
-		// Zero gradient
-		M[N-1][L2] = -lambda*la2/tmp2/lp1;
-		M[N-1][L1] = lambda*lp1/tmp2;
+		// Fixed gradient
+		M[N-1][L2] = -la2*la2/(tmp1*lp1*dl*pow(lambda,N-1));
+		M[N-1][L1] = lp1/(tmp1*dl*pow(lambda,N-1));
 		M[N-1][C]  = -(M[N-1][L2]+M[N-1][L1]);
-		d[N-1] = 0.0;
+		d[N-1] = outer_bndry_value;
 	
 	} else if( DIRICHLET == outer_bndry_type){
 
