@@ -1,4 +1,5 @@
 import numpy as np
+from math import pow
 
 #
 #		NORMALIZE
@@ -44,6 +45,58 @@ def n2fName(n):
 #
 def fakeLog(x):
 	return np.sign(x)*np.log10(np.abs(x))
+
+#
+#		GEN GRID
+#			Makes the logarithmic mesh, given param file
+#
+def genGrid(gridSpecs="params.out"):
+
+	# grab parameters
+	lMin=0.0
+	lMax=0.0
+	Lambda=0.0
+	N=0
+
+	inType = type(gridSpecs)
+
+	if( inType is str ):
+		params = readParams(gridSpecs)
+		lMin = params['lMin']
+		lMax = params['lMax']
+		Lambda = params['lambda']
+		N = int(params['N'])
+	elif( inType is list ):
+		lMin = gridSpecs[0]
+		lMax = gridSpecs[1]
+		Lambda = gridSpecs[2]
+		N = int(gridSpecs[3])
+	elif( inType is dict ):
+		lMin = gridSpecs['lMin']
+		lMax = gridSpecs['lMax']
+		Lambda = gridSpecs['lambda']
+		N = int(gridSpecs['N'])
+	else:
+		print "ERROR IN genGrid --- Improper input"
+		return False
+
+	dl = 0
+	if( Lambda == 1.0 ):
+		dl = (lMax - lMin)/(N-1.0)
+	else:
+		dl = (lMax - lMin)*(Lambda-1.0)/(pow(Lambda,N-1)-1.0)
+
+	l = np.zeros(N)
+
+	for i in range(N):
+		if( Lambda == 1.0 ):
+			l[i] = lMin + i*dl
+		else:
+			if( i == 0 ):
+				l[i] = lMin
+			else:
+				l[i] = lMin + dl*( pow(Lambda,i) - 1.0 )/(Lambda-1.0)
+	return l
 
 #
 #		READ PARAMS
