@@ -3,8 +3,20 @@ import numpy as np
 #
 #		NORMALIZE
 #			Assumes 1D np array
+#
 def normalize(x):
 	return x/np.max(np.abs(x))	
+
+#
+#		FAKE LOG
+#			Allows you to take logarithm of negative
+#			numbers, which is totally mathematically
+#			rigorous, right!?!
+#
+#			Assumes 1D np array, uses log base-10
+#
+def fakeLog(x):
+	return np.sign(x)*np.log10(np.abs(x))
 
 #
 #		READ PARAMS
