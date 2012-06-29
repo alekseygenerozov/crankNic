@@ -8,6 +8,33 @@ def normalize(x):
 	return x/np.max(np.abs(x))	
 
 #
+#		strFN
+#			Converts # to string with prefix of zeros
+#				Assumes we're going from 000 to 999
+#
+def strFN(n):
+
+	n = int(n)
+	fstr = ""
+	if( n < 10 ):
+		fstr += "00" + str(n)
+	elif( n < 100 ):
+		fstr += "0" + str(n)
+	else:
+		fstr += str(n)
+	return fstr
+
+#
+#		N2FNAME
+#			Converts number to filename
+#				Assumes data resides in folder outputFiles
+#
+def n2fName(n):
+	if( n < 0 ):
+		return "ERROR.dat"
+	return 'outputFiles/T' + strFN(n) + '.dat'
+
+#
 #		FAKE LOG
 #			Allows you to take logarithm of negative
 #			numbers, which is totally mathematically
@@ -30,8 +57,8 @@ def fakeLog(x):
 #					Assumes format: 
 #					" var = #			// comment "
 #
-def readParams():
-	f = open('params.out','r')
+def readParams(fName='params.out'):
+	f = open(fName,'r')
 	fparams = f.read()
 	f.close()
 	fparams = fparams.split('\n');
@@ -61,10 +88,15 @@ def readParams():
 #
 #				Assumes #s separated by SINGLE TABs
 #
-def readDataFile(fileName):
+def readDataFile(n):
 
 	try:
-		f = open(fileName,'r')
+		fName = ""
+		if( type(n) is int ):
+			fName += n2fName(n)
+		else:
+			fName = n
+		f = open(fName,'r')
 	except IOError as e:
 		print "ERROR IN GRAB DATA ... File " + fileName + " does not exist"
 		return False
