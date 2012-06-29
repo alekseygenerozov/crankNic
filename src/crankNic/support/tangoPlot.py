@@ -1,6 +1,12 @@
 import numpy as np
 
 #
+#		NORMALIZE
+#			Assumes 1D np array
+def normalize(x):
+	return x/np.max(np.abs(x))	
+
+#
 #		READ PARAMS
 #			Munier Salem, July 2012
 #
