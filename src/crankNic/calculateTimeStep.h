@@ -20,7 +20,7 @@ double calculateTimeStep(
 ){
 
 	// manual for problem-type 3
-	if( problemType == 3 )
+	if( problemType == SQUARE_PULSE )
 		return p3_courant*dl;
 
 	double dt=0.0,dtMin=1E5;

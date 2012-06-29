@@ -45,7 +45,7 @@ int initialize( double *l, double *Fj ){
 	 *				>> Can be compared to analytic
 	 *					 expression
 	 */
-	if( problemType == 1 ){
+	if( problemType == DELTA_FCN ){
 		// We intialize from file ...
 		FILE* fp = fopen("analytic_T0.dat","r");
 		if(!fp){
@@ -68,18 +68,22 @@ int initialize( double *l, double *Fj ){
 	 *		Steady-state ramp of F_J
 	 *			F = l			(assumes M-dot infty = 1.0)
 	 */
-	else if( problemType == 2 ){
+	else if( problemType == RAMPED ){
 		for( int j = 0; j < N ; ++j )
 			Fj[j] = l[j];
 	} // end ramp test problem
 
+	else if( problemType == FROM_FILE ){
+		;	//FIXME
+	}
+
 	/*
-	 *	PROBLEM 3 -- Square Pulse
+	 *	PROBLEM 4 -- Square Pulse
 	 *		To test the equation
 	 *			u_t = c/r * u_x	
 	 *					(i.e. the advective term)
 	 */
-//	else if( problemType == 3 ){
+//	else if( problemType == SQUARE_PULSE ){
 //		for( int i = 0 ; i < N ; i++ ){
 //			if( r[i] > (rMax-rMin)*0.7 && r[i] < (rMax-rMin)*(0.8) )
 //				sigma[i] = 1.0;

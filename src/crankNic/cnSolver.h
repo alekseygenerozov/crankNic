@@ -107,7 +107,7 @@ int cnSolver::step(
 		tmp1 = 0.0;//pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+1.5)-beta); FIXME
 
 		// Coefficiencts manually set for problem-type 3
-		if( problemType == 3 ){
+		if( problemType == SQUARE_PULSE ){
 			tmp0 = pow(lambda,-2.0*j)*p3_A;
 			if( ! p3_CONST ){
 				tmp1 = pow(lambda,-1.0*j)*p3_B/l[j];

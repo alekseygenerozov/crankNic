@@ -4,7 +4,11 @@
 #define INC_GLOBAL
 
 // Problem Types
-int problemType = 1;			// delta function, no torque
+const int DELTA_FCN = 1;
+const int RAMPED = 2;
+const int FROM_FILE = 3;
+const int SQUARE_PULSE = 4;
+int problemType = DELTA_FCN;
 
 // NUMERICAL PARAMETERS
 
