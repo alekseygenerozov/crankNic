@@ -43,9 +43,9 @@ cnSolver::cnSolver()
 		coeffs[2] = -1.0*(coeffs[0]+coeffs[1]+coeffs[3]+coeffs[4]); // j
 
 		if( lambda > 1.3 ){
-			fprintf(stderr,"WARNING in cnSolver.h constructor:\n");
-			fprintf(stderr,"\t>> Stretch factor too large for stability of 3rd order stencil\n");
-			fprintf(stderr,"\t\t ( try setting lambda < 1.3 or change STENCIL to 0 )\n");
+			cout << "WARNING in cnSolver.h constructor:" << endl
+				<< "	>> Stretch factor too large for stability of 3rd order stencil" << endl
+				<< "		( try setting lambda < 1.3 or change STENCIL to 0 )" << endl;
 		} // end lambda error warning
 	} else {	// 2nd order, robustly stable
 		coeffs[0] = -2.0*l5*(lambda-1.0)/(lp1*(1.0+l6)*tmp1);									// j+2
@@ -55,9 +55,9 @@ cnSolver::cnSolver()
 		coeffs[2] = -(coeffs[1]+coeffs[3]);																		// j-1
 		
 		if( 0 != STENCIL ){
-			fprintf(stderr,"WARNING in cnSolver.h constructor:\n");
-			fprintf(stderr,"\t>> Stencil improperly specified, resorting to 2nd order\n");
-			fprintf(stderr,"\t\t (i.e. STENCIL = 0)\n");
+			cout << "WARNING in cnSolver.h constructor:" << endl
+				<< "	>> Stencil improperly specified, resorting to 2nd order" << endl
+				<< "		(i.e. STENCIL = 0)" << endl;
 		}// end error if
 	} // end STENCIL if for gradient term	
 
@@ -68,11 +68,6 @@ cnSolver::cnSolver()
 	coeffs[9] = pow(lambda,7)/(lp1*(1.0+la2)*tmp1);							// j-2
 	coeffs[7] = -1.0*(coeffs[5]+coeffs[6]+coeffs[8]+coeffs[9]);	// j
 	
-	fprintf(stderr,"Coeffs:\n");
-	fprintf(stderr,"------------------\n");
-	for( int i = 0; i < 10 ; i++)
-		fprintf(stderr,"\tcoeffs[%d] = %f\n",i,coeffs[i]);
-	fprintf(stderr,"\n");
 }// end constructor 
 
 /*
@@ -96,8 +91,8 @@ int cnSolver::step(
 	static const int L2=0,L1=1,C=2,R1=3,R2=4;
 
 	if(DEBUG_MODE && dWrite){
-		fprintf(stdout,"\n\n# ---------------------------------------------------------\n");
-		fprintf(stdout,"#l\t\tD_J\t\ttmp0\t\ttmp1\n");
+		cout << endl << endl << "# ---------------------------------------------------------" << endl
+			<< "#l		D_J		tmp0		tmp1" << endl;
 	} // end debug if
 
 	// Build vectors for matrix solver
@@ -117,7 +112,7 @@ int cnSolver::step(
 		} // end problem 3 if
 
 		if(DEBUG_MODE && dWrite ){	
-			fprintf(stdout,"%g\t%g\t%g\t%g\n",l[j],Dj(Fj[j],l[j]),tmp0,tmp1);
+			cout << l[j] << "	" << Dj(Fj[j],l[j]) << "	" << tmp0 << "	" << tmp1 << endl;
 		}// end debug if
 
 
@@ -180,9 +175,9 @@ int cnSolver::step(
 		d[1] = 0.0;
 
 	} else {
-		fprintf(stderr,"ERROR --- Inner Bndry Type Improperly Specified as %d \n",
-			inner_bndry_type);
-			return EXIT_FAILURE;
+		cerr << "ERROR --- Inner Bndry Type Improperly Specified as " 
+			<< inner_bndry_type << endl;
+		return EXIT_FAILURE;
 	} // end outer BC if/else
 
 	if( NEUMANN == outer_bndry_type ){			// ########### OUTER BOUNDS
@@ -223,8 +218,8 @@ int cnSolver::step(
 		d[N-1] = outer_bndry_value;
 
 	} else {
-		fprintf(stderr,"ERROR --- Outer Bndry Type Improperly Specified as %d \n",
-			outer_bndry_type);
+		cerr << "ERROR --- Outer Bndry Type Improperly Specified as " 
+			<< outer_bndry_type << endl;
 		return EXIT_FAILURE;
 	} // end outer BC if/else
 
@@ -236,14 +231,14 @@ int cnSolver::step(
 	for( int j = 0 ; j < N ; j++ ){
 		if( FjNew[j] < 0.0 ){
 			if( density_floor < 0.0 ){
-				fprintf(stdout,"ERROR IN CN SOLVER: Density negative @ j = %d\n",j);
-				fprintf(stdout,"\t>> t = %g , tStart = %g, dt= %g \n",t,tStart,dt);
+				cerr << "ERROR IN CN SOLVER: Density negative @ j = " << j << endl
+					<< "	>> t = " << t << ", tStart = " << tStart << ", dt= " << dt << endl;
 				status = EXIT_FAILURE;
 			} else {
 				FjNew[j] = density_floor;  // if floor enabled
-				fprintf(stdout,"WARNING IN CN SOLVER: Density negative @ j = %d\n",j);
-				fprintf(stdout,"\t>> t = %g, tStart = %g, dt = %g\n",t,tStart,dt);
-				fprintf(stdout,"\t\t Density Floor of %g activated\n",density_floor);
+				cout << "WARNING IN CN SOLVER: Density negative @ j = " << j << endl 
+					<< "	>> t = " << t << ", tStart = " << tStart << ", dt = " << dt << endl
+					<< "		Density Floor of " << density_floor << " activated" << endl;
 			} // end floor if/else
 		}// end negative density if
 	} // end j for
