@@ -29,8 +29,8 @@ def analytic(l,t,params):
 
 	return FJ
 
-params = readParams()
-l = genGrid()
+params = readParams("params.in")
+l = genGrid("params.in")
 FJ = analytic(l,params['tStart'],params)
 
 for ll, ff in zip(l,FJ):

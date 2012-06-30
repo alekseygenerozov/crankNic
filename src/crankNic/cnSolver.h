@@ -150,14 +150,16 @@ int cnSolver::step(
 		// Zero laplacian
 		laplace_const = 2.0/(la2*dl2*lp1);
 		laplace_val = 0.0;
-		if( inner_bndry_laplacian == SELF_SIM && t > 0.0)
-			laplace_val = 2.0*(1.0-outer_bndry_value)*sqrt(1.0/(PI*D0*t));
+		if( inner_bndry_laplacian == SELF_SIM && t > 0.0){
+			double x = dl/sqrt(4.0*D0*t);
+			laplace_val = (1.0-inner_bndry_value)*sqrt(1.0/(PI*D0*t))*exp(-x*x);
+		}
 
 		M[1][L1] =  laplace_const*pow(lambda,3)*(lambda+2.0)/tmp1;
 		M[1][R1] =  laplace_const*(la2+lambda-1.0)/lambda;
 		M[1][R2] = -laplace_const*(lambda-1.0)/lambda/tmp1;
 		M[1][C]  = -(M[1][L1]+M[1][R1]+M[1][R2]);
-		d[1] = 0.0;
+		d[1] = laplace_val;
 
 	} else if( DIRICHLET == inner_bndry_type ){
 
@@ -185,8 +187,6 @@ int cnSolver::step(
 		// Laplacian
 		laplace_const = 2.0*lambda*pow(lambda,-2.0*(N-2.0))/lp1/dl2;
 		laplace_val = 0.0;
-		if( outer_bndry_laplacian == SELF_SIM && t > 0.0)	// ASSUMES const DJ and Mdot = 1.0 FIXME
-			laplace_val = 2.0*(1-outer_bndry_value)*sqrt(1.0/(PI*D0*t)); // FIXME
 
 		M[N-2][L2] =  laplace_const*la2*la2*(lambda-1.0)/tmp1;
 		M[N-2][L1] = -laplace_const*lambda*tmp2;
