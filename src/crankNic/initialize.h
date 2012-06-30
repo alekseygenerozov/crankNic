@@ -4,15 +4,10 @@
 
 #include "global.h"
 
-int initialize( double *l, double *Fj ){
+#ifndef INC_INITIALIZE
+#define INC_INITIALIZE 
 
-	// Check N is odd
-//	if(N%2==0){
-//		N++;
-//		fprintf(stderr,"WARNING in initialize:\n");
-//		fprintf(stderr,"\t\t>> Integrator requires odd # of grid cells,");
-//		fprintf(stderr,"\t\t   setting N = %d\n",N);
-//	}
+int initialize( double *l, double *Fj ){
 
   // calcualte innermost grid cell size
   if( lambda == 1.0 ){
@@ -73,8 +68,27 @@ int initialize( double *l, double *Fj ){
 			Fj[j] = l[j];
 	} // end ramp test problem
 
+	/*
+	 *	FROM_FILE
+	 *
+	 *		Initializes the surface density from
+	 *		a datafile
+	 */
 	else if( problemType == FROM_FILE ){
-		;	//FIXME
+		
+		FILE *fp = fopen(initial_data_file.c_str(),"r");
+		if(!fp){
+			fprintf(stderr,"ERROR IN INITIALIZE.H --- Failed to Open IC file:\n");
+			return EXIT_FAILURE;
+		} // end error if
+		
+		double tmp1,tmp2;
+		for( int j = 0 ; j < N ; ++j ){
+			fscanf(fp,"%lg",&tmp1);
+			fscanf(fp,"%lg",&tmp2);
+			Fj[j] = tmp2;
+			cout << Fj[j] << endl;
+		}// end i for 
 	}
 
 	/*
@@ -126,3 +140,5 @@ int initialize( double *l, double *Fj ){
 
 	return EXIT_SUCCESS;
 } // end initialize
+
+#endif
