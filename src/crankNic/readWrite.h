@@ -86,6 +86,10 @@ int writeParams(){
 		fprintf(stderr,"ERROR IN WRITE PARAMS\n	>> Failed to open params.out\n");
 	} // end error if
 	
+	// Initialization
+	if( problemType == FROM_FILE )
+		fprintf(fp,"// Initialized from file %s\n",initial_data_file.c_str());
+
 	// Problem Type
 	fprintf(fp,"problemType	= %d\n",problemType);
 	fprintf(fp,"\n");

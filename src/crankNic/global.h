@@ -1,4 +1,11 @@
 #include <math.h>
+#include <string>
+#include <iostream>
+
+using std::string;
+using std::cout;
+using std::cerr;
+using std::endl;
 
 #ifndef INC_GLOBAL
 #define INC_GLOBAL
@@ -9,6 +16,9 @@ const int RAMPED = 2;
 const int FROM_FILE = 3;
 const int SQUARE_PULSE = 4;
 int problemType = DELTA_FCN;
+
+// Some names
+string initial_data_file = "initial_data.dat";
 
 // NUMERICAL PARAMETERS
 

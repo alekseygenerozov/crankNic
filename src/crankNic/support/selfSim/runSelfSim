@@ -1,0 +1,25 @@
+rm outputFiles/*
+rm savedOutputs/*
+
+sed s/inner_bndry_value\ =\ 0.5/inner_bndry_value\ =\ 0.0/ params.in > tmp
+mv tmp params.in
+python makeSelfSim.py > selfSim.init
+./Tango selfSim.init
+cp params.out savedOutputs/params_chi_p0.dat
+cp outputFiles/T000.dat savedOutputs/chi_p0_001.dat
+cp outputFiles/T009.dat savedOutputs/chi_p0_010.dat
+cp outputFiles/T099.dat savedOutputs/chi_p0_100.dat
+
+rm outputFiles/*
+
+sed s/inner_bndry_value\ =\ 0.0/inner_bndry_value\ =\ 0.5/ params.in > tmp 
+mv tmp params.in
+python makeSelfSim.py > selfSim.init
+./Tango selfSim.init
+cp params.out savedOutputs/params_chi_p5.dat
+cp outputFiles/T000.dat savedOutputs/chi_p5_001.dat
+cp outputFiles/T009.dat savedOutputs/chi_p5_010.dat
+cp outputFiles/T099.dat savedOutputs/chi_p5_100.dat
+
+python plotSelfSim.py
+rm selfSim.init

@@ -10,10 +10,14 @@
 #include "calculateTimeStep.h"
 //#include "integrator.h" FIXME
 
-int main(){
+int main(int argc, char *argv[]){
 
 	int status = EXIT_SUCCESS,
 	    fileCount = 0;
+
+	// grab filename from command line args
+	if( argc > 1 )
+		initial_data_file = string(argv[1]);
 
 	// read in from parameter file, params.in
 	if( EXIT_SUCCESS != (status = readParams()))
