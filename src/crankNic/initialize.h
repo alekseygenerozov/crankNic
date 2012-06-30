@@ -87,7 +87,6 @@ int initialize( double *l, double *Fj ){
 			fscanf(fp,"%lg",&tmp1);
 			fscanf(fp,"%lg",&tmp2);
 			Fj[j] = tmp2;
-			cout << Fj[j] << endl;
 		}// end i for 
 	}
 
