@@ -51,14 +51,19 @@ double Dj(double Fj, double l){ return D0*pow(Fj,nd)*pow(l,np);};
 // BOUNDARY CONDITIONS
 const int NEUMANN = 0;
 const int DIRICHLET = 1;
-int outer_bndry_type = 0;		
-int inner_bndry_type = 0;
-double outer_bndry_value = -1.0;
-double inner_bndry_value = -1.0;
+const int ZERO = 0;
+const int SELF_SIM = 1;
+const int UNSET = -1;
+int outer_bndry_type = NEUMANN;
+int inner_bndry_type = NEUMANN;
+int outer_bndry_laplacian = ZERO;
+int inner_bndry_laplacian = ZERO;
+double outer_bndry_value = UNSET;
+double inner_bndry_value = UNSET;
 
 // DEBUG PARAMS
 int DEBUG_MODE = 0;							// verbose printing
-double density_floor = -1.0;		// for when density goes negative
+double density_floor = UNSET;		// for when density goes negative
 
 // Problem 3 Params
 double p3_A = 0.0;

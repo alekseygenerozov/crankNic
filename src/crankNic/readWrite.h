@@ -49,6 +49,8 @@ int readParams(){
 		// Boundary Conditions
 		nV += sscanf(line, "outer_bndry_type = %d",&outer_bndry_type);
 		nV += sscanf(line, "inner_bndry_type = %d",&inner_bndry_type);
+		nV += sscanf(line, "outer_bndry_laplacian = %d",&outer_bndry_laplacian);
+		nV += sscanf(line, "inner_bndry_laplacian = %d",&inner_bndry_laplacian);
 		nV += sscanf(line, "outer_bndry_value = %lg",&outer_bndry_value);
 		nV += sscanf(line, "inner_bndry_value = %lg",&inner_bndry_value);
 
@@ -118,10 +120,12 @@ int writeParams(){
 	fprintf(fp,"\n");
 
 	// Boundary Conditions
-	fprintf(fp,"outer_bndry_type  = %d\n",outer_bndry_type);
-	fprintf(fp,"inner_bndry_type  = %d\n",inner_bndry_type);
-	fprintf(fp,"outer_bndry_value = %g\n",outer_bndry_value);
-	fprintf(fp,"inner_bndry_value = %g\n",inner_bndry_value);
+	fprintf(fp,"outer_bndry_type      = %d\n",outer_bndry_type);
+	fprintf(fp,"inner_bndry_type      = %d\n",inner_bndry_type);
+	fprintf(fp,"outer_bndry_laplacian = %d\n",outer_bndry_laplacian);
+	fprintf(fp,"inner_bndry_laplacian = %d\n",inner_bndry_laplacian);
+	fprintf(fp,"outer_bndry_value     = %g\n",outer_bndry_value);
+	fprintf(fp,"inner_bndry_value     = %g\n",inner_bndry_value);
 	fprintf(fp,"\n");
 
 	// Debug Params

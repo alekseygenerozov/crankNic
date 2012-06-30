@@ -135,22 +135,33 @@ int cnSolver::step(
 		      + (tmp0*coeffs[4]+tmp1*coeffs[9]    )*Fj[j-2];
 	} // end j for
 
-	// update boundary conditions
-	double lp1 = lambda+1.0,la2=lambda*lambda;
+	/*
+	 * --------- Update boundary conditions ...
+	 */
+	double lp1 = lambda+1.0,la2=lambda*lambda,
+		grad_const = 0.0, laplace_const = 0.0, laplace_val = 0.0;
 	tmp1 = lambda*lambda+lambda+1.0, tmp2 = lambda*lambda-lambda-1.0;
-	if( NEUMANN == inner_bndry_type ){			// Inner Boundary
+
+	if( NEUMANN == inner_bndry_type ){			// ####### INNER BOUNDS
 
 		// Fixed gradient
-		M[0][R1] = lp1/(dl*lambda);
-		M[0][R2] = -1.0/(dl*lambda*lp1);
+		grad_const = 1.0/(dl*lambda);
+
+		M[0][R1] =  grad_const*lp1;
+		M[0][R2] = -grad_const/lp1;
 		M[0][C]  = -(M[0][R1]+M[0][R2]);
 		d[0] = inner_bndry_value;
 
 		// Zero laplacian
-		M[1][L1] = pow(lambda,3)*(lambda+2.0)/tmp1;
-		M[1][R1] = (la2+lambda-1.0)/lambda;
-		M[1][R2] = (lambda-1.0)/lambda/tmp1;
-		M[1][C]  = -1.0*(M[1][L1]+M[1][R1]+M[1][R2]);
+		laplace_const = 2.0/(la2*dl2*lp1);
+		laplace_val = 0.0;
+		if( inner_bndry_laplacian == SELF_SIM && t > 0.0)
+			laplace_val = 2.0*(1.0-outer_bndry_value)*sqrt(1.0/(PI*D0*t));
+
+		M[1][L1] =  laplace_const*pow(lambda,3)*(lambda+2.0)/tmp1;
+		M[1][R1] =  laplace_const*(la2+lambda-1.0)/lambda;
+		M[1][R2] = -laplace_const*(lambda-1.0)/lambda/tmp1;
+		M[1][C]  = -(M[1][L1]+M[1][R1]+M[1][R2]);
 		d[1] = 0.0;
 
 	} else if( DIRICHLET == inner_bndry_type ){
@@ -174,18 +185,25 @@ int cnSolver::step(
 			return EXIT_FAILURE;
 	} // end outer BC if/else
 
-	if( NEUMANN == outer_bndry_type ){			// Outer Boundary
+	if( NEUMANN == outer_bndry_type ){			// ########### OUTER BOUNDS
 
-		// Zero Laplacian
-		M[N-2][L2] = la2*la2*(lambda-1.0)/tmp1;
-		M[N-2][L1] = -lambda*tmp2;
-		M[N-2][R1] = (2.0*lambda+1.0)/tmp1;
+		// Laplacian
+		laplace_const = 2.0*lambda*pow(lambda,-2.0*(N-2.0))/lp1/dl2;
+		laplace_val = 0.0;
+		if( outer_bndry_laplacian == SELF_SIM && t > 0.0)	// ASSUMES const DJ and Mdot = 1.0 FIXME
+			laplace_val = 2.0*(1-outer_bndry_value)*sqrt(1.0/(PI*D0*t)); // FIXME
+
+		M[N-2][L2] =  laplace_const*la2*la2*(lambda-1.0)/tmp1;
+		M[N-2][L1] = -laplace_const*lambda*tmp2;
+		M[N-2][R1] =  laplace_const*(2.0*lambda+1.0)/tmp1;
 		M[N-2][C]  = -1.0*(M[N-2][L2]+M[N-2][L1]+M[N-2][R1]);
-		d[N-2] = 0.0;
+		d[N-2] = laplace_val;
  
 		// Fixed gradient
-		M[N-1][L2] = -la2*la2/(tmp1*lp1*dl*pow(lambda,N-1));
-		M[N-1][L1] = lp1/(tmp1*dl*pow(lambda,N-1));
+		grad_const = pow(lambda,-(N-1.0))/tmp1/dl;
+
+		M[N-1][L2] = -grad_const*la2*la2/lp1;
+		M[N-1][L1] =  grad_const*lp1;
 		M[N-1][C]  = -(M[N-1][L2]+M[N-1][L1]);
 		d[N-1] = outer_bndry_value;
 	
