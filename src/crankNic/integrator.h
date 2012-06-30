@@ -95,8 +95,8 @@ double quadBit(double bit_min, double bit_max,int bit_n){
 		weights = gaussQuad_w_48;
 	} else {	// fall back on 16
 		if(bit_n != 16){
-			fprintf(stderr,"WARNING IN integrate.h quadBit()\n");
-			fprintf(stderr,"\t>> bit_n improperly specified, resorting to 16\n");
+			cout << "WARNING IN integrate.h quadBit()\n"
+				<< "	>> bit_n improperly specified, resorting to 16" << endl;
 		}// end warning if
 		bit_n = 16;
 		points  = gaussQuad_x_16;

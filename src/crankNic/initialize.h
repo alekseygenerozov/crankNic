@@ -3,11 +3,12 @@
 #include <stdlib.h>
 
 #include "global.h"
+#include "calculateTimeStep.h"
 
 #ifndef INC_INITIALIZE
 #define INC_INITIALIZE 
 
-int initialize( double *l, double *Fj ){
+int initialize( double *l, double *Fj , double &t ){
 
   // calcualte innermost grid cell size
   if( lambda == 1.0 ){
@@ -16,8 +17,8 @@ int initialize( double *l, double *Fj ){
     dl = (lMax-lMin)*(lambda-1.0)/(pow(lambda,N-1)-1.0);
   }
   dl2  = dl*dl;
-  fprintf(stderr,"dl = %g\n",dl);
-  fprintf(stdout,"dl = %g\n",dl);
+	cout << "dl = " << dl << endl;
+	cerr << "dl = " << dl << endl;
 
 	// setup grid
 	for( int j = 0 ; j < N ; j++ ){
@@ -44,7 +45,7 @@ int initialize( double *l, double *Fj ){
 		// We intialize from file ...
 		FILE* fp = fopen("analytic_T0.dat","r");
 		if(!fp){
-			fprintf(stderr,"ERROR IN INITIALIZE.H --- Failed to Open IC file:\n");
+			cerr << "ERROR IN INITIALIZE.H --- Failed to Open IC file" << endl;
 			return EXIT_FAILURE;
 		} // end error if
 		double tmp1,tmp2;
@@ -78,7 +79,7 @@ int initialize( double *l, double *Fj ){
 		
 		FILE *fp = fopen(initial_data_file.c_str(),"r");
 		if(!fp){
-			fprintf(stderr,"ERROR IN INITIALIZE.H --- Failed to Open IC file:\n");
+			cerr << "ERROR IN INITIALIZE.H --- Failed to Open IC file" << initial_data_file << endl;
 			return EXIT_FAILURE;
 		} // end error if
 		
@@ -112,12 +113,13 @@ int initialize( double *l, double *Fj ){
 		else if( outer_bndry_type == NEUMANN )
 		{
 			outer_bndry_value = 0.0;
-			fprintf(stderr,"WARNING -- Outer bndry value not set.\n");
-			fprintf(stderr,"\t>> Setting value to 0.0 (zero mass flow\n");
+			cout << "WARNING -- Outer bndry value not set\n"
+				<< "	>> Setting value to 0.0 (zero mass flow" << endl;
 		}
 	if( DIRICHLET < outer_bndry_type )
-	{
-		fprintf(stderr,"ERROR IN INITIALIZE.H\n\t>> Outer boundry type improperly set\n");
+	{	
+		cerr << "ERROR IN INITIALIZE.H\n"
+			<< "	>> Outer boundry type improperly set" << endl;
 		return EXIT_FAILURE;
 	}
 	
@@ -128,14 +130,30 @@ int initialize( double *l, double *Fj ){
 		else if( inner_bndry_type == NEUMANN )
 		{
 			inner_bndry_value = 0.0;
-			fprintf(stderr,"WARNING -- Inner bndry value not set.\n");
-			fprintf(stderr,"\t>> Setting value to 0.0 (zero mass flow\n");
+			cout << "WARNING -- Inner bndry value not set.\n" 
+				<< "	>> Setting value to 0.0 (zero mass flow" << endl;
 		}
 	if( DIRICHLET < inner_bndry_type )
 	{
-		fprintf(stderr,"ERROR IN INITIALIZE.H\n\t>> Inner boundry type improperly set\n");
+		cerr << "ERROR IN INITIALIZE.H\n"
+			<< "	>> Inner boundry type improperly set" << endl;
 		return EXIT_FAILURE;
 	}
+
+
+	/*
+	 *  ------- Initialize Timing
+	 */
+	if( tStart >= tEnd ){
+		cout << "ERROR IN INITIALIZE: tStart cannot exceed tEnd" << endl;
+		return EXIT_FAILURE;
+	}// end time error if
+	
+	t = tStart;
+	cout << "tStart = " << tStart << endl 
+		<< "tEnd = " << tEnd << endl
+		<< "tWrite = " << tWrite << endl
+		<< "Initial dt = " << calculateTimeStep(l,Fj,l_a,dl) << endl;
 
 	return EXIT_SUCCESS;
 } // end initialize

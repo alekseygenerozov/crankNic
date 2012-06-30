@@ -14,8 +14,10 @@ int readParams(){
 	char line[MAX_STRING_LENGTH];
 
 	FILE *fp = fopen("params.in","r");
-	if( ! fp )
+	if( ! fp ){
+		cerr << "ERROR IN READ PARAMS -- File params.in cannot be opened" << endl;
 		return EXIT_FAILURE;
+	}
 
 	int nV = 0;
 	while( fgets(line, MAX_STRING_LENGTH, fp) ){
@@ -69,8 +71,6 @@ int readParams(){
 	
 	fclose(fp);
 
-	fprintf(stderr,"%d variables read from file\n",nV);
-
 	return EXIT_SUCCESS;
 }// end readParams
 
@@ -84,13 +84,14 @@ int writeParams(){
 
 	FILE *fp;
 	if(!(fp=fopen("params.out","w"))){
+		cerr << "ERROR IN WRITE PARAMS" << endl 
+			<< "	>> Failed to open params.out" << endl;
 		return EXIT_FAILURE;
-		fprintf(stderr,"ERROR IN WRITE PARAMS\n	>> Failed to open params.out\n");
 	} // end error if
 	
 	// Initialization
 	if( problemType == FROM_FILE )
-		fprintf(fp,"// Initialized from file %s\n",initial_data_file.c_str());
+		cout << "// Initialized from file " << initial_data_file << endl;
 
 	// Problem Type
 	fprintf(fp,"problemType	= %d\n",problemType);
@@ -150,14 +151,15 @@ int writeParams(){
 } // end writeParams
 
 // small helper function ...
-int intToStr(int i, char *str){
+string intToStr(int i){
+	stringstream ss;
 	if( i < 10 )
-		sprintf(str,"00%d",i);
+		ss << "00" << i;
 	else if( i < 100 )
-		sprintf(str,"0%d",i);
+		ss << "0" << i;
 	else 
-		sprintf(str,"%d",i);
-	return EXIT_SUCCESS;
+		ss << i;
+	return ss.str();
 } // end intToStr
 
 /*
@@ -178,20 +180,17 @@ int writeStandard(	int fileNum,     // datafile #
 
 	int status = EXIT_SUCCESS;
 	char str[3];
-	char fileName[100];
+	string fileName;
 
-	if( fileNum < 0 ){	// error print
-		sprintf(fileName,"ERROR.dat");
-	} else {	// normal print
-		if(EXIT_SUCCESS != intToStr(fileNum,str)){
-			return EXIT_FAILURE;
-		}// end error if
-		sprintf(fileName,"outputFiles/T%s.dat",str);
-	}// end i if
+	if( fileNum < 0 )
+		fileName = "ERROR.dat";
+	else
+		fileName = "outputFiles/T" + intToStr(fileNum) + ".dat";
 
-  FILE* fp = fopen(fileName,"w");
+  FILE* fp = fopen(fileName.c_str(),"w");
 	if(NULL == fp){
-		fprintf(stderr,"ERROR IN WRITE STANDARD\n\t>> File %s failed to open.\n",fileName); 
+		cerr << "ERROR IN WRITE STANDARD" << endl
+			<< "	>> File " << fileName << " failed to open." << endl; 
 		return EXIT_FAILURE;
 	}
 
@@ -201,10 +200,12 @@ int writeStandard(	int fileNum,     // datafile #
 		fprintf(fp,"%e\t%e\t%e\n",l[j],Fj[j],tork);
 	}// end j for
 
-	status = fclose(fp);
-	if( EXIT_SUCCESS == status ){
-		fprintf(stderr,"	>> Wrote Output #%d at T = %e\n",fileNum,t);
-	}// end status print
+	if(EXIT_SUCCESS == (status = fclose(fp)))
+		cout << "	>> Wrote Output #" << fileNum << " at T = " << t << endl;
+	else {
+		cerr << "ERROR IN STD WRITE --- file did not close properly" << endl;
+		return status;
+	}// end error if/else
 
 	return status;
 }

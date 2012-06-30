@@ -24,19 +24,14 @@ int main(int argc, char *argv[]){
 		return status;
 
 	// Create arrays for data
-	double l[N];			// specific angular momentum
-	double Fj[N];			// angular momentum flux
+	double l[N];                  // specific angular momentum
+	double Fj[N];                 // angular momentum flux
+	double t=0,dt=0,nextWrite=0;  // timing
 
 	// Intialize r and sigma
-	if(EXIT_SUCCESS != (status = initialize(l,Fj)))
+	if(EXIT_SUCCESS != (status = initialize(l,Fj,t)))
 		return status;
-
-	// Initialize timing parameters
-	double t         = tStart,
-	       dt        = calculateTimeStep(l,Fj,l_a,dl),
-	       nextWrite = tStart + tWrite;
-	fprintf(stderr,"\t>> tStart = %g\n\t>> initial dt = %g\n\t>> tEnd = %g\n", tStart,dt,tEnd);
-	fprintf(stdout,"tStart = %g\ndt = %g\ntEnd = %g\n", tStart,dt,tEnd);
+	nextWrite = t + tWrite;
 
 	// print ICs & Parameters we'll use
 	if(EXIT_SUCCESS != (status = writeParams()))
@@ -62,7 +57,6 @@ int main(int argc, char *argv[]){
 			nextWrite += tWrite;
 			if(EXIT_SUCCESS != (status = writeStandard(fileCount++,l,Fj,l_a,t)))
 				return status;
-			fprintf(stderr,"		> dt = %g\n", dt);
 		} // end write if
 	}// end time-step loop
 
