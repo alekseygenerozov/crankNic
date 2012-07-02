@@ -151,7 +151,7 @@ def readDataFile(n):
 			fName = n
 		f = open(fName,'r')
 	except IOError as e:
-		print "ERROR IN GRAB DATA ... File " + fileName + " does not exist"
+		print "ERROR IN GRAB DATA ... File " + fName + " does not exist"
 		return False
 
 	dataString = f.read()

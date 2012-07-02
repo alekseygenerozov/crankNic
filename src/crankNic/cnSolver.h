@@ -152,7 +152,7 @@ int cnSolver::step(
 		laplace_val = 0.0;
 		if( inner_bndry_laplacian == SELF_SIM && t > 0.0){
 			double x = dl/sqrt(4.0*D0*t);
-			laplace_val = (1.0-inner_bndry_value)*sqrt(1.0/(PI*D0*t))*exp(-x*x);
+			laplace_val = (1.0-inner_bndry_value)*sqrt(1.0/(PI*Dj(Fj[1],l[1])*t))*exp(-x*x);
 		}
 
 		M[1][L1] =  laplace_const*pow(lambda,3)*(lambda+2.0)/tmp1;
