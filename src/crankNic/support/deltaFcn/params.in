@@ -1,0 +1,38 @@
+// Initialized from file analytic/T000.dat
+problemType	= 3
+
+N       = 400
+lambda  = 1.01
+lMax    = 2
+lMin    = 0.1
+STENCIL = 1
+
+l0   = 1
+D0   = 0.0625
+nd   = 0
+np   = -2
+dhdr = 0.1
+l_a  = 1
+q    = 0
+M    = 1
+f    = 0.01
+
+tStart        = 0.008
+tEnd          = 0.512
+tWrite        = 0.008
+SAFETY_NUMBER = 1
+
+outer_bndry_type      = 0
+inner_bndry_type      = 1
+outer_bndry_laplacian = 0
+inner_bndry_laplacian = 0
+outer_bndry_value     = 0
+
+DEBUG_MODE    = 0
+density_floor = -1
+
+p3_A       = 0
+p3_B       = 1
+p3_C       = 0
+p3_courant = 1
+p3_CONST   = 0

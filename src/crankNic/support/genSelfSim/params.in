@@ -1,0 +1,23 @@
+problemType	= 3
+
+N       = 500
+lambda  = 1
+lMax    = 40.0
+lMin    = 1.0
+STENCIL = 0
+
+D0  = 1
+np = -.8
+nd = .3
+q    = 0
+M    = 1.0
+
+tStart        = 1.0
+tEnd          = 301.0
+tWrite        = 100.0
+SAFETY_NUMBER = 1
+
+outer_bndry_type  = 1
+inner_bndry_type  = 0
+inner_bndry_value = 1.0	// Chi 
+inner_bndry_laplacian = 1		// smart 2nd deriv
