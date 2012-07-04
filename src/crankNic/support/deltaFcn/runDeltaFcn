@@ -1,0 +1,7 @@
+rm outputFiles/*
+rm analytic/*
+rm images/*.png
+
+python makeDeltaFcn.py
+./Tango analytic/T000.dat
+python plotDeltaFcn.py

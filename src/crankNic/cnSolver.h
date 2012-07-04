@@ -11,20 +11,23 @@
 #ifndef CN_SOLVER
 #define CN_SOLVER
 
-const unsigned int STENCIL_SIZE = 5;
-const unsigned int CNTR = 2;
-const unsigned int JP2=4,JP1=3,J=2,JM1=1,JM2=0,	// indexing for stencil
-	R2=JP2,R1=JP1,C=J,L1=JM1,L2=JM2;							// indexing for Crank Nicolson matrix
-
 struct cnSolver{
+
+	const unsigned int STENCIL_SIZE = 5;            // # of cells in stencil (per time step)
+	const unsigned int CNTR = 2;                    // center of stencil (jth grid cell)
+	const unsigned int JP2=4,JP1=3,J=2,JM1=1,JM2=0, // indexing for stencil
+		R2=JP2,R1=JP1,C=J,L1=JM1,L2=JM2;              // indexing for Crank Nicolson matrix
+
 	VecDoub	d;                           // RHS of matrix eq
 	VecDoub FjNew;                       // angular momentum flux of new timestep
 	double grad_coeffs[STENCIL_SIZE];    // finite diff coefficients for 1st deriv
 	double laplace_coeffs[STENCIL_SIZE]; // ""                           2nd deriv
 	double const_coeffs[STENCIL_SIZE];   // ""                           0th deriv
 	MatDoub M;                           // Matrix of Crank-Nicolson Scheme
+
 	cnSolver();
 	int step(double *l,double *Fj,double t,double dt,double &l_a,bool dWrite);
+
 };
 
 // Constructor
@@ -179,8 +182,8 @@ int cnSolver::step(
 		// Zero laplacian
 		M[1][L1] = pow(lambda,3)*(lambda+2.0)/tmp1;
 		M[1][R1] = (la2+lambda-1.0)/lambda;
-		M[1][R2] = (lambda-1.0)/lambda/tmp1;
-		M[1][C]  = -1.0*(M[1][L1]+M[1][R1]+M[1][R2]);
+		M[1][R2] = -(lambda-1.0)/lambda/tmp1;
+		M[1][C]  = -(M[1][L1]+M[1][R1]+M[1][R2]);
 		d[1] = 0.0;
 
 	} else {

@@ -22,40 +22,20 @@ from math import pow
 from scipy import arange, pi, sqrt, exp
 from scipy.special import iv
 from matplotlib import rc
-
 from math import isnan
+from tangoPlot import * 
 
-l0 = 1.0 		# initial radius of delta fcn
-M  = 1.0		# intiial mass
+params = readParams("params.in")
+l0 = params['l0']
+M  = params['M']
 pi = 3.14159
+Lambda = params['lambda']
+N = int(params['N'])
 
-N = 500
-lMin = 0.1
-lMax = 2.0
+lMin = params['lMin']
+lMax = params['lMax']
 Lambda = 1.03
-nu = 1.0/12.0
-
-# we read in from param file ...
-f = open('params.in','r')
-params = f.read()
-f.close()
-params = params.split('\n');
-Np = len(params)
-
-for i in range(Np):
-	s = params[i]
-	s = s.split('=')
-	var = s[0].strip()
-	if( len(s) > 1 ):
-		num = s[1].split('//')
-		num = float(num[0].strip())
-	
-		if( var == 'l0' ): 	l0 = num
-		if( var == 'lMin' ): lMin = num
-		if( var == 'lMax' ): lMax = num
-		if( var == 'N' ): N = int(num)
-		if( var == 'lambda' ): Lambda = num
-		if( var == 'D0' ): nu = num*4.0/3.0			# conversion assumes M = 1
+nu = params['D0']*4.0/3.0	# conversion assumes M = 1
 
 print "l0 = " + str(l0)
 print "lMin = " + str(lMin)
@@ -64,6 +44,9 @@ print "N = " + str(N)
 print "lambda = " + str(Lambda)
 print "nu = " + str(nu)
 
+l = genGrid("params.in")
+dl = l[1] - l[0]
+
 #
 # ---- Our analytic expression
 #
@@ -71,24 +54,12 @@ def Fj(x,t):
 		floor = 1E-4
 		tmp = 3.0*M*M*M*nu/(l0*l0*l0*t)
 		tmp = tmp*x**(.25)*exp(-(1+x*x)/t)*iv(.25,2*x/t) + floor
+
+		for i in range(len(tmp)):
+			if( isnan(tmp[i]) ):
+				tmp[i] = floor
 		return tmp
 
-dl = 0
-if( Lambda == 1 ):
-	dl = (lMax - lMin)/(N-1.0)
-else:
-	dl = (lMax - lMin)*(Lambda-1.0)/(pow(Lambda,N-1)-1.0)
-
-l = np.zeros(N)
-
-for i in range(N):
-	if( Lambda == 1 ):
-		l[i] = lMin + i*dl
-	else:
-		if( i == 0 ):
-			l[i] = lMin
-		else:
-			l[i] = lMin + dl*( pow(Lambda,i) - 1.0 )/(Lambda-1.0)
 
 for i in range(64):	# FIXME
 	t = .008 + .008*i
@@ -110,13 +81,3 @@ for i in range(64):	# FIXME
 	for i in range(N):
 		f.write(str(l[i]) + '\t' + str(F_j[i]) + '\n')
 	f.close()
-
-#
-#plt.xlabel('$r/R_0$')
-#plt.ylabel('$\pi \Sigma R_0^2/m$')
-#plt.title('Surface Density')
-#
-#plt.legend( ('$\\tau = .008$', '$\\tau = .032$', '$\\tau = .128$', '$\\tau = .512$'),
-#		loc='upper right')
-#
-#plt.savefig('analyticAlphaDisk')
