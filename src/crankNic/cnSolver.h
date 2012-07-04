@@ -11,18 +11,25 @@
 #ifndef CN_SOLVER
 #define CN_SOLVER
 
+const unsigned int STENCIL_SIZE = 5;
+const unsigned int CNTR = 2;
+const unsigned int JP2=4,JP1=3,J=2,JM1=1,JM2=0,	// indexing for stencil
+	R2=JP2,R1=JP1,C=J,L1=JM1,L2=JM2;							// indexing for Crank Nicolson matrix
+
 struct cnSolver{
-	VecDoub	d;						// RHS of matrix eq
-	VecDoub FjNew;				// angular momentum flux of new timestep
-	double coeffs[10];		// finite difference coefficients
-	MatDoub M;						// Matrix of Crank-Nicolson Scheme
+	VecDoub	d;                           // RHS of matrix eq
+	VecDoub FjNew;                       // angular momentum flux of new timestep
+	double grad_coeffs[STENCIL_SIZE];    // finite diff coefficients for 1st deriv
+	double laplace_coeffs[STENCIL_SIZE]; // ""                           2nd deriv
+	double const_coeffs[STENCIL_SIZE];   // ""                           0th deriv
+	MatDoub M;                           // Matrix of Crank-Nicolson Scheme
 	cnSolver();
 	int step(double *l,double *Fj,double t,double dt,double &l_a,bool dWrite);
 };
 
 // Constructor
 cnSolver::cnSolver() 
-	: d(N),M(N,5),FjNew(N)
+	: d(N),M(N,STENCIL_SIZE),FjNew(N)
 {
 	
 	// prep some CN constants based on log-grid stretch factor
@@ -36,11 +43,12 @@ cnSolver::cnSolver()
 	if( 1 == STENCIL ){	// 3rd order, metastable
 		double tmp3 = tmp1*(la2+1.0)*lp1*lp1;
 
-		coeffs[0] = -2.0/lambda*(2.0*la2-1.0)/tmp3;                  // j+2
-		coeffs[1] = 2.0/lambda*lp1*(2.0*lambda-1.0)/tmp1;           // j+1
-		coeffs[3] = -2.0*pow(lambda,3)*(lambda-2.0)*lp1/tmp1;       // j-1
-		coeffs[4] = 2.0*pow(lambda,7)*(la2-2.0)/tmp3;                // j-2
-		coeffs[2] = -1.0*(coeffs[0]+coeffs[1]+coeffs[3]+coeffs[4]); // j
+		laplace_coeffs[JM2] = -2.0/lambda*(2.0*la2-1.0)/tmp3;
+		laplace_coeffs[JP1] =  2.0/lambda*lp1*(2.0*lambda-1.0)/tmp1;
+		laplace_coeffs[JM1] = -2.0*pow(lambda,3)*(lambda-2.0)*lp1/tmp1;
+		laplace_coeffs[JM2] =  2.0*pow(lambda,7)*(la2-2.0)/tmp3;
+		laplace_coeffs[J] = -( laplace_coeffs[JM2]+laplace_coeffs[JM1]
+		                      +laplace_coeffs[JP2]+laplace_coeffs[JP1] );
 
 		if( lambda > 1.3 ){
 			cout << "WARNING in cnSolver.h constructor:" << endl
@@ -48,11 +56,11 @@ cnSolver::cnSolver()
 				<< "		( try setting lambda < 1.3 or change STENCIL to 0 )" << endl;
 		} // end lambda error warning
 	} else {	// 2nd order, robustly stable
-		coeffs[0] = -2.0*l5*(lambda-1.0)/(lp1*(1.0+l6)*tmp1);									// j+2
-		coeffs[1] = 2.0*lambda*(1+2.0*lambda-la2-2.0*l3+2.0*l5+l6)/(lp1*tmp2);	// j+1
-		coeffs[3] = 2.0*la2*(1+2.0*lambda-2.0*l3-l4+2.0*l5+l6)/(lp1*tmp2);			// j-2
-		coeffs[4] = -coeffs[0];																								// j
-		coeffs[2] = -(coeffs[1]+coeffs[3]);																		// j-1
+		laplace_coeffs[JP2] = -2.0*l5*(lambda-1.0)/(lp1*(1.0+l6)*tmp1);
+		laplace_coeffs[JP1] = 2.0*lambda*(1+2.0*lambda-la2-2.0*l3+2.0*l5+l6)/(lp1*tmp2);
+		laplace_coeffs[JM2] = 2.0*la2*(1+2.0*lambda-2.0*l3-l4+2.0*l5+l6)/(lp1*tmp2);
+		laplace_coeffs[JM2] = -laplace_coeffs[JP2];
+		laplace_coeffs[J  ] = -(laplace_coeffs[JP1] + laplace_coeffs[JM1]);
 		
 		if( 0 != STENCIL ){
 			cout << "WARNING in cnSolver.h constructor:" << endl
@@ -62,11 +70,19 @@ cnSolver::cnSolver()
 	} // end STENCIL if for gradient term	
 
 	// for gradient term ...
-	coeffs[5] = -1.0/(lambda*lp1*(1.0+la2)*tmp1);								// j+2
-	coeffs[6] = lp1/(lambda*tmp1);															// j+1
-	coeffs[8] = -pow(lambda,3)*lp1/tmp1;												// j-1
-	coeffs[9] = pow(lambda,7)/(lp1*(1.0+la2)*tmp1);							// j-2
-	coeffs[7] = -1.0*(coeffs[5]+coeffs[6]+coeffs[8]+coeffs[9]);	// j
+	grad_coeffs[JP2] = -1.0/(lambda*lp1*(1.0+la2)*tmp1);
+	grad_coeffs[JP1] = lp1/(lambda*tmp1);
+	grad_coeffs[JM1] = -pow(lambda,3)*lp1/tmp1;
+	grad_coeffs[JM2] = pow(lambda,7)/(lp1*(1.0+la2)*tmp1);
+	grad_coeffs[J  ] = -( grad_coeffs[JM2] + grad_coeffs[JM1]
+	                     +grad_coeffs[JP1] + grad_coeffs[JP2] );
+
+	// for constant term ...
+	const_coeffs[JP2] = 0.0;
+	const_coeffs[JP1] = 0.0;
+	const_coeffs[J  ] = 1.0;
+	const_coeffs[JM1] = 0.0;
+	const_coeffs[JM2] = 0.0;
 	
 }// end constructor 
 
@@ -88,46 +104,37 @@ int cnSolver::step(
 
 	int status = EXIT_SUCCESS;
 	double tmp0,tmp1,tmp2;
-	static const int L2=0,L1=1,C=2,R1=3,R2=4;
+	int offset;
 
 	if(DEBUG_MODE && dWrite){
-		cout << endl << endl << "# ---------------------------------------------------------" << endl
+		cout << endl << endl << "# -----------------------" 
+			<< "----------------------------------" << endl
 			<< "#l		D_J		tmp0		tmp1" << endl;
 	} // end debug if
 
-	// Build vectors for matrix solver
+	/*
+	 *	Build matrix M and solution vector d elements, based on finite 
+	 *	diff coeffs, current specific angular momentum flux, diffusion
+	 *	coeffs and torque density profile
+	 */
 	for( int j = 2 ; j < N-2 ; j++ ){
 	
-		tmp0 = pow(lambda,-2.0*j)*.5*dt/dl2*Dj(Fj[j],l[j]);
-		tmp1 = 0.0;//pow(lambda,-1.0*j)*delR*(alpha*(2.0*n_v+1.5)-beta); FIXME
-
-		// Coefficiencts manually set for problem-type 3
-		if( problemType == SQUARE_PULSE ){
-			tmp0 = pow(lambda,-2.0*j)*p3_A;
-			if( ! p3_CONST ){
-				tmp1 = pow(lambda,-1.0*j)*p3_B/l[j];
-			} else {
-				tmp1 = pow(lambda,-1.0*j)*p3_B;
-			}// end const if
-		} // end problem 3 if
+		tmp0 = pow(lambda,-2.0*j)*.5*dt/dl2*Dj(Fj[j],l[j])/(1.0-nd);
+		tmp1 = 0.0; //pow(lambda,-1.0*j)*.5*dt/dl*Dj(Fj[j],l[j])/(1.0-nd); FIXME
 
 		if(DEBUG_MODE && dWrite ){	
 			cout << l[j] << "	" << Dj(Fj[j],l[j]) << "	" << tmp0 << "	" << tmp1 << endl;
 		}// end debug if
 
+		d[j] = 0.0;
+		for( int k = 0 ; k < STENCIL_SIZE ; ++k ){
+			offset = j - CNTR + k;
+			tmp2 = tmp1*tidalTorque(l[offset])*Dj(Fj[offset],l[offset]);
 
-		M[j][L2] = -tmp0*coeffs[4]-tmp1*coeffs[9];     // Second sub-diagonal
-		M[j][L1] = -tmp0*coeffs[3]-tmp1*coeffs[8];     // First sub-diagonal
-		M[j][C]  = -tmp0*coeffs[2]-tmp1*coeffs[7]+1.0; // central band
-		M[j][R1] = -tmp0*coeffs[1]-tmp1*coeffs[6];     // first super-diagonal
-		M[j][R2] = -tmp0*coeffs[0]-tmp1*coeffs[5];     // second super-diagonal
+			M[j][k] = -tmp0*laplace_coeffs[k] - tmp2*grad_coeffs[k] + const_coeffs[k];
+			d[j] +=  ( tmp0*laplace_coeffs[k] + tmp2*grad_coeffs[k] + const_coeffs[k] )*Fj[offset];
+		}// end k for
 
-		// RHS vector
-		d[j] =  (tmp0*coeffs[0]+tmp1*coeffs[5]    )*Fj[j+2] 
-		      + (tmp0*coeffs[1]+tmp1*coeffs[6]    )*Fj[j+1]
-		      + (tmp0*coeffs[2]+tmp1*coeffs[7]+1.0)*Fj[j  ]
-		      + (tmp0*coeffs[3]+tmp1*coeffs[8]    )*Fj[j-1]
-		      + (tmp0*coeffs[4]+tmp1*coeffs[9]    )*Fj[j-2];
 	} // end j for
 
 	/*

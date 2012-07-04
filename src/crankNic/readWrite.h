@@ -196,7 +196,7 @@ int writeStandard(	int fileNum,     // datafile #
 
 	double tork;
 	for( int j = 0 ; j < N ; j++ ){
-		tork = tidalTorque(l[j],l_a,h(l[j]));
+		tork = tidalTorque(l[j]);
 		fprintf(fp,"%e\t%e\t%e\n",l[j],Fj[j],tork);
 	}// end j for
 

@@ -11,10 +11,7 @@
  *		Smoothed torque density of secondary on disk, due to
  *		to linblad resonances.
  */
-double tidalTorque( 	double l , 		// radial position in disk
-											double l_a, 	// binary separation
-											double l_hh		// scale height of disk
-									){
+double tidalTorque( double l ){
 
 	if( q == 0.0 ){
 		return 0.0;
@@ -22,7 +19,7 @@ double tidalTorque( 	double l , 		// radial position in disk
 	double	tmp1 = f*q*q*M*M*0.5,
 					l2 = l*l,
 					la2 = l_a*l_a,
-					lh2 = l_hh*l_hh,
+					lh2 = h(l)*h(l),
 					tmp2;
 
 	if( l2 < la2 - lh2 ){
