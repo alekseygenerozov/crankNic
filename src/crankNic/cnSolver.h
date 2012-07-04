@@ -43,7 +43,7 @@ cnSolver::cnSolver()
 	if( 1 == STENCIL ){	// 3rd order, metastable
 		double tmp3 = tmp1*(la2+1.0)*lp1*lp1;
 
-		laplace_coeffs[JM2] = -2.0/lambda*(2.0*la2-1.0)/tmp3;
+		laplace_coeffs[JP2] = -2.0/lambda*(2.0*la2-1.0)/tmp3;
 		laplace_coeffs[JP1] =  2.0/lambda*lp1*(2.0*lambda-1.0)/tmp1;
 		laplace_coeffs[JM1] = -2.0*pow(lambda,3)*(lambda-2.0)*lp1/tmp1;
 		laplace_coeffs[JM2] =  2.0*pow(lambda,7)*(la2-2.0)/tmp3;
@@ -58,7 +58,7 @@ cnSolver::cnSolver()
 	} else {	// 2nd order, robustly stable
 		laplace_coeffs[JP2] = -2.0*l5*(lambda-1.0)/(lp1*(1.0+l6)*tmp1);
 		laplace_coeffs[JP1] = 2.0*lambda*(1+2.0*lambda-la2-2.0*l3+2.0*l5+l6)/(lp1*tmp2);
-		laplace_coeffs[JM2] = 2.0*la2*(1+2.0*lambda-2.0*l3-l4+2.0*l5+l6)/(lp1*tmp2);
+		laplace_coeffs[JM1] = 2.0*la2*(1+2.0*lambda-2.0*l3-l4+2.0*l5+l6)/(lp1*tmp2);
 		laplace_coeffs[JM2] = -laplace_coeffs[JP2];
 		laplace_coeffs[J  ] = -(laplace_coeffs[JP1] + laplace_coeffs[JM1]);
 		
@@ -129,7 +129,7 @@ int cnSolver::step(
 		d[j] = 0.0;
 		for( int k = 0 ; k < STENCIL_SIZE ; ++k ){
 			offset = j - CNTR + k;
-			tmp2 = tmp1*tidalTorque(l[offset])*Dj(Fj[offset],l[offset]);
+			tmp2 = tmp1*tidalTorque(l[offset])/Dj(Fj[offset],l[offset]);
 
 			M[j][k] = -tmp0*laplace_coeffs[k] - tmp2*grad_coeffs[k] + const_coeffs[k];
 			d[j] +=  ( tmp0*laplace_coeffs[k] + tmp2*grad_coeffs[k] + const_coeffs[k] )*Fj[offset];
