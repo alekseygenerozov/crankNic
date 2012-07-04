@@ -11,12 +11,12 @@
 #ifndef CN_SOLVER
 #define CN_SOLVER
 
-struct cnSolver{
-
 	const unsigned int STENCIL_SIZE = 5;            // # of cells in stencil (per time step)
 	const unsigned int CNTR = 2;                    // center of stencil (jth grid cell)
 	const unsigned int JP2=4,JP1=3,J=2,JM1=1,JM2=0, // indexing for stencil
 		R2=JP2,R1=JP1,C=J,L1=JM1,L2=JM2;              // indexing for Crank Nicolson matrix
+
+struct cnSolver{
 
 	VecDoub	d;                           // RHS of matrix eq
 	VecDoub FjNew;                       // angular momentum flux of new timestep
@@ -123,7 +123,7 @@ int cnSolver::step(
 	for( int j = 2 ; j < N-2 ; j++ ){
 	
 		tmp0 = pow(lambda,-2.0*j)*.5*dt/dl2*Dj(Fj[j],l[j])/(1.0-nd);
-		tmp1 = 0.0; //pow(lambda,-1.0*j)*.5*dt/dl*Dj(Fj[j],l[j])/(1.0-nd); FIXME
+		tmp1 = pow(lambda,-1.0*j)*.5*dt/dl*Dj(Fj[j],l[j])/(1.0-nd);
 
 		if(DEBUG_MODE && dWrite ){	
 			cout << l[j] << "	" << Dj(Fj[j],l[j]) << "	" << tmp0 << "	" << tmp1 << endl;
