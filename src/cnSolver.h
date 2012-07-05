@@ -123,7 +123,7 @@ int cnSolver::step(
 	for( int j = 2 ; j < N-2 ; j++ ){
 	
 		tmp0 = pow(lambda,-2.0*j)*.5*dt/dl2*Dj(Fj[j],l[j])/(1.0-nd);
-		tmp1 = pow(lambda,-1.0*j)*.5*dt/dl*Dj(Fj[j],l[j])/(1.0-nd);
+		tmp1 = -pow(lambda,-1.0*j)*.5*dt/dl*Dj(Fj[j],l[j])/(1.0-nd);
 
 		if(DEBUG_MODE && dWrite ){	
 			cout << l[j] << "	" << Dj(Fj[j],l[j]) << "	" << tmp0 << "	" << tmp1 << endl;
