@@ -1,3 +1,6 @@
+#ifndef INC_BAND
+#define INC_BAND
+
 void banmul(MatDoub_I &a, const Int m1, const Int m2, VecDoub_I &x,
 	VecDoub_O &b)
 {
@@ -83,3 +86,5 @@ Doub Bandec::det() {
 	for (int i=0;i<n;i++) dd *= au[i][0];
 	return dd;
 }
+
+#endif

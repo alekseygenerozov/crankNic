@@ -196,7 +196,7 @@ int writeStandard(	int fileNum,     	// datafile #
 	}
 
 	for( int j = 0 ; j < N ; j++ ){
-		fprintf(fp,"%e\t%e\t%e\t%e\n",l[j],Fj[j],tidalTorque(l[j]),solver.mDot(Fj,l,j));
+		fprintf(fp,"%e\t%e\t%e\t%e\n",l[j],Fj[j],tidalTorque(l[j]),solver.Mdot(Fj,l,j));
 	}// end j for
 
 	if(EXIT_SUCCESS == (status = fclose(fp)))

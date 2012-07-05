@@ -1,6 +1,4 @@
 #include "global.h"
-#include <stdio.h>
-#include <math.h>
 
 #ifndef INC_TORQUES
 #define INC_TORQUES

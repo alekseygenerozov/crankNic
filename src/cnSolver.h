@@ -5,7 +5,6 @@
 #include "global.h"
 #include "nr3.h"
 #include "banded.h"
-#include "readWrite.h"
 #include "torques.h"
 
 #ifndef CN_SOLVER
@@ -268,15 +267,15 @@ int cnSolver::step(
  *			M_dot = dF_J/dl - F * Lambda / D_J
  *
  */
-double mDot( double *l, double *Fj, int j ){
+double cnSolver::Mdot( double *l, double *Fj, int j ){
 
 	if( j < 2 || j > N - 3 ){
-		cerr << "WARNING -- Cannot compute mass flux with 2 cells of bounds" << endl;
+//		cerr << "WARNING -- Cannot compute mass flux with 2 cells of bounds" << endl; FIXME
 		return 0.0;
 	} // end j if
 	
 	double grad_const = pow(lambda,-1.0*j)/dl, tmp=0.0;
-	for( k = 0 ; k < STENCIL_SIZE ; ++k )
+	for( int k = 0 ; k < STENCIL_SIZE ; ++k )
 		tmp += grad_const*grad_coeffs[k]*Fj[ j - CNTR + k ];
 
 	tmp -= Fj[j] * tidalTorque(l[j]) / Dj( Fj[j] , l[j] );

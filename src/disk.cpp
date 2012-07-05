@@ -33,14 +33,15 @@ int main(int argc, char *argv[]){
 		return status;
 	nextWrite = t + tWrite;
 
+	// intialize our Crank-Nicolson solver	
+	cnSolver solver;
+
 	// print ICs & Parameters we'll use
 	if(EXIT_SUCCESS != (status = writeParams()))
 		return status;
 	if(EXIT_SUCCESS != (status = writeStandard(fileCount++,l,Fj,solver,t)))
 		return status;
 
-	// intialize our Crank-Nicolson solver	
-	cnSolver solver;
 
 	while(t<tEnd){		// main loop (in time)
 
