@@ -174,7 +174,6 @@ string intToStr(int i){
 int writeStandard(	int fileNum,     // datafile #
 										double* l,       // radius
 										double* Fj,   // surface density
-										double l_a,        // binary separation
 										double t         // time
 ){
 
@@ -194,10 +193,8 @@ int writeStandard(	int fileNum,     // datafile #
 		return EXIT_FAILURE;
 	}
 
-	double tork;
 	for( int j = 0 ; j < N ; j++ ){
-		tork = tidalTorque(l[j]);
-		fprintf(fp,"%e\t%e\t%e\n",l[j],Fj[j],tork);
+		fprintf(fp,"%e\t%e\t%e\t%e\t%e\n",l[j],Fj[j],tidalTorque(l[j]),Dj(Fj[j],l[j]),h(l[j]));
 	}// end j for
 
 	if(EXIT_SUCCESS == (status = fclose(fp)))
@@ -208,6 +205,6 @@ int writeStandard(	int fileNum,     // datafile #
 	}// end error if/else
 
 	return status;
-}
+} // end write standard
 
 #endif

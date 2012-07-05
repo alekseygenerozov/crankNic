@@ -1,12 +1,17 @@
 import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 from math import pow
+
+mpl.rcParams['figure.subplot.hspace'] = 0.0
+mpl.rcParams['figure.subplot.wspace'] = 0.0
 
 #
 #		NORMALIZE
 #			Assumes 1D np array
 #
 def normalize(x):
-	return x/np.max(np.abs(x))	
+	return x/np.max(np.abs(x))
 
 #
 #		strFN
@@ -34,6 +39,11 @@ def n2fName(n):
 	if( n < 0 ):
 		return "ERROR.dat"
 	return 'outputFiles/T' + strFN(n) + '.dat'
+
+def n2IName(n):
+	if( n < 0 ):
+		return "ERROR"
+	return "images/T" + strFN(n)
 
 #
 #		FAKE LOG
@@ -144,11 +154,7 @@ def readParams(fName='params.out'):
 def readDataFile(n):
 
 	try:
-		fName = ""
-		if( type(n) is int ):
-			fName += n2fName(n)
-		else:
-			fName = n
+		fName = n2fName(n)
 		f = open(fName,'r')
 	except IOError as e:
 		print "ERROR IN GRAB DATA ... File " + fName + " does not exist"
@@ -168,3 +174,85 @@ def readDataFile(n):
 			data[i][j] = float( line[j] )
 
 	return data
+
+
+#
+#		PLOT DATA STD
+#
+#			Plots triple-paned view of F_J and Tidal 
+#			Torque Profile, takes param dict and 
+#			either data file name, data file # or data 
+#			itself.
+#
+def plotDataStd(params,n,imType="png"):
+
+	if( (type(n) is np.ndarray) ):
+		data = n
+	else:
+		data = readDataFile(n)
+
+	if( type(data) is bool and not data ):
+		return False
+
+	plt.clf()
+
+	l   = data[:,0]
+	FJ  = data[:,1]
+	trk = data[:,2]
+
+	# UPPER LEFT: F_J Plotted over whole region
+	ax1 = plt.subplot2grid((4,4), (0,0), rowspan=3,colspan=3)
+	ax1.loglog(l,FJ,'b-')
+	plt.ylabel('$F_J$')
+	ax1.axis((l.min(),l.max(),1E-3,1E3))
+	plt.setp( ax1.get_xticklabels(), visible=False)
+
+	# LOWER LEFT: Torque profile over whole region
+	ax2 = plt.subplot2grid((4,4), (3,0), colspan=3,sharex=ax1)
+	ax2.semilogx(l,trk,'b-')
+	plt.ylabel('$\\Lambda$')
+	plt.xlabel('$l$')
+	ax2.axis((l.min(),l.max(),trk.min(),trk.max()))
+
+	# RIGHT: Zoom in on region of secondary, both plotted
+	ax3 = plt.subplot2grid((4,4),(0,3),rowspan=4)
+	ax3.plot(l,normalize(trk),'r.-',linewidth=1,markersize=3)
+	ax3.axis((7.0,13.0,-1.0,1.0))
+	plt.xlabel('l')
+	plt.ylabel('$\\Lambda$')
+	plt.setp( ax3.get_yticklabels(), visible=False)
+
+	fName = n2IName(n)
+	if( imType == "ps" ):
+		plt.savefig(fName + '.ps')
+	else:
+		plt.savefig(fName)
+
+	return True
+
+
+#
+#		OPT RES
+#
+#			Given region of interest, available pts, and target spot
+#			will determine a logarithmic stretch factor to optimize
+#			resolution at that spot
+#
+def optRes(lMin,lMax,l_a,N):
+
+  dLam = .00001
+  Lambda = np.arange(1.0+dLam,1.03,dLam)
+
+  def dla(ll):
+    return (ll-1.0)*(l_a-lMin+(lMax-lMin)/(pow(ll,N)-1.0))
+
+  lambdaMin = Lambda[0]
+  dlMin = dla(lambdaMin)
+  for ll in Lambda:
+    dl = dla(ll)
+    if( dl < dlMin ):
+      lambdaMin = ll
+      dlMin = dl
+
+  return ( lambdaMin , dlMin )
+
