@@ -204,7 +204,7 @@ def plotDataStd(params,n,imType="png"):
 	ax1 = plt.subplot2grid((4,4), (0,0), rowspan=3,colspan=3)
 	ax1.loglog(l,FJ,'b-')
 	plt.ylabel('$F_J$')
-	ax1.axis((l.min(),l.max(),1E-3,1E3))
+	ax1.axis((l.min(),l.max(),1E-1,1E3))
 	plt.setp( ax1.get_xticklabels(), visible=False)
 
 	# LOWER LEFT: Torque profile over whole region
@@ -215,9 +215,19 @@ def plotDataStd(params,n,imType="png"):
 	ax2.axis((l.min(),l.max(),trk.min(),trk.max()))
 
 	# RIGHT: Zoom in on region of secondary, both plotted
+	subMin = 8.0
+	subMax = 12.0
 	ax3 = plt.subplot2grid((4,4),(0,3),rowspan=4)
-	ax3.plot(l,normalize(trk),'r.-',linewidth=1,markersize=3)
-	ax3.axis((7.0,13.0,-1.0,1.0))
+	ax3.plot(l,normalize(trk),'k.-',linewidth=.5,markersize=2)
+	ax3.axis((subMin,subMax,-1.0,1.0))
+	
+	lsub = l[ l > subMin]
+	lsub = lsub[ lsub < subMax]
+	Fsub = FJ[ l > subMin ]
+	Fsub = Fsub[ lsub < subMax ] 
+	Fsub = Fsub/20.0 - 1.0
+	ax3.plot(lsub,Fsub,'b-',linewidth=1.5)
+
 	plt.xlabel('l')
 	plt.ylabel('$\\Lambda$')
 	plt.setp( ax3.get_yticklabels(), visible=False)
@@ -230,6 +240,22 @@ def plotDataStd(params,n,imType="png"):
 
 	return True
 
+#
+#			PLOT ALL STD
+#
+#			A one-liner call that reads in all output
+#			files (with an optional param for going 
+#			by twos, threes, tens, etc ... ) that pulls
+#			sim info from params.out (or another file)
+#			and produces a std 3-pane plot of F_J and trk
+#
+def plotAllStd(skip=1,pFile="params.out"):
+
+	params = readParams(pFile)
+	
+	n = 0
+	while(plotDataStd(params,n)): 
+		n += skip
 
 #
 #		OPT RES
