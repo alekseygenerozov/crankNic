@@ -4,6 +4,7 @@
 
 #include "global.h"
 #include "torques.h"
+#include "cnSolver.h"
 
 #ifndef INC_READ_PARAMS
 #define INC_READ_PARAMS
@@ -171,10 +172,11 @@ string intToStr(int i){
  *
  *		>> Negative datafile # implies an error print
  */
-int writeStandard(	int fileNum,     // datafile #
-										double* l,       // radius
-										double* Fj,   // surface density
-										double t         // time
+int writeStandard(	int fileNum,     	// datafile #
+										double *l,       	// radius
+										double *Fj,   		// surface density
+										cnSolver &solver,	// matrix solver struct
+										double t         	// time
 ){
 
 	int status = EXIT_SUCCESS;
@@ -194,7 +196,7 @@ int writeStandard(	int fileNum,     // datafile #
 	}
 
 	for( int j = 0 ; j < N ; j++ ){
-		fprintf(fp,"%e\t%e\t%e\t%e\t%e\n",l[j],Fj[j],tidalTorque(l[j]),Dj(Fj[j],l[j]),h(l[j]));
+		fprintf(fp,"%e\t%e\t%e\t%e\n",l[j],Fj[j],tidalTorque(l[j]),solver.mDot(Fj,l,j));
 	}// end j for
 
 	if(EXIT_SUCCESS == (status = fclose(fp)))

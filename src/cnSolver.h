@@ -27,7 +27,7 @@ struct cnSolver{
 
 	cnSolver();
 	int step(double *l,double *Fj,double t,double dt,double &l_a,bool dWrite);
-
+	double Mdot( double *l, double *Fj , int j );
 };
 
 // Constructor
@@ -259,5 +259,29 @@ int cnSolver::step(
 	
 	return status;
 } // end solve
+
+/*
+ *	MDOT
+ *	
+ *		Calculates the mass flux into a given radius:
+ *
+ *			M_dot = dF_J/dl - F * Lambda / D_J
+ *
+ */
+double mDot( double *l, double *Fj, int j ){
+
+	if( j < 2 || j > N - 3 ){
+		cerr << "WARNING -- Cannot compute mass flux with 2 cells of bounds" << endl;
+		return 0.0;
+	} // end j if
+	
+	double grad_const = pow(lambda,-1.0*j)/dl, tmp=0.0;
+	for( k = 0 ; k < STENCIL_SIZE ; ++k )
+		tmp += grad_const*grad_coeffs[k]*Fj[ j - CNTR + k ];
+
+	tmp -= Fj[j] * tidalTorque(l[j]) / Dj( Fj[j] , l[j] );
+	
+	return tmp;
+} // end mDOt
 
 #endif

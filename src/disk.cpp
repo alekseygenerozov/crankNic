@@ -36,7 +36,7 @@ int main(int argc, char *argv[]){
 	// print ICs & Parameters we'll use
 	if(EXIT_SUCCESS != (status = writeParams()))
 		return status;
-	if(EXIT_SUCCESS != (status = writeStandard(fileCount++,l,Fj,t)))
+	if(EXIT_SUCCESS != (status = writeStandard(fileCount++,l,Fj,solver,t)))
 		return status;
 
 	// intialize our Crank-Nicolson solver	
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]){
 		if( t + dt >= nextWrite )
 			cout << "		>> dt = " << dt << endl;
 		if(EXIT_SUCCESS != (status = solver.step(l,Fj,t,dt,l_a,(t+dt)>=nextWrite))){
-			writeStandard(-1,l,Fj,t);
+			writeStandard(-1,l,Fj,solver,t);
 			return status;
 		}
 		t += dt;
@@ -57,14 +57,10 @@ int main(int argc, char *argv[]){
 		// check if we write out
 		if( t >= nextWrite ){
 			nextWrite += tWrite;
-			if(EXIT_SUCCESS != (status = writeStandard(fileCount++,l,Fj,t)))
+			if(EXIT_SUCCESS != (status = writeStandard(fileCount++,l,Fj,solver,t)))
 				return status;
 		} // end write if
 	}// end time-step loop
 
-	// print last file:
-	if(EXIT_SUCCESS != (status = writeStandard(fileCount,l,Fj,t)))
-		return status;
-	
 	return status;
 } // end main
