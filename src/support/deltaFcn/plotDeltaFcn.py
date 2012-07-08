@@ -3,6 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy
 from numpy import log
+from tangoPlot import *
 
 matplotlib.rc('lines',markersize=4,linewidth=1);
 
@@ -14,38 +15,23 @@ def fakeLog(x):
 # ------ We Read In Data
 #
 
-def grabData(fileName,type):
-
-	exists = 1
-	try:
-		f = open(fileName,'r')
-	except IOError as e:
-		print "WARNING ...  file '" + fileName + "' does not exist."
-		exists = 0
-
-	if( exists == 1 ):
-		dataString = f.read()
-		f.close()
-		dataLines = dataString.split('\n');
-		N = len(dataLines) - 1
-		data = numpy.zeros((N,4))
+def grabData(fName,pType):
 	
-		for i in range(N):
-			line = dataLines[i].split('\t')
-			data[i][0] = float( line[0] )
-			data[i][1] = float( line[1] )
-#			if(type == 0):
-#				data[i][2] = float( line[2] )
-#				data[i][3] = float( line[3] )
+	hdrLines = 0
+	if( pType == 0 ):
+		hdrLines = 3
 
-		if(type == 0):
-			plt.plot( data[:,0] , data[:,1]*3.14159) 
-		else:
-			plt.plot( data[:,0] , data[:,1]*3.14159 , 'k.', markersize=4)
+	data = readDataFile(fName,hdrLines)
 
-		return data
+	if( type(data) is bool and not data ):
+		return False
 
-	return False
+	if(pType == 0):
+		plt.plot( data[:,0] , data[:,1]*3.14159) 
+	else:
+		plt.plot( data[:,0] , data[:,1]*3.14159 , 'k.', markersize=4)
+
+	return data
 
 sim1 = grabData("outputFiles/T000.dat",0)
 sim2 = grabData("outputFiles/T003.dat",0)
