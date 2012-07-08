@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 from math import pow
 
@@ -185,6 +186,8 @@ def readDataFile(n):
 #			itself.
 #
 def plotDataStd(params,n,imType="png"):
+
+	mpl.use('Agg')
 
 	if( (type(n) is np.ndarray) ):
 		data = n
