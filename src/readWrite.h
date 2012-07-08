@@ -195,6 +195,12 @@ int writeStandard(	int fileNum,     	// datafile #
 		return EXIT_FAILURE;
 	}
 
+	// Print current data file #, current time and column headers
+	fprintf(fp,"# N = %d\n",fileNum);
+	fprintf(fp,"# t = %g\n",t);
+	fprintf(fp,"#	l		Fj		Lambda	Mdot\n");
+
+	// print data
 	for( int j = 0 ; j < N ; j++ ){
 		fprintf(fp,"%e\t%e\t%e\t%e\n",l[j],Fj[j],tidalTorque(l[j]),solver.Mdot(Fj,l,j));
 	}// end j for

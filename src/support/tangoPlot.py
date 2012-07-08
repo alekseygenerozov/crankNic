@@ -154,6 +154,8 @@ def readParams(fName='params.out'):
 #
 def readDataFile(n):
 
+	hdrLines = 3
+
 	try:
 		fName = n2fName(n)
 		f = open(fName,'r')
@@ -166,10 +168,10 @@ def readDataFile(n):
 
 	dataLines = dataString.split('\n');
 	nRows = len(dataLines) - 1
-	nCols = len(dataLines[0].split('\t'))
+	nCols = len(dataLines[hdrLines].split('\t'))
 	data = np.zeros((nRows,nCols))
 
-	for i in range(nRows):
+	for i in range(hdrLines,nRows):
 		line = dataLines[i].split('\t')
 		for j in range(nCols):
 			data[i][j] = float( line[j] )
@@ -186,8 +188,6 @@ def readDataFile(n):
 #			itself.
 #
 def plotDataStd(params,n,imType="png"):
-
-	mpl.use('Agg')
 
 	if( (type(n) is np.ndarray) ):
 		data = n
