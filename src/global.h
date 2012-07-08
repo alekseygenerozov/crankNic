@@ -17,10 +17,11 @@ const int DELTA_FCN = 1;
 const int RAMPED = 2;
 const int FROM_FILE = 3;
 const int SQUARE_PULSE = 4;
+const int RESTART = 5;
 int problemType = DELTA_FCN;
 
 // Some names
-string initial_data_file = "initial_data.dat";
+string initial_data_file = "UNSET";
 
 // NUMERICAL PARAMETERS
 

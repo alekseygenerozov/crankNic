@@ -15,10 +15,6 @@ int main(int argc, char *argv[]){
 	int status = EXIT_SUCCESS,
 	    fileCount = 0;
 
-	// grab filename from command line args
-	if( argc > 1 )
-		initial_data_file = string(argv[1]);
-
 	// read in from parameter file, params.in
 	if( EXIT_SUCCESS != (status = readParams()))
 		return status;
@@ -29,7 +25,7 @@ int main(int argc, char *argv[]){
 	double t=0,dt=0,nextWrite=0;  // timing
 
 	// Intialize r and sigma
-	if(EXIT_SUCCESS != (status = initialize(l,Fj,t)))
+	if(EXIT_SUCCESS != (status = initialize(argc,argv,l,Fj,fileCount,t)))
 		return status;
 	nextWrite = t + tWrite;
 

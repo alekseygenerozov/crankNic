@@ -8,32 +8,80 @@
 #ifndef INC_INITIALIZE
 #define INC_INITIALIZE 
 
-int initialize( double *l, double *Fj , double &t ){
+int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, double &t ){
 
-  // calcualte innermost grid cell size
-  if( lambda == 1.0 ){
-    dl = (lMax-lMin)/(N-1.0);
-  } else {
-    dl = (lMax-lMin)*(lambda-1.0)/(pow(lambda,N-1)-1.0);
-  }
-  dl2  = dl*dl;
+	fileCount = 0;
+	t = 0.0;
+
+	/*
+ 	 *	----------- Process command-line arguments
+	 */
+	const string restart_str  = "-r";
+	const string fileInit_str = "-i";
+	const string std_err_mssg = "ERROR IN INITIALIZE -- Improper command line inputs";
+	const string res_and_init_err = "ERROR IN INITIALIZE -- Cannot specify restart and IC file";
+
+	if( argc > 2 ){
+
+		if( (argc-1) % 2 != 0 ){
+			cerr << std_err_mssg << endl;
+			return EXIT_FAILURE;
+		} // end error if
+
+		for( size_t i = 1 ; i < argc ; i += 2 ){
+			if( argv[i][0] == '-' ){
+				if( argv[i] == restart_str ){
+					if( initial_data_file == "UNSET" ){
+						cerr << res_and_init_err << endl;
+						return EXIT_FAILURE;
+					} // end initial data error
+					problemType = RESTART;
+					initial_data_file = argv[i+1];
+				} else if( argv[i] == fileInit_str ){
+					if( problemType == RESTART ){
+						cerr << res_and_init_err << endl;
+						return EXIT_FAILURE;
+					} // end restart error
+					initial_data_file = argv[i+1];
+				} else {
+					cerr << std_err_mssg << endl;
+					return EXIT_FAILURE;
+				}// end case if/else
+			} else {
+				cerr << std_err_mssg << endl;
+				return EXIT_FAILURE;
+			} // end argv if/else
+		}// end i for
+
+	} else if( argc == 2 ){
+		initial_data_file = argv[1];
+	} // end argc if/else
+
+
+	// calcualte innermost grid cell size
+	if( lambda == 1.0 ){
+		dl = (lMax-lMin)/(N-1.0);
+	} else {
+		dl = (lMax-lMin)*(lambda-1.0)/(pow(lambda,N-1)-1.0);
+	}
+	dl2  = dl*dl;
 	cout << "dl = " << dl << endl;
 	cerr << "dl = " << dl << endl;
 
 	// setup grid
 	for( int j = 0 ; j < N ; j++ ){
-      if( lambda == 1.0 ){
-        l[j] = lMin + j*dl;
-      } else {
-        if( j == 0 )
-          l[j] = lMin;
-        else
-          l[j] = lMin + dl*(pow(lambda,j)-1.0)/(lambda-1.0);
-      }// end lambda if/else
+			if( lambda == 1.0 ){
+				l[j] = lMin + j*dl;
+			} else {
+				if( j == 0 )
+					l[j] = lMin;
+				else
+					l[j] = lMin + dl*(pow(lambda,j)-1.0)/(lambda-1.0);
+			}// end lambda if/else
 	}// end j for
 
 	/*
-	 * PROBLEM 1
+	 * DELTA FUNCTION PROBLEM
 	 *
 	 *		Delta function response for S&S Disk,
 	 *		constant viscosity, zero torque
@@ -59,7 +107,7 @@ int initialize( double *l, double *Fj , double &t ){
 	} // end delta-function initialize
 
 	/*
-	 * PROBLEM 2
+	 * RAMPED INITIAL CONDITIONS
 	 *
 	 *		Steady-state ramp of F_J
 	 */
@@ -90,8 +138,35 @@ int initialize( double *l, double *Fj , double &t ){
 			fscanf(fp,"%lg",&tmp2);
 			Fj[j] = tmp2;
 		}// end i for 
+		
+		fclose(fp);
 	}
 
+	/*
+	 *	RESTART
+	 *
+	 *		Initialize from a previous data dump and continue
+	 */
+	else if( problemType == RESTART ) {
+		FILE *fp = fopen(initial_data_file.c_str(),"r");
+		if(!fp){
+			cerr << "ERROR IN INITIALIZE.H --- Failed to Open Data File: " << initial_data_file << endl;
+			return EXIT_FAILURE;
+		}// end error if
+
+		double tmp1, tmp2;
+		fscanf(fp,"# N = %d",&fileCount);
+		fscanf(fp,"# t = %lg",&t);
+		fgetc(fp);
+		for( int j = 0 ; j < N ; ++j ){
+			fscanf(fp,"%lg",&tmp1);
+			fscanf(fp,"%lg",&tmp2);
+			Fj[j] = tmp2;
+		}// end j for
+
+		fclose(fp);
+		cout << "Restarting at t = " << t << ", fileNum = " << fileCount << endl;
+	}
 	/*
 	 *	PROBLEM 4 -- Square Pulse
 	 *		To test the equation
@@ -149,10 +224,13 @@ int initialize( double *l, double *Fj , double &t ){
 		cout << "ERROR IN INITIALIZE: tStart cannot exceed tEnd" << endl;
 		return EXIT_FAILURE;
 	}// end time error if
-	
-	t = tStart;
-	cout << "tStart = " << tStart << endl 
-		<< "tEnd = " << tEnd << endl
+
+	if( problemType != RESTART){	
+		t = tStart;
+		cout << "tStart = " << tStart << endl;
+	}// end non-restart if 
+
+	cout << "tEnd = " << tEnd << endl
 		<< "tWrite = " << tWrite << endl
 		<< "Initial dt = " << calculateTimeStep(l,Fj,l_a,dl) << endl;
 
