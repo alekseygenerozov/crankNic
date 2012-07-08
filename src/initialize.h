@@ -31,7 +31,7 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 		for( size_t i = 1 ; i < argc ; i += 2 ){
 			if( argv[i][0] == '-' ){
 				if( argv[i] == restart_str ){
-					if( initial_data_file == "UNSET" ){
+					if( ! (initial_data_file == "UNSET" )){
 						cerr << res_and_init_err << endl;
 						return EXIT_FAILURE;
 					} // end initial data error
@@ -148,19 +148,30 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 	 *		Initialize from a previous data dump and continue
 	 */
 	else if( problemType == RESTART ) {
+
+		int MAX_STRING_LENGTH = 200;
+		char line[MAX_STRING_LENGTH];
+
 		FILE *fp = fopen(initial_data_file.c_str(),"r");
+
 		if(!fp){
 			cerr << "ERROR IN INITIALIZE.H --- Failed to Open Data File: " << initial_data_file << endl;
 			return EXIT_FAILURE;
 		}// end error if
 
 		double tmp1, tmp2;
-		fscanf(fp,"# N = %d",&fileCount);
-		fscanf(fp,"# t = %lg",&t);
-		fgetc(fp);
+		
+		fgets(line,MAX_STRING_LENGTH,fp); // read in fileNum
+		sscanf(line,"# N = %d",&fileCount);
+
+		fgets(line,MAX_STRING_LENGTH,fp);	// read in current time
+		sscanf(line,"# t = %lg",&t);
+
+		fgets(line,MAX_STRING_LENGTH,fp);	// swallow header line
+
 		for( int j = 0 ; j < N ; ++j ){
-			fscanf(fp,"%lg",&tmp1);
-			fscanf(fp,"%lg",&tmp2);
+			fgets(line,MAX_STRING_LENGTH,fp);
+			sscanf(line,"%lg\t%lg",&tmp1,&tmp2);
 			Fj[j] = tmp2;
 		}// end j for
 

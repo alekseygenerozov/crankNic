@@ -35,8 +35,11 @@ int main(int argc, char *argv[]){
 	// print ICs & Parameters we'll use
 	if(EXIT_SUCCESS != (status = writeParams()))
 		return status;
-	if(EXIT_SUCCESS != (status = writeStandard(fileCount++,l,Fj,solver,t)))
-		return status;
+	if( problemType != RESTART ){
+		if(EXIT_SUCCESS != (status = writeStandard(fileCount++,l,Fj,solver,t)))
+			return status;
+	} else
+		fileCount++;
 
 
 	while(t<tEnd){		// main loop (in time)
