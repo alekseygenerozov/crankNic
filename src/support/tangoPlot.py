@@ -37,11 +37,18 @@ def strFN(n):
 #				Assumes data resides in folder outputFiles
 #
 def n2fName(n):
+
+	if( type(n) is str ):
+		return n
+
 	if( n < 0 ):
 		return "ERROR.dat"
 	return 'outputFiles/T' + strFN(n) + '.dat'
 
 def n2IName(n):
+	if( type(n) is str ):
+		return n
+
 	if( n < 0 ):
 		return "ERROR"
 	return "images/T" + strFN(n)
@@ -152,9 +159,7 @@ def readParams(fName='params.out'):
 #
 #				Assumes #s separated by SINGLE TABs
 #
-def readDataFile(n):
-
-	hdrLines = 3
+def readDataFile(n,hdrLines=3):
 
 	try:
 		fName = n2fName(n)
@@ -167,12 +172,12 @@ def readDataFile(n):
 	f.close()
 
 	dataLines = dataString.split('\n');
-	nRows = len(dataLines) - 1
+	nRows = len(dataLines) - 1 - hdrLines
 	nCols = len(dataLines[hdrLines].split('\t'))
 	data = np.zeros((nRows,nCols))
 
-	for i in range(hdrLines,nRows):
-		line = dataLines[i].split('\t')
+	for i in range(nRows):
+		line = dataLines[i+hdrLines].split('\t')
 		for j in range(nCols):
 			data[i][j] = float( line[j] )
 
