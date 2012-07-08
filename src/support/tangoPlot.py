@@ -204,7 +204,7 @@ def plotDataStd(params,n,imType="png"):
 	ax1 = plt.subplot2grid((4,4), (0,0), rowspan=3,colspan=3)
 	ax1.loglog(l,FJ,'b-')
 	plt.ylabel('$F_J$')
-	ax1.axis((l.min(),l.max(),1E-1,1E3))
+	ax1.axis((l.min(),l.max(),1E-1,1E4))
 	plt.setp( ax1.get_xticklabels(), visible=False)
 
 	# LOWER LEFT: Torque profile over whole region
@@ -225,7 +225,7 @@ def plotDataStd(params,n,imType="png"):
 	lsub = lsub[ lsub < subMax]
 	Fsub = FJ[ l > subMin ]
 	Fsub = Fsub[ lsub < subMax ] 
-	Fsub = Fsub/20.0 - 1.0
+	Fsub = Fsub/100 - 0.8
 	ax3.plot(lsub,Fsub,'b-',linewidth=1.5)
 
 	plt.xlabel('l')

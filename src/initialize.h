@@ -62,11 +62,12 @@ int initialize( double *l, double *Fj , double &t ){
 	 * PROBLEM 2
 	 *
 	 *		Steady-state ramp of F_J
-	 *			F = l			(assumes M-dot infty = 1.0)
 	 */
 	else if( problemType == RAMPED ){
+		double mdot = 3.0*PI/( 1.0 - lMin/lMax );
+		cout << "Mdot = " << mdot << endl;
 		for( int j = 0; j < N ; ++j )
-			Fj[j] = l[j];
+			Fj[j] = mdot*( l[j] - lMin );
 	} // end ramp test problem
 
 	/*
