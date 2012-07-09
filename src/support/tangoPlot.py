@@ -212,7 +212,7 @@ def plotDataStd(params,n,imType="png"):
 	ax1 = plt.subplot2grid((4,4), (0,0), rowspan=3,colspan=3)
 	ax1.loglog(l,FJ,'b-')
 	plt.ylabel('$F_J$')
-	ax1.axis((l.min(),l.max(),1E-1,1E4))
+	ax1.axis((l.min(),l.max(),1E-3,5E3))
 	plt.setp( ax1.get_xticklabels(), visible=False)
 
 	# LOWER LEFT: Torque profile over whole region
@@ -263,6 +263,19 @@ def plotAllStd(skip=1,pFile="params.out"):
 	
 	n = 0
 	while(plotDataStd(params,n)): 
+		n += skip
+
+#
+#		PLOT RANGE STD
+#
+#			Same as above, but allows you to speicify start
+#		and finish of files
+#
+def plotRangeStd(start,end,skip=1,pFile="params.out"):
+	params = readParams(pFile)
+	
+	n = start
+	while(plotDataStd(params,n) and n <= end ):
 		n += skip
 
 #
