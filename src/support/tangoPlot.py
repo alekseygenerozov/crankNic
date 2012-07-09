@@ -392,3 +392,25 @@ def plotSigmaStd(params,n,imType="png"):
 		plt.savefig(fName + '_sigma' )
 
 	return True
+
+
+# 
+# PLOT M DOT
+# 
+def plotMDot(params,n):
+	
+	if( type(n) is np.ndarray ):
+		data = n
+	else:
+		data = readDataFile(n)
+
+	l = data[:,0]
+	trk = data[:,2]
+	mdot = data[:,3]
+	trk = normalize(trk) * mdot.max()
+
+	plt.clf()
+	plt.semilogx(l,mdot,'k-')
+	plt.semilogx(l,trk,'k--',linewidth=.5)
+	
+	plt.savefig( n2IName(n) + '_mdot' )
