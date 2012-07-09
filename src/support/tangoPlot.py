@@ -85,7 +85,7 @@ def omega(r):
 def convert(params,l,FJ):
 	Ok = omega(l)
 	sigma = Ok*FJ/(4.0*pi*DJ(params,FJ,l))
-	r = (l/Ok)**.5
+	r = l**2	# assumes M = 1.0
 	return (r,sigma)
 
 #
@@ -349,44 +349,46 @@ def plotSigmaStd(params,n,imType="png"):
 	l   = data[:,0]
 	FJ  = data[:,1]
 	trk = data[:,2]
+	
+	(r,sigma) = convert(params,l,FJ)
 
 	# UPPER LEFT: F_J Plotted over whole region
 	ax1 = plt.subplot2grid((4,4), (0,0), rowspan=3,colspan=3)
-	ax1.loglog(l,FJ,'b-')
-	plt.ylabel('$F_J$')
-	ax1.axis((l.min(),l.max(),1E-3,5E3))
+	ax1.loglog(r,sigma,'b-')
+	plt.ylabel('$\\Sigma$')
+	ax1.axis((r.min(),r.max(),1E-3,1E4))
 	plt.setp( ax1.get_xticklabels(), visible=False)
 
 	# LOWER LEFT: Torque profile over whole region
 	ax2 = plt.subplot2grid((4,4), (3,0), colspan=3,sharex=ax1)
-	ax2.semilogx(l,trk,'b-')
+	ax2.semilogx(r,trk,'b-')
 	plt.ylabel('$\\Lambda$')
-	plt.xlabel('$l$')
-	ax2.axis((l.min(),l.max(),trk.min(),trk.max()))
+	plt.xlabel('$r$')
+	ax2.axis((r.min(),r.max(),trk.min(),trk.max()))
 
 	# RIGHT: Zoom in on region of secondary, both plotted
-	subMin = 8.0
-	subMax = 12.0
+	subMin = 60.0
+	subMax = 140.0
 	ax3 = plt.subplot2grid((4,4),(0,3),rowspan=4)
-	ax3.plot(l,normalize(trk),'k.-',linewidth=.5,markersize=2)
+	ax3.plot(r,normalize(trk),'k.-',linewidth=.5,markersize=2)
 	ax3.axis((subMin,subMax,-1.0,1.0))
 
-	lsub = l[ l > subMin]
-	lsub = lsub[ lsub < subMax]
-	Fsub = FJ[ l > subMin ]
-	Fsub = Fsub[ lsub < subMax ]
-	Fsub = Fsub/100 - 0.8
-	ax3.plot(lsub,Fsub,'b-',linewidth=1.5)
+	rsub = r[ r > subMin]
+	rsub = rsub[ rsub < subMax]
+	Ssub = FJ[ r > subMin ]
+	Ssub = Ssub[ rsub < subMax ]
+	Ssub = Ssub/100 - 0.8
+	ax3.plot(rsub,Ssub,'b-',linewidth=1.5)
 
-	plt.xlabel('l')
+	plt.xlabel('r')
 	plt.ylabel('$\\Lambda$')
 
 	plt.setp( ax3.get_yticklabels(), visible=False)
 
 	fName = n2IName(n)
 	if( imType == "ps" ):
-		plt.savefig(fName + '.ps')
+		plt.savefig(fName + '_sigma.ps')
 	else:
-		plt.savefig(fName)
+		plt.savefig(fName + '_sigma' )
 
 	return True
