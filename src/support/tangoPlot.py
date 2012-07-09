@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from math import pow
+from math import pow, pi
 
 mpl.rcParams['figure.subplot.hspace'] = 0.0
 mpl.rcParams['figure.subplot.wspace'] = 0.0
@@ -63,6 +63,30 @@ def n2IName(n):
 #
 def fakeLog(x):
 	return np.sign(x)*np.log10(np.abs(x))
+
+#
+#		DJ
+#			Finds diffusion const at a given l
+#
+def DJ(params,FJ,l):
+	np = params['np']
+	nd = params['nd']
+	D0 = params['D0']
+
+	return D0 * FJ**nd * l**np
+
+#
+#	OMEGA
+#		Keplerian angular velocity
+#
+def omega(r):
+	return r**-1.5
+
+def convert(params,l,FJ):
+	Ok = omega(l)
+	sigma = Ok*FJ/(4.0*pi*DJ(params,FJ,l))
+	r = (l/Ok)**.5
+	return (r,sigma)
 
 #
 #		GEN GRID
@@ -204,8 +228,8 @@ def plotDataStd(params,n,imType="png"):
 
 	plt.clf()
 
-	l   = data[:,0]
-	FJ  = data[:,1]
+	l	 = data[:,0]
+	FJ	= data[:,1]
 	trk = data[:,2]
 
 	# UPPER LEFT: F_J Plotted over whole region
@@ -287,19 +311,82 @@ def plotRangeStd(start,end,skip=1,pFile="params.out"):
 #
 def optRes(lMin,lMax,l_a,N):
 
-  dLam = .00001
-  Lambda = np.arange(1.0+dLam,1.03,dLam)
+	dLam = .00001
+	Lambda = np.arange(1.0+dLam,1.03,dLam)
 
-  def dla(ll):
-    return (ll-1.0)*(l_a-lMin+(lMax-lMin)/(pow(ll,N)-1.0))
+	def dla(ll):
+		return (ll-1.0)*(l_a-lMin+(lMax-lMin)/(pow(ll,N)-1.0))
 
-  lambdaMin = Lambda[0]
-  dlMin = dla(lambdaMin)
-  for ll in Lambda:
-    dl = dla(ll)
-    if( dl < dlMin ):
-      lambdaMin = ll
-      dlMin = dl
+	lambdaMin = Lambda[0]
+	dlMin = dla(lambdaMin)
+	for ll in Lambda:
+		dl = dla(ll)
+		if( dl < dlMin ):
+			lambdaMin = ll
+			dlMin = dl
 
-  return ( lambdaMin , dlMin )
+	return ( lambdaMin , dlMin )
 
+#
+#		PLOT SIGMA STD
+#
+#			Same as PLOT DATA STD except uses traditional
+#		variables of r and sigma
+#
+#
+def plotSigmaStd(params,n,imType="png"):
+
+	if( (type(n) is np.ndarray) ):
+		data = n
+	else:
+		data = readDataFile(n)
+
+	if( type(data) is bool and not data ):
+		return False
+
+	plt.clf()
+
+	l   = data[:,0]
+	FJ  = data[:,1]
+	trk = data[:,2]
+
+	# UPPER LEFT: F_J Plotted over whole region
+	ax1 = plt.subplot2grid((4,4), (0,0), rowspan=3,colspan=3)
+	ax1.loglog(l,FJ,'b-')
+	plt.ylabel('$F_J$')
+	ax1.axis((l.min(),l.max(),1E-3,5E3))
+	plt.setp( ax1.get_xticklabels(), visible=False)
+
+	# LOWER LEFT: Torque profile over whole region
+	ax2 = plt.subplot2grid((4,4), (3,0), colspan=3,sharex=ax1)
+	ax2.semilogx(l,trk,'b-')
+	plt.ylabel('$\\Lambda$')
+	plt.xlabel('$l$')
+	ax2.axis((l.min(),l.max(),trk.min(),trk.max()))
+
+	# RIGHT: Zoom in on region of secondary, both plotted
+	subMin = 8.0
+	subMax = 12.0
+	ax3 = plt.subplot2grid((4,4),(0,3),rowspan=4)
+	ax3.plot(l,normalize(trk),'k.-',linewidth=.5,markersize=2)
+	ax3.axis((subMin,subMax,-1.0,1.0))
+
+	lsub = l[ l > subMin]
+	lsub = lsub[ lsub < subMax]
+	Fsub = FJ[ l > subMin ]
+	Fsub = Fsub[ lsub < subMax ]
+	Fsub = Fsub/100 - 0.8
+	ax3.plot(lsub,Fsub,'b-',linewidth=1.5)
+
+	plt.xlabel('l')
+	plt.ylabel('$\\Lambda$')
+
+	plt.setp( ax3.get_yticklabels(), visible=False)
+
+	fName = n2IName(n)
+	if( imType == "ps" ):
+		plt.savefig(fName + '.ps')
+	else:
+		plt.savefig(fName)
+
+	return True
