@@ -83,9 +83,9 @@ def omega(r):
 	return r**-1.5
 
 def convert(params,l,FJ):
-	Ok = omega(l)
-	sigma = Ok*FJ/(4.0*pi*DJ(params,FJ,l))
 	r = l**2	# assumes M = 1.0
+	Ok = omega(r)
+	sigma = Ok*FJ/(4.0*pi*DJ(params,FJ,l))
 	return (r,sigma)
 
 #
