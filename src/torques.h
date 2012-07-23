@@ -17,19 +17,19 @@ double tidalTorque( double l ){
 	double	tmp1 = f*q*q*M*M*0.5,
 					l2 = l*l,
 					la2 = l_a*l_a,
-					hh = h(l),
+					lh2 = h(l)*M,
 					tmp2;
 
-	if( l2 < la2 - hh ){
+	if( l2 < la2 - lh2 ){
 		tmp2 = l2/(l2-la2);
 		return -tmp1*tmp2*tmp2*tmp2*tmp2/l2;
 	}
 	if( l2 < la2 ){
-		tmp2 = l2/hh;
+		tmp2 = l2/lh2;
 		return -tmp1*tmp2*tmp2*tmp2/hh;
 	}
-	if( l2 < la2 + hh ){
-		tmp2 = la2/hh;
+	if( l2 < la2 + lh2 ){
+		tmp2 = la2/lh2;
 		return tmp1*tmp2*tmp2*tmp2*tmp2/l2;
 	}
 	tmp2 = la2/(l2-la2);
