@@ -26,7 +26,7 @@ double tidalTorque( double l ){
 	}
 	if( l2 < la2 ){
 		tmp2 = l2/lh2;
-		return -tmp1*tmp2*tmp2*tmp2/hh;
+		return -tmp1*tmp2*tmp2*tmp2/lh2;
 	}
 	if( l2 < la2 + lh2 ){
 		tmp2 = la2/lh2;
