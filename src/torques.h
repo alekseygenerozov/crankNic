@@ -36,4 +36,27 @@ double tidalTorque( double l ){
 	return 	tmp1*tmp2*tmp2*tmp2*tmp2/l2;
 }// end tidal torque
 
+/*
+ *  GAMMA
+ *
+ *    Dimensionless derivative of Torque, defined as:
+ *
+ *				gamma = Lambda_l * l / Lambda
+ */
+double gamma( double l ){
+
+	if( q == 0.0 )
+		return 0.0;
+
+	double  l2 = l*l,
+	        la2 = l_a*l_a;
+	if( l2 < la2 - lh2 )
+		return 6.0 - 8.0*l2/(l2-la2);
+	if( l2 < la2 )
+		return 6.0;
+	if( l2 < la2 + lh2 )
+		return -2.0;
+	return -2.0 - 8.0*l2/(l2-la2);
+}// end gamma
+
 #endif
