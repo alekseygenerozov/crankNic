@@ -53,9 +53,9 @@ double gamma( double l ){
 	if( l2 < la2 - lh2 )
 		return 6.0 - 8.0*l2/(l2-la2);
 	if( l2 < la2 )
-		return 6.0;
-	if( l2 < la2 + lh2 )
 		return -2.0;
+	if( l2 < la2 + lh2 )
+		return -10.0;
 	return -2.0 - 8.0*l2/(l2-la2);
 }// end gamma
 
