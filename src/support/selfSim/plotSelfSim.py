@@ -1,4 +1,5 @@
 import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy
 from numpy import log, exp, sqrt, pi
@@ -62,8 +63,8 @@ def analytic(l,t,params):
 fBase = 'savedOutputs/chi_p'
 paramBase = 'savedOutputs/params_chi_p'
 
-T = [0,1,10,100]
-color = ['b','g','r','c']
+T = [1,10,100]
+color = ['b','g','r']
 
 params_0 = readParams(paramBase+'0.dat')
 params_5 = readParams(paramBase+'5.dat')
