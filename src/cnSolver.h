@@ -122,19 +122,19 @@ int cnSolver::step(
 	for( int j = 2 ; j < N-2 ; j++ ){
 	
 		tmp0 = pow(lambda,-2.0*j)*.5*dt/dl2*Dj(Fj[j],l[j])/(1.0-nd);
-		tmp1 = -pow(lambda,-1.0*j)*.5*dt/dl*Dj(Fj[j],l[j])/(1.0-nd);
+		tmp1 = -pow(lambda,-1.0*j)*.5*dt/dl*tidalTorque(l[j])/(1.0-nd);
+		tmp2 = tidalTorque(l[j])*.5*dt*(np-gamma(l[j]))/l[j]/(1.0-nd);
 
 		if(DEBUG_MODE && dWrite ){	
-			cout << l[j] << "	" << Dj(Fj[j],l[j]) << "	" << tmp0 << "	" << tmp1 << endl;
+			cout << l[j] << "	" << Dj(Fj[j],l[j]) << "	" << tmp0 
+				<< "	" << tmp1 << "	" << tmp2 << endl;
 		}// end debug if
 
 		d[j] = 0.0;
 		for( int k = 0 ; k < STENCIL_SIZE ; ++k ){
 			offset = j - CNTR + k;
-			tmp2 = tmp1*tidalTorque(l[offset])/Dj(Fj[offset],l[offset]);
-
-			M[j][k] = -tmp0*laplace_coeffs[k] - tmp2*grad_coeffs[k] + const_coeffs[k];
-			d[j] +=  ( tmp0*laplace_coeffs[k] + tmp2*grad_coeffs[k] + const_coeffs[k] )*Fj[offset];
+			M[j][k] = -tmp0*laplace_coeffs[k] - tmp1*grad_coeffs[k] + (1.0 - tmp2 ) * const_coeffs[k];
+			d[j] +=  ( tmp0*laplace_coeffs[k] + tmp1*grad_coeffs[k] + (1.0 + tmp2 ) * const_coeffs[k] )*Fj[offset];
 		}// end k for
 
 	} // end j for

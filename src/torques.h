@@ -48,8 +48,7 @@ double gamma( double l ){
 	if( q == 0.0 )
 		return 0.0;
 
-	double  l2 = l*l,
-	        la2 = l_a*l_a;
+	double  l2=l*l,la2=l_a*l_a,lh2 = h(l)*M;
 	if( l2 < la2 - lh2 )
 		return 6.0 - 8.0*l2/(l2-la2);
 	if( l2 < la2 )
