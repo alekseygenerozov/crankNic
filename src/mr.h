@@ -280,8 +280,10 @@ typedef Mmatrix<int> mInt, mInt_o, mInt_io;
 typedef const Mmatrix<double> mDoub_i;
 typedef Mmatrix<double> mDoub, mDoub_o, mDoub_io;
 
+#ifndef _NR3_H_			// FIXME
 // Useful helper function
 template<class T> inline T SIGN(const T &a, const T &b)
 	{return b >= 0 ? (a >= 0 ? a : -a) : (a >= 0 ? -a : a);}
+#endif
 
 #endif

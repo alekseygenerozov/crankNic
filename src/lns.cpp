@@ -1,7 +1,26 @@
+/*
+ * 	LNS
+ *
+ *		July 2012
+ *
+ * 		Finds steady state solution from Liu & Schapiro 2010 for the case
+ *		of a binary black hole who's orbital separation remains fixed.
+ *
+ *		The solutions is more-or-less analytic, but involves solving a pair
+ *		of coupled 1st order ODEs. We use an RK4/5 solver to accomplish this.
+ *
+ *		The quantity rStar determines where in the integration we switch
+ *		between two different formulations of the ODEs ... each poorly behaved
+ *		in certain regimes. It can be fed in via command line at runtime.
+ *
+ *		The integration works from the OUTER disk bounds inward.
+ */
 #include <iostream>
 #include <cmath>
 #include <fstream>
 
+#include "global.h"
+#include "readWrite.h"
 #include "mr.h"
 #include "rk4.h"
 
@@ -10,27 +29,15 @@ using std::cerr;
 using std::endl;
 using std::ofstream;
 
-inline double max( double x, double y){ return ( x > y ? x : y ); }
+// see main for explanation of variables
+double r_out,r_isco,nv,a,s1,s2,s18,g;
+double nu(double r){ return pow(r/r_out,nv); } // viscosity
 
-double r_out  = 1.0E5,  // outer bnds
-	r_isco = 6.0,         // ISCO
-	hbar   = 0.1,         // dh/dr
-	nv     = 0.5,         // visc const.
-	q      = 0.08,         // binary mass ratio
-	fconst = 0.01,        // calibration factor
-	a      = 100.0;				// position of secondary
-
-const size_t N = 1000;            // number of grid pts
-
-double s1 = sqrt(a/r_out),
-	s2 = sqrt(r_isco/r_out),
-	s18 = pow(s1,8);
-
-double nu(double r){ return pow(r/r_out,nv); }
-
-double g = 2.0/3.0*fconst*q*q*sqrt(r_out);	//FIXME
-
-double f(double s)
+/*
+ *	ff 
+ *		Dimensionless torque fcn from L&S 2010
+ */
+double ff(double s)
 {
 	static double g_star, Dp, vbar,s12,ss;
 
@@ -40,29 +47,55 @@ double f(double s)
 
 	ss = s*s;
 	s12 = s1*s1;
-	Dp = max( fabs(ss - s12) , ss*hbar );
+	Dp = max( fabs(ss - s12) , ss*dhdr );
 	vbar = pow(s,nv*2.0);
 
 	return g_star*pow(Dp,-4.0)/vbar;
 } // end f
 
+
+/*
+ * 	FNG and FNH
+ *
+ *		1st order coupled ODEs from LNS 2010 we solve for analytic 
+ *	steady state
+ */
 void FnG( const double x , vDoub_i &F , vDoub_o &dFdx ){
-	dFdx[0] = f(1.0-x);
+	dFdx[0] = ff(1.0-x);
 	dFdx[1] = F[0];
 } // end FnG
 
 void FnH( const double x , vDoub_i &F, vDoub_o &dFdx ){
-	dFdx[0] = f(1.0-x);
+	dFdx[0] = ff(1.0-x);
 	dFdx[1] = exp( F[0] - F[1] );
 }// end HnG
 
 int main(int argc , char **argv ){
 
+	int status = EXIT_SUCCESS;
+
+	/*
+	 * Read in parameter file and update global variables
+	 */
+
+  // read in from parameter file, params.in
+  if( EXIT_SUCCESS != (status = readParams()))
+    return status;
+
+	r_out  = lMax*lMax/M;           // outer bounds
+	r_isco = lMin*lMin/M;           // ISCO (inner bounds)
+	nv     = .5*np+1;               // viscosity power law const
+	a      = l_a*l_a/M;             // position of secondary BH
+	s1 = sqrt(a/r_out);             // LNS dimensionless radius-esque thing
+	s2 = sqrt(r_isco/r_out);        // """, at the inner bnds
+	s18 = pow(s1,8);                
+	g = 2.0/3.0*f*q*q*sqrt(r_out);  // measure of secondary strength (~q^2)
+
+	// xStar determines where switch ODE formulation (matters, a lot!)
 	double xStar = 0.5;
 	if( argc > 1 ){
 		sscanf(argv[1],"%lf",&xStar);
 	} // end xStar if 
-
 	cerr << "xStar = " << xStar << endl;
 
 	/*
@@ -124,5 +157,5 @@ int main(int argc , char **argv ){
 	for( size_t i = 0 ; i != r.size() ; ++i )
 		cout << r[i] << "\t" << sigma[i] << endl;
 
-	return EXIT_SUCCESS;
+	return status;
 } // end main
