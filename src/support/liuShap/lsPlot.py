@@ -11,11 +11,12 @@ while(plotSigmaStd(params,n,'png',ana)):
 # comparison plot
 
 sim = readDataFile(n-1)
-(r,sigma) = convert(params,sim[:,0],sim[:,1])
+(r ,s ) = convert(params,sim[:,0],sim[:,1])
+(ra,sa) = convert(params,ana[:,0],ana[:,1])
 
 import matplotlib.pyplot as plt
 
-plt.loglog(ana[:,0],ana[:,1],'k--',linewidth=1)
-plt.loglog(r,sigma,'k-',linewidth=2)
-plt.axis((r.min(),r.max(),1E-2,1E3))
+plt.loglog(ra,sa,'k--',linewidth=1)
+plt.loglog(r ,s ,'k-',linewidth=2)
+plt.axis((r.min(),r.max(),1E-6,1))
 plt.savefig('comparison')

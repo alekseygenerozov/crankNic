@@ -359,7 +359,8 @@ def plotSigmaStd(params,n,imType="png",analytic=False):
 	ax1.axis((r.min(),r.max(),1E-3,1E4))
 	plt.setp( ax1.get_xticklabels(), visible=False)
 	if( type(analytic) is np.ndarray ):
-		ax1.loglog(analytic[:,0],analytic[:,1],'k--',linewidth=.5)
+		(ra,sa  ) = convert(params,analytic[:,0],analytic[:,1])
+		ax1.loglog(ra,sa,'k--',linewidth=.5)
 
 	# LOWER LEFT: Torque profile over whole region
 	ax2 = plt.subplot2grid((4,4), (3,0), colspan=3,sharex=ax1)
