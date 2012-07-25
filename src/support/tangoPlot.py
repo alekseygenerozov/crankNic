@@ -290,6 +290,23 @@ def plotAllStd(skip=1,pFile="params.out"):
 		n += skip
 
 #
+# PLOT ALL SIGMA
+#
+#		Canonical plot, in terms of r and sigma, with optional
+#		ability to also plot an analytic solution against it
+#
+def plotAllSigma(analytic=False,skip=1,pFile="params.out"):
+	params = readParams(pFile)
+	
+	n = 0
+	ana = False
+	if(type(analytic) is not bool ):
+		ana = readDataFile(analytic,0)
+	while(plotSigmaStd(params,n,'png',ana)):
+		n += skip
+
+
+#
 #		PLOT RANGE STD
 #
 #			Same as above, but allows you to speicify start
