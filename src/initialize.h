@@ -67,7 +67,7 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 		dl = (lMax-lMin)*(lambda-1.0)/(pow(lambda,N-1)-1.0);
 	}
 	dl2  = dl*dl;
-	cout << "dl = " << dl << endl;
+	cerr << "dl = " << dl << endl;
 	cerr << "dl = " << dl << endl;
 
 	// setup grid
@@ -115,7 +115,7 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 	 */
 	else if( problemType == RAMPED ){
 		double mdot = 3.0*PI/( 1.0 - lMin/lMax );
-		cout << "Mdot = " << mdot << endl;
+		cerr << "Mdot = " << mdot << endl;
 		for( int j = 0; j < N ; ++j )
 			Fj[j] = mdot*( l[j] - lMin );
 	} // end ramp test problem
@@ -178,7 +178,7 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 		}// end j for
 
 		fclose(fp);
-		cout << "Restarting at t = " << t << ", fileNum = " << fileCount << endl;
+		cerr << "Restarting at t = " << t << ", fileNum = " << fileCount << endl;
 	}
 	/*
 	 *	PROBLEM 4 -- Square Pulse
@@ -202,7 +202,7 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 		else if( outer_bndry_type == NEUMANN )
 		{
 			outer_bndry_value = 0.0;
-			cout << "WARNING -- Outer bndry value not set\n"
+			cerr << "WARNING -- Outer bndry value not set\n"
 				<< "	>> Setting value to 0.0 (zero mass flow" << endl;
 		}
 	if( DIRICHLET < outer_bndry_type )
@@ -219,7 +219,7 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 		else if( inner_bndry_type == NEUMANN )
 		{
 			inner_bndry_value = 0.0;
-			cout << "WARNING -- Inner bndry value not set.\n" 
+			cerr << "WARNING -- Inner bndry value not set.\n" 
 				<< "	>> Setting value to 0.0 (zero mass flow" << endl;
 		}
 	if( DIRICHLET < inner_bndry_type )
@@ -234,16 +234,16 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 	 *  ------- Initialize Timing
 	 */
 	if( tStart >= tEnd ){
-		cout << "ERROR IN INITIALIZE: tStart cannot exceed tEnd" << endl;
+		cerr << "ERROR IN INITIALIZE: tStart cannot exceed tEnd" << endl;
 		return EXIT_FAILURE;
 	}// end time error if
 
 	if( problemType != RESTART){	
 		t = tStart;
-		cout << "tStart = " << tStart << endl;
+		cerr << "tStart = " << tStart << endl;
 	}// end non-restart if 
 
-	cout << "tEnd = " << tEnd << endl
+	cerr << "tEnd = " << tEnd << endl
 		<< "tWrite = " << tWrite << endl
 		<< "Initial dt = " << calculateTimeStep(l,Fj,l_a,dl) << endl;
 
