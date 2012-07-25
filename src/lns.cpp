@@ -23,6 +23,7 @@
 #include "readWrite.h"
 #include "mr.h"
 #include "rk4.h"
+#include "initialize.h"
 
 using std::cout;
 using std::cerr;
@@ -80,6 +81,12 @@ int main(int argc , char **argv ){
 
   // read in from parameter file, params.in
   if( EXIT_SUCCESS != (status = readParams()))
+    return status;
+
+	// intialize grid
+  double l[N], FJ[N];            // not used until after ODE solver
+	int fCnt; double t;
+  if(EXIT_SUCCESS != (status = initialize(0,NULL,l,FJ,fCnt,t)))
     return status;
 
 	r_out  = lMax*lMax/M;           // outer bounds
@@ -151,11 +158,34 @@ int main(int argc , char **argv ){
 		sigma[j] = exp(-FOut_FnH[i][1])*(1.0-mdot*exp(FOut_FnH[i][2]))/s/nu(r[j]);
 	} // end FnG loop
 
+
+
 	/*
-	 * Print r and sigma
-	 */
-	for( size_t i = 0 ; i != r.size() ; ++i )
-		cout << r[i] << "\t" << sigma[i] << endl;
+   *		Convert solution from r/s -> l/FJ, interpolate
+   *		onto our simulation grid and print result
+   */	
+
+	// convert r and sigma into l and FJ
+	double tmp,l_tmp;
+	for( size_t i = 0 ; i != r.size() ; ++i ){
+		l_tmp = sqrt(r[i]*M);
+		tmp = r[i]*omega_k(l_tmp);
+		sigma[i] = 3.0*PI*nu(r[i])*r[i]*r[i]*omega_k(l_tmp)*sigma[i];
+		r[i] = l_tmp;
+	}
+
+	// interpolate solution onto grid
+	FJ[0  ] = sigma[0  ]; FJ[N-1] = sigma[totalIters - 1];
+	size_t j = 0; double m;
+	for( size_t i = 1 ; i != N-1 ; ++i ){ // at every grid pt
+		while( r[j] < l[i] ) ++j; // advance rk sltn until we bracket grid pt
+		m = (sigma[j]-sigma[j-1])/(r[j]-r[j-1]);
+		FJ[i] = (l[i]-r[j])*m + sigma[j];
+	}
+
+	// print solution
+	for( size_t i = 0 ; i != N ; ++i )
+		cout << l[i] << "\t" << FJ[i] << endl;
 
 	return status;
 } // end main
