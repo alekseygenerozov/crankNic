@@ -20,7 +20,7 @@ double r_out  = 1.0E5,  // outer bnds
 	fconst = 0.01,        // calibration factor
 	a      = 100.0;				// position of secondary
 
-const int N = 1000;            // number of grid pts
+const size_t N = 1000;            // number of grid pts
 
 double s1 = sqrt(a/r_out),
 	s2 = sqrt(r_isco/r_out),

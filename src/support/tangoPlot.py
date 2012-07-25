@@ -334,7 +334,7 @@ def optRes(lMin,lMax,l_a,N):
 #		variables of r and sigma
 #
 #
-def plotSigmaStd(params,n,imType="png"):
+def plotSigmaStd(params,n,imType="png",analytic=False):
 
 	if( (type(n) is np.ndarray) ):
 		data = n
@@ -352,12 +352,14 @@ def plotSigmaStd(params,n,imType="png"):
 	
 	(r,sigma) = convert(params,l,FJ)
 
-	# UPPER LEFT: F_J Plotted over whole region
+	# UPPER LEFT: Sigma Plotted over whole region
 	ax1 = plt.subplot2grid((4,4), (0,0), rowspan=3,colspan=3)
 	ax1.loglog(r,sigma,'b-')
 	plt.ylabel('$\\Sigma$')
 	ax1.axis((r.min(),r.max(),1E-3,1E4))
 	plt.setp( ax1.get_xticklabels(), visible=False)
+	if( type(analytic) is np.ndarray ):
+		ax1.loglog(analytic[:,0],analytic[:,1],'k--',linewidth=.5)
 
 	# LOWER LEFT: Torque profile over whole region
 	ax2 = plt.subplot2grid((4,4), (3,0), colspan=3,sharex=ax1)
