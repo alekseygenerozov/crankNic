@@ -43,6 +43,7 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 						return EXIT_FAILURE;
 					} // end restart error
 					initial_data_file = argv[i+1];
+					problemType = FROM_FILE;
 				} else {
 					cerr << std_err_mssg << endl;
 					return EXIT_FAILURE;
@@ -55,6 +56,7 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 
 	} else if( argc == 2 ){
 		initial_data_file = argv[1];
+		problemType = FROM_FILE;
 	} // end argc if/else
 
 
