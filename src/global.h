@@ -62,6 +62,7 @@ inline double h(const double l){ return dhdr*l*l/M;};
 inline double Dj(const double Fj, const double l){ 
 	return D0*pow(Fj,nd)*pow(l,np);
 };
+double dmdl(const double Fj, const double l){return Fj/Dj(Fj,l);};
 
 // BOUNDARY CONDITIONS
 const int NEUMANN = 0;
