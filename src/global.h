@@ -2,12 +2,14 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 
 using std::string;
 using std::stringstream;
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::ofstream;
 
 #ifndef INC_GLOBAL
 #define INC_GLOBAL

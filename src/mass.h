@@ -1,3 +1,5 @@
+#include "global.h"
+
 #ifndef INC_MASS
 #define INC_MASS
 
@@ -21,5 +23,31 @@ double massIntegral(double *l, double *Fj){
 
   return result*dr*(lambda+1.0);
 }// end massIntegral
+
+
+
+/*
+ *		WRITE MASS
+ *
+ *		Appends time and total mass to file mass.out
+ */
+int writeMass(const double *l, const double *Fj,const double t){
+	
+	static bool good = true;
+	if(!good) return EXIT_FAILURE;
+	
+	ofstream fout("mass.out",ofstream::app);
+	if(!fout){
+		cerr << "WARNING IN MAIN ... Output file mass.out did not open properly." << endl;
+		good = false;
+		return EXIT_FAILURE;
+	} // end err if
+
+	fout << t << "\t" << massIntegral(l,Fj) << endl;
+
+	fout.close();
+	
+	return EXIT_SUCCESS;	
+}// end writeMass
 
 #endif
