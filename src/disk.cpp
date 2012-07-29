@@ -8,6 +8,8 @@
 #include "readWrite.h"
 #include "initialize.h"
 #include "calculateTimeStep.h"
+#include "mass.h"
+
 //#include "integrator.h" FIXME
 
 int main(int argc, char *argv[]){
@@ -40,7 +42,8 @@ int main(int argc, char *argv[]){
 			return status;
 	} else
 		fileCount++;
-
+	
+	writeMass(l,Fj,t);
 
 	while(t<tEnd){		// main loop (in time)
 
@@ -59,6 +62,7 @@ int main(int argc, char *argv[]){
 			nextWrite += tWrite;
 			if(EXIT_SUCCESS != (status = writeStandard(fileCount++,l,Fj,solver,t)))
 				return status;
+			writeMass(l,Fj,t);
 		} // end write if
 	}// end time-step loop
 
