@@ -89,7 +89,7 @@ int main(int argc , char **argv ){
   if(EXIT_SUCCESS != (status = initialize(0,NULL,l,FJ,fCnt,t)))
     return status;
 
-	r_out  = lMax*lMax/M;           // outer bounds
+	r_out  = 300.0*300.0; // FIXME lMax*lMax/M;           // outer bounds
 	r_isco = lMin*lMin/M;           // ISCO (inner bounds)
 	nv     = .5*np+1;               // viscosity power law const
 	a      = l_a*l_a/M;             // position of secondary BH
