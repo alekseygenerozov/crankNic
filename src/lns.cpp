@@ -102,7 +102,9 @@ int main(int argc , char **argv ){
 	double xStar = 0.5;
 	if( argc > 1 ){
 		sscanf(argv[1],"%lf",&xStar);
-	} // end xStar if 
+	} else {
+		xStar = 0.5*(1.0 + sqrt(a/r_out));
+	}// end xStar if 
 	cerr << "xStar = " << xStar << endl;
 
 	/*
