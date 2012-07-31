@@ -278,7 +278,7 @@ double cnSolver::Mdot( const double *l, const double *Fj, const int j ){
 	for( int k = 0 ; k < STENCIL_SIZE ; ++k )
 		tmp += grad_const*grad_coeffs[k]*Fj[ j - CNTR + k ];
 
-	tmp -= Fj[j] * tidalTorque(l[j]) / Dj( Fj[j] , l[j] );
+	tmp -= 4*PI*Fj[j] * tidalTorque(l[j]) / Dj( Fj[j] , l[j] );
 	
 	return tmp;
 } // end mDOt
