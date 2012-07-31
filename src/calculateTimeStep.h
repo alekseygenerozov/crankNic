@@ -1,6 +1,6 @@
 #include <math.h>
 
-#include "global.h"
+#include "disk.h"
 //#include "torques.h" FIXME
 
 #ifndef INC_TIMESTEP

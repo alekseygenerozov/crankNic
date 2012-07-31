@@ -1,4 +1,4 @@
-#include "global.h"
+#include "disk.h"
 #include "cnSolver.h"
 
 #ifndef INC_MASS

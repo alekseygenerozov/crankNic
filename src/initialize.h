@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "global.h"
+#include "disk.h"
 #include "calculateTimeStep.h"
 
 #ifndef INC_INITIALIZE

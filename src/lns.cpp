@@ -19,7 +19,7 @@
 #include <cmath>
 #include <fstream>
 
-#include "global.h"
+#include "disk.h"
 #include "readWrite.h"
 #include "mr.h"
 #include "rk4.h"

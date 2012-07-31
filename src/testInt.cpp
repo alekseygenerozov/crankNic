@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "global.h"
+#include "disk.h"
 #include "initialize.h"
 #include "integrator.h"
 #include "readWrite.h"

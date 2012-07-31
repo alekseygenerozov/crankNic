@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "global.h"
+#include "disk.h"
 #include "nr3.h"
 #include "banded.h"
 #include "torques.h"

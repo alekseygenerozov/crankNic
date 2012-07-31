@@ -1,4 +1,4 @@
-#include "global.h"
+#include "disk.h"
 
 #ifndef INC_TORQUES
 #define INC_TORQUES
