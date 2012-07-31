@@ -26,7 +26,7 @@ struct cnSolver{
 
 	cnSolver();
 	int step(double *l,double *Fj,double t,double dt,double &l_a,bool dWrite);
-	double Mdot( double *l, double *Fj , int j );
+	double Mdot( const double *l, const double *Fj , const int j );
 };
 
 // Constructor
@@ -267,7 +267,7 @@ int cnSolver::step(
  *			M_dot = dF_J/dl - F * Lambda / D_J
  *
  */
-double cnSolver::Mdot( double *l, double *Fj, int j ){
+double cnSolver::Mdot( const double *l, const double *Fj, const int j ){
 
 	if( j < 2 || j > N - 3 ){
 //		cerr << "WARNING -- Cannot compute mass flux with 2 cells of bounds" << endl; FIXME

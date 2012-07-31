@@ -1,4 +1,5 @@
 #include "global.h"
+#include "cnSolver.h"
 
 #ifndef INC_MASS
 #define INC_MASS
@@ -25,16 +26,27 @@ double massIntegral(const double *l, const double *Fj, const int jMin = 0 , cons
 }// end massIntegral
 
 /*
- *	MASS ANULUS
+ *	MASS ANNULUS
  *
  *		Returns the mass contained within two radii 
  *
  */
-double massAnnulus( const double *l, const double *Fj, const double alMin , const double alMax ){
+bool massAnnulus( 
+			const double *l, 
+			const double *Fj, 
+			const double alMin, 
+			const double alMax, 
+			double &totalMass,
+			int &jMin, 
+			int &jMax )
+{
 	
-	if( alMin > alMax ) return 0.0;
+	if( alMin > alMax ) return false;
 
-	int jMin=0,jMax=N-1;
+	jMin=0;
+	jMax=N-1;
+
+	// find indices that bracket region ...
 	bool minFound = false;
 	for( int j = 0 ; j < N ; ++j ){
 		if( !minFound && l[j] > alMin ){
@@ -49,7 +61,9 @@ double massAnnulus( const double *l, const double *Fj, const double alMin , cons
 
 	if( (jMax-jMin)%2 == 0 ) jMin++;		// for simpson's to work
 
-	return massIntegral(l,Fj,jMin,jMax);
+	totalMass =	massIntegral(l,Fj,jMin,jMax);
+	
+	return true;
 }// end massAnnulus
 
 
@@ -58,9 +72,12 @@ double massAnnulus( const double *l, const double *Fj, const double alMin , cons
  *
  *		Appends time and total mass to file mass.out
  */
-int writeMass(const double *l, const double *Fj,const double t){
+int writeMass(const double *l, const double *Fj,const double t , cnSolver &solver ){
 	
 	static bool good = true;
+	double totalMass;
+	int jMin, jMax;
+	
 	if(!good) return EXIT_FAILURE;
 	
 	ofstream fout("mass.out",ofstream::app);
@@ -70,7 +87,10 @@ int writeMass(const double *l, const double *Fj,const double t){
 		return EXIT_FAILURE;
 	} // end err if
 
-	fout << t << "\t" << massIntegral(l,Fj) << "\t" << massAnnulus(l,Fj,l_a-4,l_a+4) << endl;
+	massAnnulus(l,Fj,l_a-4,l_a+4,totalMass,jMin,jMax);
+
+	fout << t << "\t" << massIntegral(l,Fj) << "\t" << totalMass << "\t"
+	     << solver.Mdot(l,Fj,jMin) << "\t" << solver.Mdot(l,Fj,jMax) << endl;
 
 	fout.close();
 	
