@@ -8,7 +8,14 @@
 #ifndef INC_INITIALIZE
 #define INC_INITIALIZE 
 
-int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, double &t ){
+int initialize( int argc, 
+                char **argv, 
+                double *l, 
+                double *Fj, 
+                int &fileCount, 
+                double &t , 
+                disk &dsk )
+{
 
 	fileCount = 0;
 	t = 0.0;
@@ -35,15 +42,15 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 						cerr << res_and_init_err << endl;
 						return EXIT_FAILURE;
 					} // end initial data error
-					problemType = RESTART;
-					initial_data_file = argv[i+1];
+					dsk.problemType = RESTART;
+					dsk.initial_data_file = argv[i+1];
 				} else if( argv[i] == fileInit_str ){
-					if( problemType == RESTART ){
+					if( dsk.problemType == RESTART ){
 						cerr << res_and_init_err << endl;
 						return EXIT_FAILURE;
 					} // end restart error
-					initial_data_file = argv[i+1];
-					problemType = FROM_FILE;
+					dsk.initial_data_file = argv[i+1];
+					dsk.problemType = FROM_FILE;
 				} else {
 					cerr << std_err_mssg << endl;
 					return EXIT_FAILURE;
@@ -55,30 +62,30 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 		}// end i for
 
 	} else if( argc == 2 ){
-		initial_data_file = argv[1];
-		problemType = FROM_FILE;
+		dsk.initial_data_file = argv[1];
+		dsk.problemType = FROM_FILE;
 	} // end argc if/else
 
 
 	// calcualte innermost grid cell size
 	if( lambda == 1.0 ){
-		dl = (lMax-lMin)/(N-1.0);
+		dsk.dl = (dsk.lMax-dsk.lMin)/(N-1.0);
 	} else {
-		dl = (lMax-lMin)*(lambda-1.0)/(pow(lambda,N-1)-1.0);
+		dsk.dl = (dsk.lMax-dsk.lMin)*(lambda-1.0)/(pow(lambda,N-1)-1.0);
 	}
-	dl2  = dl*dl;
-	cerr << "dl = " << dl << endl;
-	cerr << "dl = " << dl << endl;
+	dsk.dl2  = dsk.dl*dsk.dl;
+	cerr << "dl = " << dsk.dl << endl;
+	cerr << "dl = " << dsk.dl << endl;
 
 	// setup grid
 	for( int j = 0 ; j < N ; j++ ){
 			if( lambda == 1.0 ){
-				l[j] = lMin + j*dl;
+				l[j] = dsk.lMin + j*dsk.dl;
 			} else {
 				if( j == 0 )
-					l[j] = lMin;
+					l[j] = dsk.lMin;
 				else
-					l[j] = lMin + dl*(pow(lambda,j)-1.0)/(lambda-1.0);
+					l[j] = dsk.lMin + dsk.dl*(pow(lambda,j)-1.0)/(lambda-1.0);
 			}// end lambda if/else
 	}// end j for
 
@@ -114,10 +121,10 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 	 *		Steady-state ramp of F_J
 	 */
 	else if( problemType == RAMPED ){
-		double mdot = 3.0*PI/( 1.0 - lMin/lMax );
+		double mdot = 3.0*PI/( 1.0 - dsk.lMin/dsk.lMax );
 		cerr << "Mdot = " << mdot << endl;
 		for( int j = 0; j < N ; ++j )
-			Fj[j] = mdot*( l[j] - lMin );
+			Fj[j] = mdot*( l[j] - dsk.lMin );
 	} // end ramp test problem
 
 	/*
@@ -154,10 +161,10 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 		int MAX_STRING_LENGTH = 200;
 		char line[MAX_STRING_LENGTH];
 
-		FILE *fp = fopen(initial_data_file.c_str(),"r");
+		FILE *fp = fopen(dsk.initial_data_file.c_str(),"r");
 
 		if(!fp){
-			cerr << "ERROR IN INITIALIZE.H --- Failed to Open Data File: " << initial_data_file << endl;
+			cerr << "ERROR IN INITIALIZE.H --- Failed to Open Data File: " << dsk.initial_data_file << endl;
 			return EXIT_FAILURE;
 		}// end error if
 
@@ -196,16 +203,16 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 //	}// end square test problem
 
 	// Check outer boundary type/value
-	if(-1.0==outer_bndry_value)
-		if( outer_bndry_type == DIRICHLET )
-			outer_bndry_value = Fj[N-1];
-		else if( outer_bndry_type == NEUMANN )
+	if(-1.0==dsk.outer_bndry_value)
+		if( dsk.outer_bndry_type == DIRICHLET )
+			dsk.outer_bndry_value = Fj[N-1];
+		else if( dsk.outer_bndry_type == NEUMANN )
 		{
-			outer_bndry_value = 0.0;
+			dsk.outer_bndry_value = 0.0;
 			cerr << "WARNING -- Outer bndry value not set\n"
 				<< "	>> Setting value to 0.0 (zero mass flow" << endl;
 		}
-	if( DIRICHLET < outer_bndry_type )
+	if( DIRICHLET < dsk.outer_bndry_type )
 	{	
 		cerr << "ERROR IN INITIALIZE.H\n"
 			<< "	>> Outer boundry type improperly set" << endl;
@@ -213,16 +220,16 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 	}
 	
 	// Check inner boundary type/value
-	if(-1.0==inner_bndry_value)
-		if( inner_bndry_type == DIRICHLET )
-			inner_bndry_value = Fj[0];
-		else if( inner_bndry_type == NEUMANN )
+	if(-1.0==dsk.inner_bndry_value)
+		if( dsk.inner_bndry_type == DIRICHLET )
+			dsk.inner_bndry_value = Fj[0];
+		else if( dsk.inner_bndry_type == NEUMANN )
 		{
-			inner_bndry_value = 0.0;
+			dsk.inner_bndry_value = 0.0;
 			cerr << "WARNING -- Inner bndry value not set.\n" 
 				<< "	>> Setting value to 0.0 (zero mass flow" << endl;
 		}
-	if( DIRICHLET < inner_bndry_type )
+	if( DIRICHLET < dsk.inner_bndry_type )
 	{
 		cerr << "ERROR IN INITIALIZE.H\n"
 			<< "	>> Inner boundry type improperly set" << endl;
@@ -233,19 +240,19 @@ int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, d
 	/*
 	 *  ------- Initialize Timing
 	 */
-	if( tStart >= tEnd ){
+	if( dsk.tStart >= dsk.tEnd ){
 		cerr << "ERROR IN INITIALIZE: tStart cannot exceed tEnd" << endl;
 		return EXIT_FAILURE;
 	}// end time error if
 
 	if( problemType != RESTART){	
-		t = tStart;
-		cerr << "tStart = " << tStart << endl;
+		t = dsk.tStart;
+		cerr << "tStart = " << dsk.tStart << endl;
 	}// end non-restart if 
 
-	cerr << "tEnd = " << tEnd << endl
-		<< "tWrite = " << tWrite << endl
-		<< "Initial dt = " << calculateTimeStep(l,Fj,l_a,dl) << endl;
+	cerr << "tEnd = " << dsk.tEnd << endl
+		<< "tWrite = " << dsk.tWrite << endl
+		<< "Initial dt = " << calculateTimeStep(l,Fj,dsk.l_a,dsk.dl) << endl;
 
 	return EXIT_SUCCESS;
 } // end initialize

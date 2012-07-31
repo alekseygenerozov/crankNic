@@ -14,11 +14,13 @@
 
 int main(int argc, char *argv[]){
 
+	disk dsk;	// intialize disk
+
 	int status = EXIT_SUCCESS,
 	    fileCount = 0;
 
 	// read in from parameter file, params.in
-	if( EXIT_SUCCESS != (status = readParams()))
+	if( EXIT_SUCCESS != (status = readParams(dsk)))
 		return status;
 
 	// Create arrays for data
@@ -27,7 +29,7 @@ int main(int argc, char *argv[]){
 	double t=0,dt=0,nextWrite=0;  // timing
 
 	// Intialize r and sigma
-	if(EXIT_SUCCESS != (status = initialize(argc,argv,l,Fj,fileCount,t)))
+	if(EXIT_SUCCESS != (status = initialize(argc,argv,l,Fj,fileCount,t,dsk)))
 		return status;
 	nextWrite = t + tWrite;
 

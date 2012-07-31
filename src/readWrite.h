@@ -9,7 +9,7 @@
 #ifndef INC_READ_PARAMS
 #define INC_READ_PARAMS
 
-int readParams(){
+int readParams(disk &dsk){
 
 	int MAX_STRING_LENGTH = 200;
 	char line[MAX_STRING_LENGTH];
