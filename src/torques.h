@@ -9,7 +9,8 @@
  *		Smoothed torque density of secondary on disk, due to
  *		to linblad resonances.
  */
-double tidalTorque( double l ){
+double tidalTorque( const double l )
+{
 
 	if( q == 0.0 ){
 		return 0.0;
@@ -35,5 +36,30 @@ double tidalTorque( double l ){
 	tmp2 = la2/(l2-la2);
 	return 	tmp1*tmp2*tmp2*tmp2*tmp2/l2;
 }// end tidal torque
+
+void moveSecondary( const double *l,
+                    const double *Fj )
+{
+	if( secondary == STATIC || q == 0.0 ) return;	// do nothing
+
+	const double LL = 5.0*sqrt(h(l_a));
+
+	/*
+	 *	We split region into four zones:
+	 *			1). region to far left of secondary   ( ISCO < l < l_a - LL )
+	 *			2). region just to left of secondary  ( l_a - LL < l < l_a )
+	 *			3). region just to right of secondary ( l_a < l < l_a + LL )
+	 *			4). region to far right of secondary  ( l_a + LL < l < l_out )
+	 */
+
+	// split region in 4
+
+	// perform integrations
+
+	// sum them
+
+	// update binary position
+
+} // end moveSecondary
 
 #endif

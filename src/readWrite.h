@@ -42,6 +42,7 @@ int readParams(){
 		nV += sscanf(line, "q = %lg",&q);
 		nV += sscanf(line, "M = %lg",&M);
 		nV += sscanf(line, "f = %lg",&f);
+		nV += sscanf(line, "secondary = %d",&secondary);
 
 		// timing
 		nV += sscanf(line, "tStart = %lg",&tStart);
@@ -107,15 +108,16 @@ int writeParams(){
 	fprintf(fp,"\n");
 
 	// Physical Params
-	fprintf(fp,"l0   = %g\n",l0);
-	fprintf(fp,"D0   = %g\n",D0);
-	fprintf(fp,"nd   = %g\n",nd);
-	fprintf(fp,"np   = %g\n",np);
-	fprintf(fp,"dhdr = %g\n",dhdr);
-	fprintf(fp,"l_a  = %g\n",l_a);
-	fprintf(fp,"q    = %g\n",q);
-	fprintf(fp,"M    = %g\n",M);
-	fprintf(fp,"f    = %g\n",f);
+	fprintf(fp,"l0        = %g\n",l0);
+	fprintf(fp,"D0        = %g\n",D0);
+	fprintf(fp,"nd        = %g\n",nd);
+	fprintf(fp,"np        = %g\n",np);
+	fprintf(fp,"dhdr      = %g\n",dhdr);
+	fprintf(fp,"l_a       = %g\n",l_a);
+	fprintf(fp,"q         = %g\n",q);
+	fprintf(fp,"M         = %g\n",M);
+	fprintf(fp,"f         = %g\n",f);
+	fprintf(fp,"secondary = %d\n",secondary);
 	fprintf(fp,"\n");
 
 	// Timing
