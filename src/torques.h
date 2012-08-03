@@ -18,10 +18,10 @@ double tidalTorque( const double l )
 		return 0.0;
 	}// end simple cas if
 	double	tmp1 = f*q*q*M*M*0.5,
-					l2 = l*l,
-					la2 = l_a*l_a,
-					lh2 = h(l)*M,
-					tmp2;
+	        l2 = l*l,
+	        la2 = l_a*l_a,
+	        lh2 = h(l)*M,
+	        tmp2;
 
 	if( l2 < la2 - lh2 ){
 		tmp2 = l2/(l2-la2);
@@ -71,7 +71,7 @@ double gaussTorqueInt( cubicSpline FJ_cSpline,
  */
 void moveSecondary( const double *l,
                     const double *Fj,
-										const double dt )
+                    const double dt )
 {
 	if( secondary == STATIC || q == 0.0 ) return;	// do nothing
 
