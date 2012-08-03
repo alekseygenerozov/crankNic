@@ -282,7 +282,9 @@ typedef const Mmatrix<double> mDoub_i;
 typedef Mmatrix<double> mDoub, mDoub_o, mDoub_io;
 
 // Useful helper function
+#ifndef _NR3_H_
 template<class T> inline T SIGN(const T &a, const T &b)
 	{return b >= 0 ? (a >= 0 ? a : -a) : (a >= 0 ? -a : a);}
+#endif
 
 #endif
