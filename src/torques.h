@@ -91,8 +91,8 @@ double gaussTorqueInt( cubicSpline FJ_cSpline,
  *		profile, then uses this to find dl_a/dt and updates
  *		l_a for next time step.
  */
-void moveSecondary( const double *l,
-                    const double *Fj,
+void moveSecondary( vDoub_i &l,
+                    vDoub_i &Fj,
                     const double dt )
 {
 	if( secondary == STATIC || q == 0.0 ) return;	// do nothing
@@ -100,8 +100,7 @@ void moveSecondary( const double *l,
 	const double LL = 5.0*sqrt(h(l_a));
 
 	// interpolate data
-	vDoub ll(N,l), FF(N,Fj);
-	cubicSpline FJ_cSpline(ll,FF);
+	cubicSpline FJ_cSpline(l,Fj);
 
 	// perform integrations in four regions, using 
 	// 96-pt gaussian quadrature scheme

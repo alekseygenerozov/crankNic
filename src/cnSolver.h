@@ -25,8 +25,8 @@ struct cnSolver{
 	MatDoub M;                           // Matrix of Crank-Nicolson Scheme
 
 	cnSolver();
-	int step(double *l,double *Fj,double t,double dt,double &l_a,bool dWrite);
-	double Mdot( const double *l, const double *Fj , const int j );
+	int step(vDoub_i &l,vDoub &Fj,double t,double dt,double &l_a,bool dWrite);
+	double Mdot( vDoub_i &l, vDoub_i &Fj , const int j );
 };
 
 // Constructor
@@ -95,14 +95,13 @@ cnSolver::cnSolver()
  *		using a Crank-Nicolson scheme and NR3 matrix solver
  *
  */
-int cnSolver::step( 
-									double *l, 			// specific angular momentum
-									double *Fj, 		// current a.m. flux
-									double t, 			// time
-									double dt, 			// width of time step
-									double &l_a,			// binary separation
-									bool dWrite			// debug write step
-){
+int cnSolver::step( vDoub_i &l,     // specific angular momentum
+                    vDoub &Fj,      // current a.m. flux
+                    double t,       // time
+                    double dt,      // width of time step
+                    double &l_a,    // binary separation
+                    bool dWrite )   // debug write step
+{
 
 	int status = EXIT_SUCCESS;
 	double tmp0,tmp1,tmp2;
@@ -267,10 +266,9 @@ int cnSolver::step(
  *			M_dot = dF_J/dl - F * Lambda / D_J
  *
  */
-double cnSolver::Mdot( const double *l, const double *Fj, const int j ){
+double cnSolver::Mdot( vDoub_i &l, vDoub_i &Fj, const int j ){
 
 	if( j < 2 || j > N - 3 ){
-//		cerr << "WARNING -- Cannot compute mass flux with 2 cells of bounds" << endl; FIXME
 		return 0.0;
 	} // end j if
 	

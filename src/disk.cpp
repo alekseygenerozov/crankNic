@@ -22,8 +22,8 @@ int main(int argc, char *argv[]){
 		return status;
 
 	// Create arrays for data
-	double l[N];                  // specific angular momentum
-	double Fj[N];                 // angular momentum flux
+	vDoub l(N);                  // specific angular momentum
+	vDoub Fj(N);                 // angular momentum flux
 	double t=0,dt=0,nextWrite=0;  // timing
 
 	// Intialize r and sigma

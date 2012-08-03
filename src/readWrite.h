@@ -175,8 +175,8 @@ string intToStr(int i){
  *		>> Negative datafile # implies an error print
  */
 int writeStandard(	int fileNum,     	// datafile #
-										double *l,       	// radius
-										double *Fj,   		// surface density
+										vDoub_i &l,       // radius
+										vDoub_i &Fj,      // surface density
 										cnSolver &solver,	// matrix solver struct
 										double t         	// time
 ){

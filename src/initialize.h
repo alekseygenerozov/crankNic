@@ -8,7 +8,13 @@
 #ifndef INC_INITIALIZE
 #define INC_INITIALIZE 
 
-int initialize( int argc, char **argv, double *l, double *Fj , int &fileCount, double &t ){
+int initialize( int argc, 
+                char **argv, 
+                vDoub &l, 
+                vDoub &Fj , 
+                int &fileCount, 
+                double &t )
+{
 
 	fileCount = 0;
 	t = 0.0;

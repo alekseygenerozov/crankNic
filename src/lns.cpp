@@ -84,7 +84,7 @@ int main(int argc , char **argv ){
     return status;
 
 	// intialize grid
-  double l[N], FJ[N];            // not used until after ODE solver
+  vDoub l(N), FJ(N);            // not used until after ODE solver
 	int fCnt; double t;
   if(EXIT_SUCCESS != (status = initialize(0,NULL,l,FJ,fCnt,t)))
     return status;

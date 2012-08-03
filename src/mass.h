@@ -11,7 +11,7 @@
  *		1/3rd rule on a logarithmic grid
  *
  */
-double massIntegral(const double *l, const double *Fj, const int jMin = 0 , const int jMax = N-1 ){
+double massIntegral(vDoub_i &l, vDoub_i &Fj, const int jMin = 0 , const int jMax = N-1 ){
 
 	double result = 0.0,
 		evenCoeff = (2.0*lambda-1.0)/(6.0*lambda*lambda*lambda) + (2.0-lambda)/6.0,
@@ -32,8 +32,8 @@ double massIntegral(const double *l, const double *Fj, const int jMin = 0 , cons
  *
  */
 bool massAnnulus( 
-			const double *l, 
-			const double *Fj, 
+			vDoub_i &l, 
+			vDoub_i &Fj, 
 			const double alMin, 
 			const double alMax, 
 			double &totalMass,
@@ -48,7 +48,7 @@ bool massAnnulus(
 
 	// find indices that bracket region ...
 	bool minFound = false;
-	for( int j = 0 ; j < N ; ++j ){
+	for( int j = 1 ; j < N ; ++j ){
 		if( !minFound && l[j] > alMin ){
 			jMin = j - 1;
 			minFound = true;
@@ -72,7 +72,11 @@ bool massAnnulus(
  *
  *		Appends time and total mass to file mass.out
  */
-int writeMass(const double *l, const double *Fj,const double t , cnSolver &solver ){
+int writeMass( vDoub_i &l, 
+               vDoub_i &Fj,
+               const double t, 
+               cnSolver &solver )
+{
 	
 	static bool good = true;
 	double totalMass;

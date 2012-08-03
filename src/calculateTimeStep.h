@@ -13,10 +13,10 @@
  *		evolution
  */
 double calculateTimeStep( 	
-					double *l,		// specific angular momentum
-					double *Fj,		// angular momentum flux
-					double l_a, 		// binary separation
-					double dl			// resolution of smallest grid cell
+					vDoub_i &l,    // specific angular momentum
+					vDoub_i &Fj,   // angular momentum flux
+					double l_a,    // binary separation
+					double dl      // resolution of smallest grid cell
 ){
 
 	// manual for problem-type 3
