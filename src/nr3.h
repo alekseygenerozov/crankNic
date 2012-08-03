@@ -48,9 +48,11 @@ inline float MIN(const double &a, const float &b)
 inline float MIN(const float &a, const double &b)
         {return b < a ? float(b) : (a);}
 
+#ifdef INC_MR
 template<class T>
 inline T SIGN(const T &a, const T &b)
 	{return b >= 0 ? (a >= 0 ? a : -a) : (a >= 0 ? -a : a);}
+#endif
 
 inline float SIGN(const float &a, const double &b)
 	{return b >= 0 ? (a >= 0 ? a : -a) : (a >= 0 ? -a : a);}
