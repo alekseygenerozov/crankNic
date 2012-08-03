@@ -1,4 +1,6 @@
 #include "global.h"
+#include "mr.h"
+#include "cubicSpline.h"
 
 #ifndef INC_TORQUES
 #define INC_TORQUES
@@ -37,8 +39,39 @@ double tidalTorque( const double l )
 	return 	tmp1*tmp2*tmp2*tmp2*tmp2/l2;
 }// end tidal torque
 
+
+
+/*
+ *	GAUSS TORQUE INT
+ *
+ *		Performs Gauss Quadrature of FJ*Lambda/DJ 
+ *		in region a < l < b. Needs an interpolation
+ *		object for FJ, from which it computes DJ.
+ *
+ *		GQ coefficients are stored in quadCoeffs.h
+ */
+double gaussTorqueInt( cubicSpline FJ_cSpline,
+                       const double a,
+                       const double b )
+{
+	return 0.0;
+}// end gauss Torque Int
+
+
+
+/*
+ *	MOVE SECONDARY
+ *
+ *		Performs "back-reaction" of disk-secondary torque
+ *		on the secondary blackhole, hardening the binary.
+ *
+ *		Integrates product of FJ and Torque density
+ *		profile, then uses this to find dl_a/dt and updates
+ *		l_a for next time step.
+ */
 void moveSecondary( const double *l,
-                    const double *Fj )
+                    const double *Fj,
+										const double dt )
 {
 	if( secondary == STATIC || q == 0.0 ) return;	// do nothing
 
@@ -52,13 +85,22 @@ void moveSecondary( const double *l,
 	 *			4). region to far right of secondary  ( l_a + LL < l < l_out )
 	 */
 
-	// split region in 4
+	// interpolate data
+	vDoub ll(N,l), FF(N,Fj);
+	cubicSpline FJ_cSpline(ll,FF);
 
-	// perform integrations
-
-	// sum them
+	// perform integrations in four regions, using 
+	// 96-pt gaussian quadrature scheme
+	double dldt = 0.0;
+	dldt += gaussTorqueInt(FJ_cSpline,lMin,l_a-LL);
+	dldt += gaussTorqueInt(FJ_cSpline,l_a-LL,l_a);
+	dldt += gaussTorqueInt(FJ_cSpline,l_a,l_a+LL);
+	dldt += gaussTorqueInt(FJ_cSpline,l_a+LL,lMax);
+	
+	dldt *= (-1.0/(M*q));
 
 	// update binary position
+	l_a += dldt*dt;
 
 } // end moveSecondary
 
