@@ -77,14 +77,6 @@ void moveSecondary( const double *l,
 
 	const double LL = 5.0*sqrt(h(l_a));
 
-	/*
-	 *	We split region into four zones:
-	 *			1). region to far left of secondary   ( ISCO < l < l_a - LL )
-	 *			2). region just to left of secondary  ( l_a - LL < l < l_a )
-	 *			3). region just to right of secondary ( l_a < l < l_a + LL )
-	 *			4). region to far right of secondary  ( l_a + LL < l < l_out )
-	 */
-
 	// interpolate data
 	vDoub ll(N,l), FF(N,Fj);
 	cubicSpline FJ_cSpline(ll,FF);
@@ -92,10 +84,10 @@ void moveSecondary( const double *l,
 	// perform integrations in four regions, using 
 	// 96-pt gaussian quadrature scheme
 	double dldt = 0.0;
-	dldt += gaussTorqueInt(FJ_cSpline,lMin,l_a-LL);
-	dldt += gaussTorqueInt(FJ_cSpline,l_a-LL,l_a);
-	dldt += gaussTorqueInt(FJ_cSpline,l_a,l_a+LL);
-	dldt += gaussTorqueInt(FJ_cSpline,l_a+LL,lMax);
+	dldt += gaussTorqueInt(FJ_cSpline,lMin,l_a-LL); // ( ISCO < l < l_a - LL )
+	dldt += gaussTorqueInt(FJ_cSpline,l_a-LL,l_a);  // ( l_a - LL < l < l_a )
+	dldt += gaussTorqueInt(FJ_cSpline,l_a,l_a+LL);  // ( l_a < l < l_a + LL )
+	dldt += gaussTorqueInt(FJ_cSpline,l_a+LL,lMax); // ( l_a + LL < l < l_out )
 	
 	dldt *= (-1.0/(M*q));
 

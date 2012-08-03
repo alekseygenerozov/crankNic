@@ -25,21 +25,21 @@ int main(int argc , char **argv ){
 	 * Read in parameter file and update global variables
 	 */
 
-  // read in from parameter file, params.in
-  if( EXIT_SUCCESS != (status = readParams()))
-    return status;
+	// read in from parameter file, params.in
+	if( EXIT_SUCCESS != (status = readParams()))
+		return status;
 
 	// intialize grid
-  double l[N], FJ[N];            // not used until after ODE solver
+	double l[N], FJ[N];            // not used until after ODE solver
 	int fCnt; double t;
-  if(EXIT_SUCCESS != (status = initialize(argc,argv,l,FJ,fCnt,t)))
-    return status;
+	if(EXIT_SUCCESS != (status = initialize(argc,argv,l,FJ,fCnt,t)))
+		return status;
 
 	// write globals to params.out
 	writeParams();
 
 	/*
-   * Perform interpolation on data and print results to stdout
+	 * Perform interpolation on data and print results to stdout
 	 */
 	vDoub xx(N,l), ff(N,FJ);
 	cubicSpline cSpline(xx,ff);
