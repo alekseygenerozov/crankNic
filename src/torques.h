@@ -1,5 +1,6 @@
 #include "global.h"
 #include "mr.h"
+#include "quadCoeffs.h"
 #include "cubicSpline.h"
 
 #ifndef INC_TORQUES
@@ -54,8 +55,29 @@ double gaussTorqueInt( cubicSpline FJ_cSpline,
                        const double a,
                        const double b )
 {
-	return 0.0;
-}// end gauss Torque Int
+	if( b <= a ) return 0.0;
+
+	static const size_t N_GAUSS = 48;
+	double bMao2 = 0.5*(b-a), bPao2 = 0.5*(b+a),
+		sum = 0.0,x,Ftmp;
+	
+	// first half of integral (splitting like this is optimal 
+	// for spline fcn)
+  for( size_t i = 0 ; i != N_GAUSS ; ++i ){
+    x = bPao2 + bMao2*gaussQuad_x_96[i];
+		Ftmp = FJ_cSpline.interp(x);
+		sum += tidalTorque(x)*Ftmp/Dj(Ftmp,x)*gaussQuad_w_96[i];
+  } // end i for
+
+	// second half of integral
+	for( size_t i = 0 ; i != N_GAUSS ; ++i ){
+		x = bPao2 - bMao2*gaussQuad_x_96[i];
+		Ftmp = FJ_cSpline.interp(x);
+		sum += tidalTorque(x)*Ftmp/Dj(Ftmp,x)*gaussQuad_w_96[i];
+	} // end i for
+
+  return sum*bMao2;
+}// end gaussTorqueInt
 
 
 
