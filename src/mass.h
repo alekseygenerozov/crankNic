@@ -1,4 +1,6 @@
-#include "disk.h"
+#include "problemDomain.h"
+#include "gasDisk.h"
+#include "secondaryBH.h"
 #include "cnSolver.h"
 
 #ifndef INC_MASS
@@ -11,18 +13,22 @@
  *		1/3rd rule on a logarithmic grid
  *
  */
-double massIntegral(const double *l, const double *Fj, const int jMin = 0 , const int jMax = N-1 ){
+double massIntegral( const gasDisk &disk,
+                     int jMin = 0, 
+                     int jMax = UNSET )
+{
+	if( jMax == UNSET ) jMax = disk.N - 1;
 
-	double result = 0.0,
+	double result = 0.0, lambda = disk.lambda,
 		evenCoeff = (2.0*lambda-1.0)/(6.0*lambda*lambda*lambda) + (2.0-lambda)/6.0,
 		oddCoeff  = (lambda+1.0)*(lambda+1.0)/(6.0*lambda*lambda);
 
-	result += (2.0-lambda)/6.0*dmdl(Fj[jMin],l[jMin]);
+	result += (2.0-lambda)/6.0*disk.dmdl(jMin);
 	for(int j=jMin+1;j<jMax;j++)
-		result += (((j-jMin)%2==0)?evenCoeff:oddCoeff)*dmdl(Fj[j],l[j])*pow(lambda,j);
-	result += (2.0*lambda-1.0)/6.0*pow(lambda,N-4)*dmdl(Fj[jMax],l[jMax]);
+		result += (((j-jMin)%2==0)?evenCoeff:oddCoeff)*disk.dmdl(j)*pow(lambda,j);
+	result += (2.0*lambda-1.0)/6.0*pow(lambda,(int)disk.N-4)*disk.dmdl(jMax);
 
-	return result*dl*(lambda+1.0);
+	return result*disk.dl*(lambda+1.0);
 }// end massIntegral
 
 /*
@@ -31,9 +37,8 @@ double massIntegral(const double *l, const double *Fj, const int jMin = 0 , cons
  *		Returns the mass contained within two radii 
  *
  */
-bool massAnnulus( 
-			const double *l, 
-			const double *Fj, 
+bool massAnnulus(
+			const gasDisk &disk,
 			const double alMin, 
 			const double alMax, 
 			double &totalMass,
@@ -44,16 +49,16 @@ bool massAnnulus(
 	if( alMin > alMax ) return false;
 
 	jMin=0;
-	jMax=N-1;
+	jMax=disk.N-1;
 
 	// find indices that bracket region ...
 	bool minFound = false;
-	for( int j = 0 ; j < N ; ++j ){
-		if( !minFound && l[j] > alMin ){
+	for( size_t j = 0 ; j < disk.N ; ++j ){
+		if( !minFound && disk.l[j] > alMin ){
 			jMin = j - 1;
 			minFound = true;
 		} // end min if
-		if( l[j] > alMax ){
+		if( disk.l[j] > alMax ){
 			jMax = j;
 			break;
 		}
@@ -61,7 +66,7 @@ bool massAnnulus(
 
 	if( (jMax-jMin)%2 == 0 ) jMin++;		// for simpson's to work
 
-	totalMass =	massIntegral(l,Fj,jMin,jMax);
+	totalMass =	massIntegral(disk,jMin,jMax);
 	
 	return true;
 }// end massAnnulus
@@ -72,7 +77,11 @@ bool massAnnulus(
  *
  *		Appends time and total mass to file mass.out
  */
-int writeMass(const double *l, const double *Fj,const double t , cnSolver &solver ){
+int writeMass( const problemDomain &domain, 
+               const gasDisk &disk,
+               const secondaryBH &secondary,
+               const cnSolver &solver )
+{
 	
 	static bool good = true;
 	double totalMass;
@@ -87,10 +96,10 @@ int writeMass(const double *l, const double *Fj,const double t , cnSolver &solve
 		return EXIT_FAILURE;
 	} // end err if
 
-	massAnnulus(l,Fj,l_a-4,l_a+4,totalMass,jMin,jMax);
+	massAnnulus(disk,secondary.l_a-4,secondary.l_a+4,totalMass,jMin,jMax);
 
-	fout << t << "\t" << massIntegral(l,Fj) << "\t" << totalMass << "\t"
-	     << solver.Mdot(l,Fj,jMin) << "\t" << solver.Mdot(l,Fj,jMax) << endl;
+	fout << domain.t << "\t" << massIntegral(disk) << "\t" << totalMass << "\t"
+	     << solver.Mdot(domain,disk,secondary,jMin) << "\t" << solver.Mdot(domain,disk,secondary,jMax) << endl;
 
 	fout.close();
 	

@@ -1,7 +1,6 @@
-#include <math.h>
-
-#include "disk.h"
-//#include "torques.h" FIXME
+#include "problemDomain.h"
+#include "gasDisk.h"
+#include "secondaryBH.h"
 
 #ifndef INC_TIMESTEP
 #define INC_TIMESTEP
@@ -12,28 +11,23 @@
  *		Finds optimal time interval to deliver accurate
  *		evolution
  */
-double calculateTimeStep( 	
-					double *l,		// specific angular momentum
-					double *Fj,		// angular momentum flux
-					double l_a, 		// binary separation
-					double dl			// resolution of smallest grid cell
-){
+double calculateTimeStep( problemDomain &domain,
+                        gasDisk &disk,
+                        secondaryBH &secondary )
+{
+	double dt=0.0, dtMin=1E5;
 
-	// manual for problem-type 3
-	if( problemType == SQUARE_PULSE )
-		return p3_courant*dl;
-
-	double dt=0.0,dtMin=1E5;
-
-	for( int j = 0 ; j < N ; j++ ){
+	for( size_t j = 0 ; j < disk.N ; j++ ){
 
 		// viscous diffusion timescale
-		dt = .5*dl/Dj(Fj[j],l[j])*pow(lambda,j); //FIXME
+		dt = .5*disk.dl/disk.Dj(j)*pow(disk.lambda,(int)j); //FIXME
 		dtMin = min(dtMin,dt);
 
 	} // end j for
 
-	return SAFETY_NUMBER*dtMin;
+	domain.update_dt( domain.SAFETY_NUMBER*dtMin );
+
+	return domain.dt;
 }// end calculate time step
 
 #endif
