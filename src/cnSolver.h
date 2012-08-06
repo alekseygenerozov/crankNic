@@ -1,21 +1,24 @@
-#include <stdio.h>
-#include <math.h>
-#include <stdio.h>
-
-#include "global.h"
+#include "problemDomain.h"
+#include "gasDisk.h"
+#include "secondaryBH.h"
+#include "mr.h"
 #include "nr3.h"
 #include "banded.h"
-#include "torques.h"
 
 #ifndef CN_SOLVER
 #define CN_SOLVER
 
-	const unsigned int STENCIL_SIZE = 5;            // # of cells in stencil (per time step)
-	const unsigned int CNTR = 2;                    // center of stencil (jth grid cell)
-	const unsigned int JP2=4,JP1=3,J=2,JM1=1,JM2=0, // indexing for stencil
-		R2=JP2,R1=JP1,C=J,L1=JM1,L2=JM2;              // indexing for Crank Nicolson matrix
-
-struct cnSolver{
+class cnSolver{
+public:
+	cnSolver(const gasDisk& disk );
+	int step(problemDomain &domain, gasDisk &disk, secondaryBH &secondary);
+	double Mdot(const problemDomain &domain, const gasDisk &disk, 
+		const secondaryBH &secondary, const int j ) const;
+private:
+	static const unsigned int STENCIL_SIZE = 5;              // # of cells in stencil (per time step)
+	static const unsigned int CNTR = 2;                      // center of stencil (jth grid cell)
+	static const unsigned int JP2=4,JP1=3,J=2,JM1=1,JM2=0,   // indexing for stencil
+    R2=JP2,R1=JP1,C=J,L1=JM1,L2=JM2;                // indexing for Crank Nicolson matrix
 
 	VecDoub	d;                           // RHS of matrix eq
 	VecDoub FjNew;                       // angular momentum flux of new timestep
@@ -23,16 +26,15 @@ struct cnSolver{
 	double laplace_coeffs[STENCIL_SIZE]; // ""                           2nd deriv
 	double const_coeffs[STENCIL_SIZE];   // ""                           0th deriv
 	MatDoub M;                           // Matrix of Crank-Nicolson Scheme
-
-	cnSolver();
-	int step(vDoub_i &l,vDoub &Fj,double t,double dt,double &l_a,bool dWrite);
-	double Mdot( vDoub_i &l, vDoub_i &Fj , const int j );
 };
 
-// Constructor
-cnSolver::cnSolver() 
-	: d(N),M(N,STENCIL_SIZE),FjNew(N)
+// Default Constructor
+cnSolver::cnSolver(const gasDisk& disk) 
+	: d(disk.N),M(disk.N,STENCIL_SIZE),FjNew(disk.N)
 {
+	const int N = disk.N;
+	const double lambda = disk.lambda;
+	const int STENCIL = disk.STENCIL;
 	
 	// prep some CN constants based on log-grid stretch factor
 	double 	la2 = lambda*lambda,
@@ -95,6 +97,7 @@ cnSolver::cnSolver()
  *		using a Crank-Nicolson scheme and NR3 matrix solver
  *
  */
+<<<<<<< HEAD
 int cnSolver::step( vDoub_i &l,     // specific angular momentum
                     vDoub &Fj,      // current a.m. flux
                     double t,       // time
@@ -103,11 +106,18 @@ int cnSolver::step( vDoub_i &l,     // specific angular momentum
                     bool dWrite )   // debug write step
 {
 
+=======
+int cnSolver::step( problemDomain &domain,
+                    gasDisk &disk,
+                    secondaryBH &secondary ) 
+{
+>>>>>>> de3cac770ab04ae65bf75dd546f5d5944bf0436f
 	int status = EXIT_SUCCESS;
-	double tmp0,tmp1,tmp2;
+	size_t N = disk.N;
+	double tmp0,tmp1,tmp2,lambda = disk.lambda;
 	int offset;
 
-	if(DEBUG_MODE && dWrite){
+	if( domain.debug_mode && domain.isWriteCycle() ){
 		cout << endl << endl << "# -----------------------" 
 			<< "----------------------------------" << endl
 			<< "#l		D_J		tmp0		tmp1" << endl;
@@ -118,22 +128,22 @@ int cnSolver::step( vDoub_i &l,     // specific angular momentum
 	 *	diff coeffs, current specific angular momentum flux, diffusion
 	 *	coeffs and torque density profile
 	 */
-	for( int j = 2 ; j < N-2 ; j++ ){
+	for( int j = 2 ; j < disk.N-2 ; j++ ){
 	
-		tmp0 = pow(lambda,-2.0*j)*.5*dt/dl2*Dj(Fj[j],l[j])/(1.0-nd);
-		tmp1 = -pow(lambda,-1.0*j)*.5*dt/dl*Dj(Fj[j],l[j])/(1.0-nd);
+		tmp0 = pow(lambda,-2.0*j)*.5*domain.dt/disk.dl2*disk.Dj(j)/(1.0-disk.nd);
+		tmp1 = -pow(lambda,-1.0*j)*.5*domain.dt/disk.dl*disk.Dj(j)/(1.0-disk.nd);
 
-		if(DEBUG_MODE && dWrite ){	
-			cout << l[j] << "	" << Dj(Fj[j],l[j]) << "	" << tmp0 << "	" << tmp1 << endl;
+		if( domain.debug_mode && domain.isWriteCycle() ){	
+			cout << disk.l[j] << "	" << disk.Dj(j) << "	" << tmp0 << "	" << tmp1 << endl;
 		}// end debug if
 
 		d[j] = 0.0;
 		for( int k = 0 ; k < STENCIL_SIZE ; ++k ){
 			offset = j - CNTR + k;
-			tmp2 = tmp1*tidalTorque(l[offset])/Dj(Fj[offset],l[offset]);
+			tmp2 = tmp1*secondary.torque(disk,disk.l[offset],domain.M)/disk.Dj(offset);
 
 			M[j][k] = -tmp0*laplace_coeffs[k] - tmp2*grad_coeffs[k] + const_coeffs[k];
-			d[j] +=  ( tmp0*laplace_coeffs[k] + tmp2*grad_coeffs[k] + const_coeffs[k] )*Fj[offset];
+			d[j] +=  ( tmp0*laplace_coeffs[k] + tmp2*grad_coeffs[k] + const_coeffs[k] )*disk.Fj[offset];
 		}// end k for
 
 	} // end j for
@@ -145,22 +155,22 @@ int cnSolver::step( vDoub_i &l,     // specific angular momentum
 		grad_const = 0.0, laplace_const = 0.0, laplace_val = 0.0;
 	tmp1 = lambda*lambda+lambda+1.0, tmp2 = lambda*lambda-lambda-1.0;
 
-	if( NEUMANN == inner_bndry_type ){			// ####### INNER BOUNDS
+	if( NEUMANN == disk.inner_bndry_type ){			// ####### INNER BOUNDS
 
 		// Fixed gradient
-		grad_const = 1.0/(dl*lambda);
+		grad_const = 1.0/(disk.dl*lambda);
 
 		M[0][R1] =  grad_const*lp1;
 		M[0][R2] = -grad_const/lp1;
 		M[0][C]  = -(M[0][R1]+M[0][R2]);
-		d[0] = inner_bndry_value;
+		d[0] = disk.inner_bndry_value;
 
 		// Zero laplacian
-		laplace_const = 2.0/(la2*dl2*lp1);
+		laplace_const = 2.0/(la2*disk.dl2*lp1);
 		laplace_val = 0.0;
-		if( inner_bndry_laplacian == SELF_SIM && t > 0.0){
-			double x = dl/sqrt(4.0*D0*t);
-			laplace_val = (1.0-inner_bndry_value)*sqrt(1.0/(PI*Dj(Fj[1],l[1])*t))*exp(-x*x);
+		if( disk.inner_bndry_laplacian == SELF_SIM && domain.t > 0.0){
+			double x = disk.dl/sqrt(4.0*disk.D0*domain.t);
+			laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.Dj(1)*domain.t))*exp(-x*x);
 		}
 
 		M[1][L1] =  laplace_const*pow(lambda,3)*(lambda+2.0)/tmp1;
@@ -169,13 +179,13 @@ int cnSolver::step( vDoub_i &l,     // specific angular momentum
 		M[1][C]  = -(M[1][L1]+M[1][R1]+M[1][R2]);
 		d[1] = laplace_val;
 
-	} else if( DIRICHLET == inner_bndry_type ){
+	} else if( DIRICHLET == disk.inner_bndry_type ){
 
 		// Constant Value
 		M[0][R1] = 0.0;
 		M[0][R2] = 0.0;
 		M[0][C]  = 1.0;
-		d[0] = inner_bndry_value;
+		d[0] = disk.inner_bndry_value;
 
 		// Zero laplacian
 		M[1][L1] = pow(lambda,3)*(lambda+2.0)/tmp1;
@@ -186,14 +196,14 @@ int cnSolver::step( vDoub_i &l,     // specific angular momentum
 
 	} else {
 		cerr << "ERROR --- Inner Bndry Type Improperly Specified as " 
-			<< inner_bndry_type << endl;
+			<< disk.inner_bndry_type << endl;
 		return EXIT_FAILURE;
 	} // end outer BC if/else
 
-	if( NEUMANN == outer_bndry_type ){			// ########### OUTER BOUNDS
-
+	if( NEUMANN == disk.outer_bndry_type ){			// ########### OUTER BOUNDS
+	
 		// Laplacian
-		laplace_const = 2.0*lambda*pow(lambda,-2.0*(N-2.0))/lp1/dl2;
+		laplace_const = 2.0*lambda*pow(lambda,-2.0*(N-2.0))/lp1/disk.dl2;
 		laplace_val = 0.0;
 
 		M[N-2][L2] =  laplace_const*la2*la2*(lambda-1.0)/tmp1;
@@ -203,14 +213,14 @@ int cnSolver::step( vDoub_i &l,     // specific angular momentum
 		d[N-2] = laplace_val;
  
 		// Fixed gradient
-		grad_const = pow(lambda,-(N-1.0))/tmp1/dl;
+		grad_const = pow(lambda,-(N-1.0))/tmp1/disk.dl;
 
 		M[N-1][L2] = -grad_const*la2*la2/lp1;
 		M[N-1][L1] =  grad_const*lp1;
 		M[N-1][C]  = -(M[N-1][L2]+M[N-1][L1]);
-		d[N-1] = outer_bndry_value;
+		d[N-1] = disk.outer_bndry_value;
 	
-	} else if( DIRICHLET == outer_bndry_type){
+	} else if( DIRICHLET == disk.outer_bndry_type){
 
 		// Zero Laplacian
 		M[N-2][L2] = la2*la2*(lambda-1.0)/tmp1;
@@ -223,11 +233,11 @@ int cnSolver::step( vDoub_i &l,     // specific angular momentum
 		M[N-1][L2] = 0.0;
 		M[N-1][L1] = 0.0;
 		M[N-1][C]  = 1.0;
-		d[N-1] = outer_bndry_value;
+		d[N-1] = disk.outer_bndry_value;
 
 	} else {
 		cerr << "ERROR --- Outer Bndry Type Improperly Specified as " 
-			<< outer_bndry_type << endl;
+			<< disk.outer_bndry_type << endl;
 		return EXIT_FAILURE;
 	} // end outer BC if/else
 
@@ -238,22 +248,22 @@ int cnSolver::step( vDoub_i &l,     // specific angular momentum
 	// Check for negative
 	for( int j = 0 ; j < N ; j++ ){
 		if( FjNew[j] < 0.0 ){
-			if( density_floor < 0.0 ){
+			if( disk.density_floor < 0.0 ){
 				cerr << "ERROR IN CN SOLVER: Density negative @ j = " << j << endl
-					<< "	>> t = " << t << ", tStart = " << tStart << ", dt= " << dt << endl;
+					<< "	>> t = " << domain.t << ", tStart = " << domain.tStart << ", dt= " << domain.dt << endl;
 				status = EXIT_FAILURE;
 			} else {
-				FjNew[j] = density_floor;  // if floor enabled
+				FjNew[j] = disk.density_floor;  // if floor enabled
 				cout << "WARNING IN CN SOLVER: Density negative @ j = " << j << endl 
-					<< "	>> t = " << t << ", tStart = " << tStart << ", dt = " << dt << endl
-					<< "		Density Floor of " << density_floor << " activated" << endl;
+					<< "	>> t = " << domain.t << ", tStart = " << domain.tStart << ", dt = " << domain.dt << endl
+					<< "		Density Floor of " << disk.density_floor << " activated" << endl;
 			} // end floor if/else
 		}// end negative density if
 	} // end j for
 	
 	// Copy new density into sigma
 	for( int j = 0 ; j < N ; j++ )
-		Fj[j] = FjNew[j];
+		disk.Fj[j] = FjNew[j];
 	
 	return status;
 } // end solve
@@ -266,17 +276,28 @@ int cnSolver::step( vDoub_i &l,     // specific angular momentum
  *			M_dot = dF_J/dl - F * Lambda / D_J
  *
  */
+<<<<<<< HEAD
 double cnSolver::Mdot( vDoub_i &l, vDoub_i &Fj, const int j ){
 
 	if( j < 2 || j > N - 3 ){
+=======
+double cnSolver::Mdot( const problemDomain &domain,
+                       const gasDisk &disk, 
+                       const secondaryBH &secondary, 
+                       const int j ) const
+{
+
+	if( j < 2 || j > disk.N - 3 ){
+//		cerr << "WARNING -- Cannot compute mass flux with 2 cells of bounds" << endl; FIXME
+>>>>>>> de3cac770ab04ae65bf75dd546f5d5944bf0436f
 		return 0.0;
 	} // end j if
 	
-	double grad_const = pow(lambda,-1.0*j)/dl, tmp=0.0;
+	double grad_const = pow(disk.lambda,-1.0*j)/disk.dl, tmp=0.0;
 	for( int k = 0 ; k < STENCIL_SIZE ; ++k )
-		tmp += grad_const*grad_coeffs[k]*Fj[ j - CNTR + k ];
+		tmp += grad_const*grad_coeffs[k]*disk.Fj[ j - CNTR + k ];
 
-	tmp -= 4*PI*Fj[j] * tidalTorque(l[j]) / Dj( Fj[j] , l[j] );
+	tmp -= 4*PI*disk.Fj[j]*secondary.torque(disk,disk.l[j],domain.M)/disk.Dj(j);
 	
 	return tmp;
 } // end mDOt

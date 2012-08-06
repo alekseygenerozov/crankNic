@@ -15,20 +15,13 @@
  *
  *		The integration works from the OUTER disk bounds inward.
  */
-#include <iostream>
-#include <cmath>
-#include <fstream>
-
-#include "global.h"
+#include "problemDomain.h"
+#include "gasDisk.h"
+#include "secondaryBH.h"
 #include "readWrite.h"
 #include "mr.h"
 #include "rk4.h"
 #include "initialize.h"
-
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::ofstream;
 
 // see main for explanation of variables
 double r_out,r_isco,nv,a,s1,s2,s18,g;
@@ -75,28 +68,27 @@ int main(int argc , char **argv ){
 
 	int status = EXIT_SUCCESS;
 
-	/*
-	 * Read in parameter file and update global variables
-	 */
-
-  // read in from parameter file, params.in
-  if( EXIT_SUCCESS != (status = readParams()))
+	problemDomain domain;
+	gasDisk disk;
+	secondaryBH secondary;
+  
+	// read in from parameter file, params.in
+  if( EXIT_SUCCESS != (status = readParams(domain,disk,secondary)))
     return status;
 
 	// intialize grid
-  vDoub l(N), FJ(N);            // not used until after ODE solver
-	int fCnt; double t;
-  if(EXIT_SUCCESS != (status = initialize(0,NULL,l,FJ,fCnt,t)))
+  if(EXIT_SUCCESS != (status = initialize(0,NULL,domain,disk,secondary)))
     return status;
 
-	r_out  = 300.0*300.0; // FIXME lMax*lMax/M;           // outer bounds
-	r_isco = lMin*lMin/M;           // ISCO (inner bounds)
-	nv     = .5*np+1;               // viscosity power law const
-	a      = l_a*l_a/M;             // position of secondary BH
-	s1 = sqrt(a/r_out);             // LNS dimensionless radius-esque thing
-	s2 = sqrt(r_isco/r_out);        // """, at the inner bnds
+	r_out  = 300.0*300.0; // FIXME lMax*lMax/M;    // outer bounds
+	r_isco = disk.lMin*disk.lMin/domain.M;         // ISCO (inner bounds)
+	nv     = .5*disk.np+1;                         // viscosity power law const
+	a      = secondary.l_a*secondary.l_a/domain.M; // position of secondary BH
+	s1 = sqrt(a/r_out);                            // LNS dimensionless radius-esque thing
+	s2 = sqrt(r_isco/r_out);                       // """, at the inner bnds
 	s18 = pow(s1,8);                
-	g = 2.0/3.0*f*q*q*sqrt(r_out);  // measure of secondary strength (~q^2)
+	g = 2.0/3.0*secondary.f*secondary.q*secondary.q
+	      *sqrt(r_out);                            // measure of secondary strength (~q^2)
 
 	// xStar determines where switch ODE formulation (matters, a lot!)
 	double xStar = 0.5;
@@ -170,24 +162,24 @@ int main(int argc , char **argv ){
 	// convert r and sigma into l and FJ
 	double tmp,l_tmp;
 	for( size_t i = 0 ; i != r.size() ; ++i ){
-		l_tmp = sqrt(r[i]*M);
-		tmp = r[i]*omega_k(l_tmp);
-		sigma[i] = 3.0*PI*nu(r[i])*r[i]*r[i]*omega_k(l_tmp)*sigma[i];
+		l_tmp = sqrt(r[i]*domain.M);
+		tmp = r[i]*omega_k(l_tmp,domain.M);
+		sigma[i] = 3.0*PI*nu(r[i])*r[i]*r[i]*omega_k(l_tmp,domain.M)*sigma[i];
 		r[i] = l_tmp;
 	}
 
 	// interpolate solution onto grid
-	FJ[0  ] = sigma[0  ]; FJ[N-1] = sigma[totalIters - 1];
+	disk.FJ[0  ] = sigma[0  ]; disk.FJ[N-1] = sigma[totalIters - 1];
 	size_t j = 0; double m;
 	for( size_t i = 1 ; i != N-1 ; ++i ){ // at every grid pt
-		while( r[j] < l[i] ) ++j; // advance rk sltn until we bracket grid pt
+		while( r[j] < disk.l[i] ) ++j; // advance rk sltn until we bracket grid pt
 		m = (sigma[j]-sigma[j-1])/(r[j]-r[j-1]);
-		FJ[i] = (l[i]-r[j])*m + sigma[j];
+		disk.FJ[i] = (disk.l[i]-r[j])*m + sigma[j];
 	}
 
 	// print solution
 	for( size_t i = 0 ; i != N ; ++i )
-		cout << l[i] << "\t" << FJ[i] << endl;
+		cout << disk.l[i] << "\t" << disk.FJ[i] << endl;
 
 	return status;
 } // end main

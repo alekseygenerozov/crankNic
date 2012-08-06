@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <math.h>
-#include "global.h"
+#include "disk.h"
 #include "torques.h"
 #include "quadCoeffs.h"
 
