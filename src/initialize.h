@@ -182,6 +182,8 @@ int initialize( int argc,
 		cerr << "tStart = " << domain.tStart << endl;
 	}// end non-restart if 
 
+	domain.nextWrite = domain.tStart;
+
 	cerr << "tEnd = " << domain.tEnd << endl
 		<< "tWrite = " << domain.tWrite << endl
 		<< "Initial dt = " << calculateTimeStep(domain,disk,secondary) << endl;

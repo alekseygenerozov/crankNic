@@ -36,14 +36,15 @@ class problemDomain {
 public:
 	problemDomain();
 	double update_dt(double new_dt);
-	bool isWriteCycle(){ return (t + dt) >= nextWrite; }
+	bool isWriteCycle(){ return ( (t + dt) >= nextWrite ); }
 	void writePlus(){ fileCount++; nextWrite += tWrite; };
 	bool keepOn() const { return t < tEnd; };
 	void advance() { t += dt; }
 
 	string initial_data_file;
 	int problemType, debug_mode;         // verbose printing (default off)
-	int fileCount, nextWrite;            // for data IO
+	int fileCount;
+	double nextWrite;                    // for data IO
 	double tStart, tEnd, tWrite, t,dt;   // timing
 	double SAFETY_NUMBER;	               // diminishes timestep
 	double l0;                           // where delta-fcn starts
@@ -54,7 +55,7 @@ public:
 problemDomain::problemDomain()
 	: tStart(0.0), tEnd(1.0), tWrite(1.0), SAFETY_NUMBER(1.0), dt(0.0), t(0.0),
 	  l0(1.0), M(1.0), debug_mode(OFF), problemType(RAMPED), fileCount(0),
-	  initial_data_file("UNSET") {}
+	  initial_data_file("UNSET"), nextWrite(0.1) {}
 
 
 
@@ -64,6 +65,7 @@ problemDomain::problemDomain()
  */
 double problemDomain::update_dt(double new_dt)
 {
+	dt = new_dt; return dt;	// FIXME
 	if( t + new_dt > nextWrite )
 		dt = nextWrite - t;
 	else

@@ -18,11 +18,8 @@ double calculateTimeStep( problemDomain &domain,
 	double dt=0.0, dtMin=1E5;
 
 	for( size_t j = 0 ; j < disk.N ; j++ ){
-
-		// viscous diffusion timescale
 		dt = .5*disk.dl/disk.Dj(j)*pow(disk.lambda,(int)j); //FIXME
 		dtMin = min(dtMin,dt);
-
 	} // end j for
 
 	domain.update_dt( domain.SAFETY_NUMBER*dtMin );
