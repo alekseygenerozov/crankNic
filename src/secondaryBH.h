@@ -13,11 +13,12 @@ public:
 	secondaryBH();
 	double torque(const gasDisk&,const double,const double) const;
 	void moveSecondary(const gasDisk&,const double,const double);
+	double gaussTorqueInt(cubicSpline&,const gasDisk&,const double,const double,const double);
+	int writeOut(const problemDomain&) const;
 	double q;      // BH mass ratio
 	double f;      // numerical parameter (see Armitage & Natarajan)
 	double l_a;    // binary separation
 	int position;  // static or dynamic (default static)
-	double gaussTorqueInt(cubicSpline&,const gasDisk&,const double,const double,const double);
 }; // end secondaryBH
 
 
@@ -141,5 +142,34 @@ void secondaryBH::moveSecondary( const gasDisk &disk, const double dt , const do
 	l_a += dldt*dt;
 
 } // end moveSecondary
+
+
+
+/*
+ *	WRITE OUT
+ */
+int secondaryBH::writeOut(const problemDomain &domain) const
+{
+	static bool first = true, good = true;
+	if(!good) return EXIT_FAILURE;
+	
+	ofstream fout("secondary.out",first?ofstream::trunc:ofstream::app);
+	if(!fout){
+		good = false;
+		cerr << "WARNING IN SECONDARY::writeOut ... Output file mass.out did not open properly." << endl;
+		return EXIT_FAILURE;
+	} // end err if
+	
+	if(first){
+		fout << "#t	l_a	q" << endl;
+		first = false;
+	}
+
+	fout << domain.t << "\t" << l_a << "\t" << q << endl;
+
+  fout.close();
+
+	return EXIT_SUCCESS;
+}// end writeOut
 
 #endif
