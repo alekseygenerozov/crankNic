@@ -25,6 +25,17 @@ int main(int argc , char **argv ){
 
 	int status = EXIT_SUCCESS;
 
+	// pull integration bounds from command line
+	double a = 7.0, b = 16.0;
+	if( argc > 2 ){
+		sscanf(argv[1],"%lf",&a);
+		sscanf(argv[2],"%lf",&b);
+		if( a > b ) {
+			cerr << "ERROR IN PROVE QUAD -- integration bounds out of order" << endl;
+			return EXIT_FAILURE;
+		} // end error if
+	} // end argc if
+	
 	problemDomain domain;
 	gasDisk disk;
 	secondaryBH secondary;
@@ -34,7 +45,7 @@ int main(int argc , char **argv ){
 		return status;
 
 	// intialize grid
-	if(EXIT_SUCCESS != (status = initialize(argc,argv,domain,disk,secondary)))
+	if(EXIT_SUCCESS != (status = initialize(0,NULL,domain,disk,secondary)))
 		return status;
 
 	// hand-code function for Fj:
@@ -63,7 +74,7 @@ int main(int argc , char **argv ){
 	}// end scope
 
 	// perform quadrature
-	cerr << secondary.gaussTorqueInt(cSpline,disk,7.0,16.0,domain.M) << endl;
+	cerr << secondary.gaussTorqueInt(cSpline,disk,a,b,domain.M) << endl;
 
 	return status;
 } // end main
