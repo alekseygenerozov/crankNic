@@ -17,7 +17,6 @@ public:
 	double f;      // numerical parameter (see Armitage & Natarajan)
 	double l_a;    // binary separation
 	int position;  // static or dynamic (default static)
-private:
 	double gaussTorqueInt(cubicSpline&,const gasDisk&,const double,const double,const double);
 }; // end secondaryBH
 
@@ -38,6 +37,10 @@ secondaryBH::secondaryBH()
  */
 double secondaryBH::torque( const gasDisk &disk, const double l , const double M) const
 {
+#ifdef _QUAD_CHECK_
+	if( l < 7.0 || l > 16.0 ) return 0.0;
+	return 10.0;
+#endif
 
 	if( q == 0.0 ){
 		return 0.0;

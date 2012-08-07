@@ -18,7 +18,7 @@ public:
 	void buildGrid();
 	double h(const double ll,double M) const { return dhdr*ll*ll/M;};
 	double Dj(const size_t j) const {return D0*pow(Fj[j],nd)*pow(l[j],np);};
-	double Dj(const double Fj, const double l ) const { return D0*pow(Fj,nd)*pow(l,np);};
+	double Dj(const double Fj, const double l ) const;
 	double dmdl(const size_t j) const {return Fj[j]/Dj(j);};
 
 	// RESOLUTION PARAMETERS
@@ -150,5 +150,19 @@ void gasDisk::buildGrid()
 			}// end lambda if/else
 	}// end j for
 }// end buildGrid
+
+
+
+/*
+ *	DJ
+ */
+double gasDisk::Dj(const double Fj, const double l ) const
+{
+#ifdef _QUAD_CHECK_
+	return 1.0;
+#endif
+
+	return D0*pow(Fj,nd)*pow(l,np);
+}
 
 #endif
