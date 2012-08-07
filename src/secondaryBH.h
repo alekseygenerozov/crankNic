@@ -1,3 +1,7 @@
+#include "problemDomain.h"
+#include "quadCoeffs.h"
+#include "cubicSpline.h"
+
 #ifndef INC_SECONDARY
 #define INC_SECONDARY
 
@@ -7,12 +11,14 @@ const int DYNAMIC = 1;
 class secondaryBH {
 public:
 	secondaryBH();
-	double torque(const gasDisk &disk, const double l, const double M) const;
-	
+	double torque(const gasDisk&,const double,const double) const;
+	void moveSecondary(const gasDisk&,const double,const double);
 	double q;      // BH mass ratio
 	double f;      // numerical parameter (see Armitage & Natarajan)
 	double l_a;    // binary separation
 	int position;  // static or dynamic (default static)
+private:
+	double gaussTorqueInt(cubicSpline&,const gasDisk&,const double,const double,const double);
 }; // end secondaryBH
 
 
@@ -57,5 +63,80 @@ double secondaryBH::torque( const gasDisk &disk, const double l , const double M
 	tmp2 = la2/(l2-la2);
 	return 	tmp1*tmp2*tmp2*tmp2*tmp2/l2;
 }// end tidal torque
+
+/*
+ *  GAUSS TORQUE INT
+ *
+ *    Performs Gauss Quadrature of FJ*Lambda/DJ 
+ *    in region a < l < b. Needs an interpolation
+ *    object for FJ, from which it computes DJ.
+ *
+ *    GQ coefficients are stored in quadCoeffs.h
+ */
+double secondaryBH::gaussTorqueInt( cubicSpline &FJ_cSpline,
+                                    const gasDisk& disk,
+                                    const double a,
+                                    const double b ,
+                                    const double M )
+{
+	if( b <= a ) return 0.0;
+
+	static const size_t N_GAUSS = 48;
+	double bMao2 = 0.5*(b-a), bPao2 = 0.5*(b+a),
+		sum = 0.0,x,Ftmp;
+	
+	// first half of integral (splitting like this is optimal 
+	// for spline fcn)
+	for( size_t i = 0 ; i != N_GAUSS ; ++i ){
+		x = bPao2 + bMao2*gaussQuad_x_96[i];
+		Ftmp = FJ_cSpline.interp(x);
+		sum += torque(disk,x,M)*Ftmp/disk.Dj(Ftmp,x)*gaussQuad_w_96[i];
+	} // end i for
+
+	// second half of integral
+	for( size_t i = 0 ; i != N_GAUSS ; ++i ){
+		x = bPao2 - bMao2*gaussQuad_x_96[i];
+		Ftmp = FJ_cSpline.interp(x);
+		sum += torque(disk,x,M)*Ftmp/disk.Dj(Ftmp,x)*gaussQuad_w_96[i];
+	} // end i for
+
+	return sum*bMao2;
+}// end gaussTorqueInt
+
+
+
+/*
+ *  MOVE SECONDARY
+ *
+ *    Performs "back-reaction" of disk-secondary torque
+ *    on the secondary blackhole, hardening the binary.
+ *
+ *    Integrates product of FJ and Torque density
+ *    profile, then uses this to find dl_a/dt and updates
+ *    l_a for next time step.
+ */
+void secondaryBH::moveSecondary( const gasDisk &disk, const double dt , const double M)
+{
+	if( position == STATIC || q == 0.0 ) return;  // do nothing
+
+	const double LL = 5.0*sqrt(disk.h(l_a,M));
+
+	// interpolate data
+	cubicSpline FJ_cSpline(disk.l,disk.Fj);
+
+	// perform integrations in four regions, using 
+	// 96-pt gaussian quadrature scheme
+	double dldt = 0.0;
+	dldt += gaussTorqueInt(FJ_cSpline,disk,disk.lMin,l_a-LL,M); // ( ISCO < l < l_a - LL )
+	dldt += gaussTorqueInt(FJ_cSpline,disk,l_a-LL,l_a,M);       // ( l_a - LL < l < l_a )
+	dldt += gaussTorqueInt(FJ_cSpline,disk,l_a,l_a+LL,M);       // ( l_a < l < l_a + LL )
+	dldt += gaussTorqueInt(FJ_cSpline,disk,l_a+LL,disk.lMax,M); // ( l_a + LL < l < l_out )
+	
+	dldt *= (-1.0/(M*q));
+
+	// update binary position
+	l_a += dldt*dt;
+
+} // end moveSecondary
 
 #endif

@@ -64,7 +64,7 @@ cubicSpline::cubicSpline(vDoub_i &x,vDoub_i &f)
  *		of original vector (xx and ff) where the last
  *		call was made to speed up this process
  */
-double cubicSpline::interp(double x)
+double cubicSpline::interp(double x) 
 {
 #ifdef _CHECKBNDS_
 	if( x < xx[0] || x > xx[n-1] )

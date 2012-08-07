@@ -97,21 +97,10 @@ cnSolver::cnSolver(const gasDisk& disk)
  *		using a Crank-Nicolson scheme and NR3 matrix solver
  *
  */
-<<<<<<< HEAD
-int cnSolver::step( vDoub_i &l,     // specific angular momentum
-                    vDoub &Fj,      // current a.m. flux
-                    double t,       // time
-                    double dt,      // width of time step
-                    double &l_a,    // binary separation
-                    bool dWrite )   // debug write step
-{
-
-=======
 int cnSolver::step( problemDomain &domain,
                     gasDisk &disk,
                     secondaryBH &secondary ) 
 {
->>>>>>> de3cac770ab04ae65bf75dd546f5d5944bf0436f
 	int status = EXIT_SUCCESS;
 	size_t N = disk.N;
 	double tmp0,tmp1,tmp2,lambda = disk.lambda;
@@ -276,11 +265,6 @@ int cnSolver::step( problemDomain &domain,
  *			M_dot = dF_J/dl - F * Lambda / D_J
  *
  */
-<<<<<<< HEAD
-double cnSolver::Mdot( vDoub_i &l, vDoub_i &Fj, const int j ){
-
-	if( j < 2 || j > N - 3 ){
-=======
 double cnSolver::Mdot( const problemDomain &domain,
                        const gasDisk &disk, 
                        const secondaryBH &secondary, 
@@ -289,7 +273,6 @@ double cnSolver::Mdot( const problemDomain &domain,
 
 	if( j < 2 || j > disk.N - 3 ){
 //		cerr << "WARNING -- Cannot compute mass flux with 2 cells of bounds" << endl; FIXME
->>>>>>> de3cac770ab04ae65bf75dd546f5d5944bf0436f
 		return 0.0;
 	} // end j if
 	
