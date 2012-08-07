@@ -12,7 +12,7 @@ int initialize( int argc,
                 gasDisk &disk,
                 secondaryBH &secondary )
 {
-
+	
 	/*
  	 *	----------- Process command-line arguments
 	 */

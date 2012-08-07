@@ -24,7 +24,7 @@
 #include "initialize.h"
 
 // see main for explanation of variables
-double r_out,r_isco,nv,a,s1,s2,s18,g;
+double r_out,r_isco,nv,a,s1,s2,s18,g,dhdr;
 double nu(double r){ return pow(r/r_out,nv); } // viscosity
 
 /*
@@ -76,6 +76,8 @@ int main(int argc , char **argv ){
   if( EXIT_SUCCESS != (status = readParams(domain,disk,secondary)))
     return status;
 
+	domain.problemType = RAMPED; // just needs to not look for some file
+
 	// intialize grid
   if(EXIT_SUCCESS != (status = initialize(0,NULL,domain,disk,secondary)))
     return status;
@@ -89,6 +91,7 @@ int main(int argc , char **argv ){
 	s18 = pow(s1,8);                
 	g = 2.0/3.0*secondary.f*secondary.q*secondary.q
 	      *sqrt(r_out);                            // measure of secondary strength (~q^2)
+	dhdr = disk.dhdr;
 
 	// xStar determines where switch ODE formulation (matters, a lot!)
 	double xStar = 0.5;
@@ -169,17 +172,17 @@ int main(int argc , char **argv ){
 	}
 
 	// interpolate solution onto grid
-	disk.FJ[0  ] = sigma[0  ]; disk.FJ[N-1] = sigma[totalIters - 1];
+	disk.Fj[0  ] = sigma[0  ]; disk.Fj[disk.N-1] = sigma[totalIters - 1];
 	size_t j = 0; double m;
-	for( size_t i = 1 ; i != N-1 ; ++i ){ // at every grid pt
+	for( size_t i = 1 ; i != disk.N-1 ; ++i ){ // at every grid pt
 		while( r[j] < disk.l[i] ) ++j; // advance rk sltn until we bracket grid pt
 		m = (sigma[j]-sigma[j-1])/(r[j]-r[j-1]);
-		disk.FJ[i] = (disk.l[i]-r[j])*m + sigma[j];
+		disk.Fj[i] = (disk.l[i]-r[j])*m + sigma[j];
 	}
 
 	// print solution
-	for( size_t i = 0 ; i != N ; ++i )
-		cout << disk.l[i] << "\t" << disk.FJ[i] << endl;
+	for( size_t i = 0 ; i != disk.N ; ++i )
+		cout << disk.l[i] << "\t" << disk.Fj[i] << endl;
 
 	return status;
 } // end main
