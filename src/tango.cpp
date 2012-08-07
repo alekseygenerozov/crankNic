@@ -48,6 +48,10 @@ int main(int argc, char *argv[]){
 			writeStandard(domain,disk,secondary,solver,true);
 			return status;
 		}
+		
+		// update secondary's position
+		secondary.moveSecondary(disk,domain.dt,domain.M);
+
 		domain.advance();
 
 		// check if we write out data

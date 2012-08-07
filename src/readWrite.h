@@ -41,9 +41,10 @@ int readParams( problemDomain &domain,
 		nV += sscanf(line, "np = %lg",   &disk.np);
 		nV += sscanf(line, "dhdr = %lg", &disk.dhdr);
 
-		nV += sscanf(line, "l_a = %lg", &secondary.l_a);
-		nV += sscanf(line, "q = %lg",   &secondary.q);
-		nV += sscanf(line, "f = %lg",   &secondary.f);
+		nV += sscanf(line, "l_a = %lg",     &secondary.l_a);
+		nV += sscanf(line, "q = %lg",       &secondary.q);
+		nV += sscanf(line, "f = %lg",       &secondary.f);
+		nV += sscanf(line, "position = %d", &secondary.position);
 
 		// timing
 		nV += sscanf(line, "tStart = %lg",        &domain.tStart);
@@ -113,9 +114,10 @@ int writeParams( problemDomain &domain,
 	fprintf(fp,"np   = %g\n", disk.np);
 	fprintf(fp,"dhdr = %g\n", disk.dhdr);
 
-	fprintf(fp,"l_a  = %g\n", secondary.l_a);
-	fprintf(fp,"q    = %g\n", secondary.q);
-	fprintf(fp,"f    = %g\n", secondary.f);
+	fprintf(fp,"l_a      = %g\n", secondary.l_a);
+	fprintf(fp,"q        = %g\n", secondary.q);
+	fprintf(fp,"f        = %g\n", secondary.f);
+	fprintf(fp,"position = %d\n", secondary.position);
 	fprintf(fp,"\n");
 
 	// Timing
@@ -192,12 +194,12 @@ int writeStandard(	problemDomain &domain,
 	// Print current data file #, current time and column headers
 	fprintf(fp,"# N = %d\n",domain.fileCount);
 	fprintf(fp,"# t = %g\n",domain.t);
-	fprintf(fp,"#	l		Fj		Lambda	Mdot\n");
+	fprintf(fp,"#	l		Fj		Lambda	Mdot	l_a\n");
 
 	// print data
 	for( size_t j = 0 ; j < disk.N ; j++ ){
-		fprintf(fp,"%e\t%e\t%e\t%e\n",disk.l[j],disk.Fj[j],secondary.torque(disk,disk.l[j],domain.M),
-		         solver.Mdot(domain,disk,secondary,j));
+		fprintf(fp,"%e\t%e\t%e\t%e\t%e\n",disk.l[j],disk.Fj[j],secondary.torque(disk,disk.l[j],domain.M),
+		         solver.Mdot(domain,disk,secondary,j),secondary.l_a);
 	}// end j for
 
 	if(EXIT_SUCCESS == (status = fclose(fp)))
