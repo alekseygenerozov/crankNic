@@ -107,12 +107,12 @@ int main(int argc , char **argv ){
 	 * in terms of x = 1 - x, with ode45 (RK adaptive 5th 
 	 * order)
 	 */
-	double xMin = 0.0,                  // s_start = 1.0
-		xMax = 1.0 - sqrt(r_isco/r_out);  // s_end = s2 = sqrt(r_isco/r_out)
-	size_t maxIters = 1E5, nVar = 2;    // some solver vars
-	vDoub FInit(nVar,0.0);              // ICs
-	mDoub FOut_FnG(maxIters,nVar+1);    // output from ode45 solver
-	mDoub FOut_FnH(maxIters,nVar+1);    // output from ode45 solver
+	double xMin = 0.0,                        // s_start = 1.0
+		xMax = 1.0 - sqrt(r_isco/r_out);        // s_end = s2 = sqrt(r_isco/r_out)
+	size_t maxIters = (size_t)1E5, nVar = 2;  // some solver vars
+	vDoub FInit(nVar,0.0);                    // ICs
+	mDoub FOut_FnG(maxIters,nVar+1);          // output from ode45 solver
+	mDoub FOut_FnH(maxIters,nVar+1);          // output from ode45 solver
 
 	double relTol = 1E-7;
 	double absTol = 1E-11;

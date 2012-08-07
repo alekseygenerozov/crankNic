@@ -81,7 +81,7 @@ void gasDisk::resize(size_t N, double lMin, double lMax, double l_a)
 	this->lMax = lMax;
 	
 	// optimize lambda ... 
-	int n = 1E5;
+	int n = (int)1E5;
 	double lamMin = 1.0 - 1E-5, lamMax = 1.05, optLam = lamMin, res, lam, 
 		dLam = (lamMax - lamMin)/(n-1.0), optRes = 1E99;
 	for( int i = 0 ; i != n ; ++i ){
