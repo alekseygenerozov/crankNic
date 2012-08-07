@@ -123,7 +123,7 @@ void secondaryBH::moveSecondary( const gasDisk &disk, const double dt , const do
 {
 	if( position == STATIC || q == 0.0 ) return;  // do nothing
 
-	const double LL = 5.0*sqrt(disk.h(l_a,M));
+	const double LL = 2.0*sqrt(disk.h(l_a,M));
 
 	// interpolate data
 	cubicSpline FJ_cSpline(disk.l,disk.Fj);
@@ -132,9 +132,9 @@ void secondaryBH::moveSecondary( const gasDisk &disk, const double dt , const do
 	// 96-pt gaussian quadrature scheme
 	double dldt = 0.0;
 	dldt += gaussTorqueInt(FJ_cSpline,disk,disk.lMin,l_a-LL,M); // ( ISCO < l < l_a - LL )
+	dldt += gaussTorqueInt(FJ_cSpline,disk,l_a+LL,disk.lMax,M); // ( l_a + LL < l < l_out )
 	dldt += gaussTorqueInt(FJ_cSpline,disk,l_a-LL,l_a,M);       // ( l_a - LL < l < l_a )
 	dldt += gaussTorqueInt(FJ_cSpline,disk,l_a,l_a+LL,M);       // ( l_a < l < l_a + LL )
-	dldt += gaussTorqueInt(FJ_cSpline,disk,l_a+LL,disk.lMax,M); // ( l_a + LL < l < l_out )
 	
 	dldt *= (-1.0/(M*q));
 
