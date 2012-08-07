@@ -11,7 +11,9 @@
  *		Where you can replace "outputfiles/T020.dat" with any dat file
  */
 
-#include "global.h"
+#include "problemDomain.h"
+#include "gasDisk.h"
+#include "secondaryBH.h"
 #include "readWrite.h"
 #include "mr.h"
 #include "cubicSpline.h"
@@ -21,28 +23,28 @@ int main(int argc , char **argv ){
 
 	int status = EXIT_SUCCESS;
 
+	problemDomain domain;
+	gasDisk disk;
+	secondaryBH secondary;	
 	/*
 	 * Read in parameter file and update global variables
 	 */
 
 	// read in from parameter file, params.in
-	if( EXIT_SUCCESS != (status = readParams()))
+	if( EXIT_SUCCESS != (status = readParams(domain,disk,secondary)))
 		return status;
 
 	// intialize grid
-	vDoub l(N), FJ(N);            // not used until after ODE solver
-	int fCnt; double t;
-	if(EXIT_SUCCESS != (status = initialize(argc,argv,l,FJ,fCnt,t)))
+	if(EXIT_SUCCESS != (status = initialize(argc,argv,domain,disk,secondary)))
 		return status;
 
 	// write globals to params.out
-	writeParams();
+	writeParams(domain,disk,secondary);
 
 	/*
 	 * Perform interpolation on data and print results to stdout
 	 */
-	vDoub xx(N,l), ff(N,FJ);
-	cubicSpline cSpline(xx,ff);
+	cubicSpline cSpline(disk.l,disk.Fj);
 
 	/*
 	 * Print result, at higher res ...
