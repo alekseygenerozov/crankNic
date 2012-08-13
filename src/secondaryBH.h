@@ -18,6 +18,7 @@ public:
 	double q;      // BH mass ratio
 	double f;      // numerical parameter (see Armitage & Natarajan)
 	double l_a;    // binary separation
+	static const double sigma_conversion_factor = 1.61939E-6;	// S ~ 10^5 g/cm^2 @ behind secondary
 	int position;  // static or dynamic (default static)
 }; // end secondaryBH
 
@@ -85,6 +86,27 @@ double secondaryBH::gaussTorqueInt( cubicSpline &FJ_cSpline,
 {
 	if( b <= a ) return 0.0;
 
+/*
+// ---------------- FIXME
+	int N = 10000;
+	double ds = (b-a)/(N-1.0),s,f;
+  double result = 0.0;
+
+	f = FJ_cSpline.interp(a);
+  result += f*torque(disk,a,M)/disk.Dj(f,a);
+  for(int i= 1 ; i<N-1 ; i++ ){
+		s = a + i*ds;
+		f = FJ_cSpline.interp(s);
+    result += (((i)%2==0)?2.0:4.0)*f*torque(disk,s,M)/disk.Dj(f,s);
+	}
+	f = FJ_cSpline.interp(b);
+  result += f*torque(disk,b,M)/disk.Dj(f,b);
+
+  return result*ds/3.0;
+// ---------------- FIXME
+*/
+
+
 	static const size_t N_GAUSS = 48;
 	double bMao2 = 0.5*(b-a), bPao2 = 0.5*(b+a),
 		sum = 0.0,x,Ftmp;
@@ -105,6 +127,7 @@ double secondaryBH::gaussTorqueInt( cubicSpline &FJ_cSpline,
 	} // end i for
 
 	return sum*bMao2;
+
 }// end gaussTorqueInt
 
 
@@ -123,7 +146,7 @@ void secondaryBH::moveSecondary( const gasDisk &disk, const double dt , const do
 {
 	if( position == STATIC || q == 0.0 ) return;  // do nothing
 
-	const double LL = 2.0*sqrt(disk.h(l_a,M));
+	const double LL = sqrt(disk.h(l_a,M));
 
 	// interpolate data
 	cubicSpline FJ_cSpline(disk.l,disk.Fj);
@@ -135,8 +158,10 @@ void secondaryBH::moveSecondary( const gasDisk &disk, const double dt , const do
 	dldt += gaussTorqueInt(FJ_cSpline,disk,l_a+LL,disk.lMax,M); // ( l_a + LL < l < l_out )
 	dldt += gaussTorqueInt(FJ_cSpline,disk,l_a-LL,l_a,M);       // ( l_a - LL < l < l_a )
 	dldt += gaussTorqueInt(FJ_cSpline,disk,l_a,l_a+LL,M);       // ( l_a < l < l_a + LL )
-	
-	dldt *= (-1.0/(M*q));
+
+	dldt *= (-1.0/(M*q)) * sigma_conversion_factor;
+
+	cout << dldt*dt << endl;	// FIXME
 
 	// update binary position
 	l_a += dldt*dt;

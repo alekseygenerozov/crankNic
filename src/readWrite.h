@@ -203,7 +203,7 @@ int writeStandard(	problemDomain &domain,
 	}// end j for
 
 	if(EXIT_SUCCESS == (status = fclose(fp)))
-		cout << "	>> Wrote Output #" << domain.fileCount << " at T = " << domain.t << endl;
+		cerr << "	>> Wrote Output #" << domain.fileCount << " at T = " << domain.t << endl;
 	else {
 		cerr << "ERROR IN STD WRITE --- file did not close properly" << endl;
 		return status;

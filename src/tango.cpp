@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
 		domain.writePlus();
 	
 	writeMass(domain,disk,secondary,solver);
+	secondary.writeOut(domain);
 
 	while(domain.keepOn()){		// main loop (in time)
 
@@ -44,7 +45,7 @@ int main(int argc, char *argv[])
 		domain.advance();                                   // update current time
 
 		if( domain.isWriteCycle() ){		// write out data
-			cout << "		>> dt = " << domain.dt << endl;
+			cerr << "		>> dt = " << domain.dt << endl;
 			if(EXIT_SUCCESS != (status = writeStandard(domain,disk,secondary,solver))) return status;
 			writeMass(domain,disk,secondary,solver);
 			secondary.writeOut(domain);
