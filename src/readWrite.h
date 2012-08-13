@@ -45,6 +45,7 @@ int readParams( problemDomain &domain,
 		nV += sscanf(line, "q = %lg",       &secondary.q);
 		nV += sscanf(line, "f = %lg",       &secondary.f);
 		nV += sscanf(line, "position = %d", &secondary.position);
+		nV += sscanf(line, "GW_loss = %d",  &secondary.GW_loss);
 
 		// timing
 		nV += sscanf(line, "tStart = %lg",        &domain.tStart);
@@ -118,6 +119,7 @@ int writeParams( problemDomain &domain,
 	fprintf(fp,"q        = %g\n", secondary.q);
 	fprintf(fp,"f        = %g\n", secondary.f);
 	fprintf(fp,"position = %d\n", secondary.position);
+	fprintf(fp,"GW_loss  = %d\n", secondary.GW_loss);
 	fprintf(fp,"\n");
 
 	// Timing

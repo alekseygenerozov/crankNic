@@ -20,6 +20,7 @@ public:
 	double l_a;    // binary separation
 	static const double sigma_conversion_factor = 1.61939E-6;	// S ~ 10^5 g/cm^2 @ behind secondary
 	int position;  // static or dynamic (default static)
+	int GW_loss;   // include GW wave hardening (default OFF)
 }; // end secondaryBH
 
 
@@ -28,7 +29,7 @@ public:
  *	DEFAULT CONSTRUCTOR
  */
 secondaryBH::secondaryBH()
-	: q(0.1), f(0.01), l_a(10.0), position(STATIC) {}
+	: q(0.1), f(0.01), l_a(10.0), position(STATIC) , GW_loss(OFF) {}
 
 
 /*
@@ -161,7 +162,8 @@ void secondaryBH::moveSecondary( const gasDisk &disk, const double dt , const do
 
 	dldt *= (-1.0/(M*q)) * sigma_conversion_factor;
 
-	cout << dldt*dt << endl;	// FIXME
+	if( GW_loss == ON )
+		dldt -= 32.0*pow(M/l_a,7.0)*q/((1.0+q)*(1.0+q)*5.0);
 
 	// update binary position
 	l_a += dldt*dt;
