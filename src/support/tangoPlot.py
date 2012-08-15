@@ -15,6 +15,15 @@ def normalize(x):
 	return x/np.max(np.abs(x))
 
 #
+#	n2s
+#		Convert double, like 1.5 to string, like 1p5 (for file I/O)
+#
+def n2s( num ):
+	brk = str(num).split('.')
+	return brk[0] + "p" + brk[1]
+
+
+#
 #		strFN
 #			Converts # to string with prefix of zeros
 #				Assumes we're going from 000 to 999
