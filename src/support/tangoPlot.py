@@ -443,3 +443,17 @@ def plotMDot(params,n):
 	plt.semilogx(l,trk,'k--',linewidth=.5)
 	
 	plt.savefig( n2IName(n) + '_mdot' )
+
+
+#
+#	SECONDARY PLOT
+#		Produces plot showing movement from secondary
+#		from data stored in (typically) secondary.out
+def secondaryPlot(fName="secondary.out",iName="images/secondary"):
+	plt.clf()
+	sDat = readDataFile(fName,1)
+	plt.plot(sDat[:,0],sDat[:,1],'k-')
+	plt.title('Position of Secondary BH')
+	plt.xlabel('t')
+	plt.ylabel('l_a/M')
+	plt.savefig(iName)
