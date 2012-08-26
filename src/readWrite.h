@@ -196,13 +196,13 @@ int writeStandard(	problemDomain &domain,
 	// Print current data file #, current time and column headers
 	fprintf(fp,"# N = %d\n",domain.fileCount);
 	fprintf(fp,"# t = %g\n",domain.t);
-	fprintf(fp,"#	l		Fj		Lambda	Mdot	H\n");
+	fprintf(fp,"#	l		Fj		Lambda	Mdot\n");
 
 	// print data
 	for( size_t j = 0 ; j < disk.N ; j++ ){
-		fprintf(fp,"%e\t%e\t%e\t%e\t%e\n",disk.l[j],disk.Fj[j],
+		fprintf(fp,"%e\t%e\t%e\t%e\n",disk.l[j],disk.Fj[j],
 			secondary.torque(disk,disk.l[j],domain.M),
-			solver.Mdot(domain,disk,secondary,j),disk.h(j));
+			solver.Mdot(domain,disk,secondary,j));
 	}// end j for
 
 	if(EXIT_SUCCESS == (status = fclose(fp)))
