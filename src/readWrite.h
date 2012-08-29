@@ -1,7 +1,7 @@
 #include "problemDomain.h"
 #include "gasDisk.h"
 #include "secondaryBH.h"
-#include "cnSolver.h"
+#include "udSolver.h"
 
 #ifndef INC_READ_PARAMS
 #define INC_READ_PARAMS
@@ -172,7 +172,7 @@ string intToStr(int i){
 int writeStandard(	problemDomain &domain,
                     gasDisk &disk,
                     secondaryBH &secondary,
-										cnSolver &solver,
+										udSolver &solver,
 										bool errorPrint = false
 ){
 

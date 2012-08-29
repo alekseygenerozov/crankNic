@@ -3,8 +3,8 @@
 #include "secondaryBH.h"
 #include "mr.h"
 
-#ifndef FD_SOLVER
-#define FD_SOLVER
+#ifndef UD_SOLVER
+#define UD_SOLVER
 
 class udSolver{
 public:
@@ -113,33 +113,36 @@ int udSolver::step( problemDomain &domain,
 
 		// diffusion term
 		for( int k = 0 ; k < STENCIL_SIZE ; ++k )
-			dFoDdt = tmp0*laplace_coeffs[k]*disk.Fj[j-CNTR+k];
+			dFoDdt += tmp0*laplace_coeffs[k]*disk.Fj[j-CNTR+k];
 
 		// upwind differencing for the advective term
+		double old = dFoDdt;
 		if( disk.l[j] < secondary.l_a ){ 
-			dFoDdt -= (   disk.Fj[j+1]*secondary.torque(disk,l[j+1],domain.M)/disk.Dj(j+1)
-			            - disk.Fj[j  ]*secondary.torque(disk,l[j  ],domain.M)/disk.Dj(j  )
+			dFoDdt -= (   disk.Fj[j+1]*secondary.torque(disk,disk.l[j+1],domain.M)/disk.Dj(j+1)
+			            - disk.Fj[j  ]*secondary.torque(disk,disk.l[j  ],domain.M)/disk.Dj(j  )
 			          )/( disk.l[j+1]-disk.l[j]);
+			cout << "change @ " << j << ": " << dFoDdt - old << endl;
 		} else {
-			dFoDdt -= (   disk.Fj[j  ]*secondary.torque(disk,l[j  ],domain.M)/disk.Dj(j  )
-			            - disk.Fj[j-1]*secondary.torque(disk,l[j-1],domain.M)/disk.Dj(j-1)
+			dFoDdt -= (   disk.Fj[j  ]*secondary.torque(disk,disk.l[j  ],domain.M)/disk.Dj(j  )
+			            - disk.Fj[j-1]*secondary.torque(disk,disk.l[j-1],domain.M)/disk.Dj(j-1)
 			          )/( disk.l[j]-disk.l[j-1]);
+			cout << "change @ " << j << ": " << dFoDdt - old << endl;
 		} // end upwind if/else
 
 		// find new Fj/Dj
-		FoD = disk.Fj[j]/disk.Dj[j] + domain.dt*dFoDdt;
+		FoD = disk.Fj[j]/disk.Dj(j) + domain.dt*dFoDdt;
 
 		// Find Fj via Dj
 		if( disk.nd == 0 )
 			disk.Fj[j] = FoD*disk.D0*pow(disk.l[j],disk.np);
 		else 
-			disk.Fj[j] = pow(FoD*disk.D0*pow(disk.l[j],disk.np),1.0/(1.0-nd));
+			disk.Fj[j] = pow(FoD*disk.D0*pow(disk.l[j],disk.np),1.0/(1.0-disk.nd));
 	} // end j for
 
 	/*
 	 * --------- Update boundary conditions:
 	 */
-	double laplace_val;
+	double laplace_val,tmp;
 
 	if( NEUMANN == disk.inner_bndry_type ){		// INNER BNDRY SWITCH
 		
@@ -150,7 +153,7 @@ int udSolver::step( problemDomain &domain,
 			laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.Dj(1)*domain.t))*exp(-x*x);
 		}
 		disk.Fj[1] = (   laplace_val*disk.dl2*l2
-		               + bndry_laplace[A]*disk.inner_bndry_value*dl
+		               + bndry_laplace[A]*disk.inner_bndry_value*disk.dl
 		               - bndry_laplace[C]*disk.Fj[2] )/( bndry_laplace[A] + bndry_laplace[C] );
 
 		// fixed gradient

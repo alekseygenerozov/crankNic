@@ -1,7 +1,7 @@
 #include "problemDomain.h"
 #include "gasDisk.h"
 #include "secondaryBH.h"
-#include "cnSolver.h"
+#include "udSolver.h"
 #include "readWrite.h"
 #include "initialize.h"
 #include "calculateTimeStep.h"
@@ -18,8 +18,8 @@ int main(int argc, char *argv[])
 	if(EXIT_SUCCESS!=(status=readParams(domain,disk,secondary))) return status;
 	if(EXIT_SUCCESS!=(status=initialize(argc,argv,domain,disk,secondary))) return status;
 
-	// intialize our Crank-Nicolson solver	
-	cnSolver solver(disk);
+	// intialize our Upwind Differencing solver	
+	udSolver solver(disk);
 
 	// print ICs & Parameters we'll use
 	if(EXIT_SUCCESS != (status = writeParams(domain,disk,secondary))) return status;

@@ -1,7 +1,7 @@
 #include "problemDomain.h"
 #include "gasDisk.h"
 #include "secondaryBH.h"
-#include "cnSolver.h"
+#include "udSolver.h"
 
 #ifndef INC_MASS
 #define INC_MASS
@@ -80,7 +80,7 @@ bool massAnnulus(
 int writeMass( const problemDomain &domain, 
                const gasDisk &disk,
                const secondaryBH &secondary,
-               const cnSolver &solver )
+               const udSolver &solver )
 {
 	
 	static bool good = true;
