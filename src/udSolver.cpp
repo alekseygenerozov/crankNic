@@ -16,8 +16,10 @@ private:
 	static const unsigned int STENCIL_SIZE = 5;              // # of cells in stencil (per time step)
 	static const unsigned int CNTR = 2;                      // center of stencil (jth grid cell)
 	static const unsigned int JP2=4,JP1=3,J=2,JM1=1,JM2=0;   // indexing for stencil
+	static const unsigned int A=0,B=1,C=2;                   // for bndry_laplace indexing
 
-	double laplace_coeffs[STENCIL_SIZE];  // ""                           2nd deriv
+	double laplace_coeffs[STENCIL_SIZE];  // finite diff coefficients for 2nd deriv
+	double bndry_laplace[3];							// ""      near bndry       "" ""
 	double grad_coeffs[STENCIL_SIZE];     // ""                           1st deriv
 };
 
@@ -65,6 +67,11 @@ udSolver::udSolver(const gasDisk& disk)
 		}// end error if
 	} // end STENCIL if for gradient term	
 
+	// for boundary laplace:
+	bndry_laplace[A] = 2.0*la2/lp1;
+	bndry_laplace[B] = 2.0*lambda/lp1;
+	bndry_laplace[C] = -(bndry_laplace[0]+bndry_laplace[2]);
+
 	// for gradient term ...
 	grad_coeffs[JP2] = -1.0/(lambda*lp1*(1.0+la2)*tmp1);
 	grad_coeffs[JP1] = lp1/(lambda*tmp1);
@@ -87,7 +94,7 @@ int udSolver::step( problemDomain &domain,
 {
 	int status = EXIT_SUCCESS;
 	size_t N = disk.N;
-	double tmp0,lambda=disk.lambda,dFoDdt,FoD;
+	double tmp0,lambda=disk.lambda,dFoDdt,FoD,l2=lambda*lambda;
 
 	if( domain.debug_mode && domain.isWriteCycle() ){
 //		cout << endl << endl << "# -----------------------" 
@@ -130,67 +137,66 @@ int udSolver::step( problemDomain &domain,
 	} // end j for
 
 	/*
-	 * --------- Update boundary conditions ...
+	 * --------- Update boundary conditions:
 	 */
-	double lp1 = lambda+1.0,la2=lambda*lambda,
-		grad_const = 0.0, laplace_const = 0.0, laplace_val = 0.0;
-	tmp1 = lambda*lambda+lambda+1.0, tmp2 = lambda*lambda-lambda-1.0;
-	double r2,r1,c,l1,l2;
+	double laplace_val;
 
-	// --------------- INNER BOUNDARY
+	if( NEUMANN == disk.inner_bndry_type ){		// INNER BNDRY SWITCH
+		
+		// fixed laplacian
+		laplace_val = disk.inner_bndry_laplacian;
+		if( disk.inner_bndry_laplacian == SELF_SIM && domain.t > 0.0){	// for Rafikov, 2012 solt'n
+			double x = disk.dl/sqrt(4.0*disk.D0*domain.t);
+			laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.Dj(1)*domain.t))*exp(-x*x);
+		}
+		disk.Fj[1] = (   laplace_val*disk.dl2*l2
+		               + bndry_laplace[A]*disk.inner_bndry_value*dl
+		               - bndry_laplace[C]*disk.Fj[2] )/( bndry_laplace[A] + bndry_laplace[C] );
 
-	// Fixed Laplacian
-	laplace_const = 2.0/(la2*disk.dl2*lp1);
-	laplace_val = 0.0;
-	if( disk.inner_bndry_laplacian == SELF_SIM && domain.t > 0.0){
-		double x = disk.dl/sqrt(4.0*disk.D0*domain.t);
-		laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.Dj(1)*domain.t))*exp(-x*x);
-	}
+		// fixed gradient
+		disk.Fj[0] = disk.Fj[1] - disk.inner_bndry_value*disk.dl;
 
-	l1 =  laplace_const*pow(lambda,3)*(lambda+2.0)/tmp1;
-	r1 =  laplace_const*(la2+lambda-1.0)/lambda;
-	r2 = -laplace_const*(lambda-1.0)/lambda/tmp1;
-	c  = -(l1+r1+r2);
-	disk.Fj[1] = (laplace_val-r2*disk.Fj[3]-r1*disk.Fj[2]-l1*disk.Fj[0])/c;
+	} else if( DIRICHLET == disk.inner_bndry_type ){
 
-	if( NEUMANN == disk.inner_bndry_type ){			// Fixed Gradient
-		grad_const = 1.0/(disk.dl*lambda);
-		r2 = -grad_const/lp1;
-		r1 =  grad_const*lp1;
-		c  = -(g2+g1);
-		disk.Fj[0] = (disk.inner_bndry_value-r2*disk.Fj[2]-r1*disk.Fj[1])/c;
-	} else if( DIRICHLET == disk.inner_bndry_type ){ // Fixed Value
-		disk.Fj[0] = disk.inner_bndry_value;
-	} else { // none specified
+		// fixed laplacian
+		laplace_val = disk.inner_bndry_laplacian;
+		if( disk.inner_bndry_laplacian == SELF_SIM && domain.t > 0.0){  // for Rafikov, 2012 solt'n
+			double x = disk.dl/sqrt(4.0*disk.D0*domain.t);
+			laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.Dj(1)*domain.t))*exp(-x*x);
+		}
+		disk.Fj[1] = (   laplace_val*disk.dl2*l2
+		               - bndry_laplace[A]*disk.Fj[0]
+		               - bndry_laplace[C]*disk.Fj[2] )/bndry_laplace[B];
+
+	} else {
 		cerr << "ERROR --- Inner Bndry Type Improperly Specified as " 
-			<< disk.inner_bndry_type << endl;
+		     << disk.inner_bndry_type << endl;
 		return EXIT_FAILURE;
-	} // end outer BC if/else
+	} // end inner BC if/else
 	
-	// --------------- OUTER BOUNDARY
+	if( NEUMANN == disk.outer_bndry_type ){		// OUTER BNDRY SWITCH
 
-	// Laplacian
-	laplace_const = 2.0*lambda*pow(lambda,-2.0*(N-2.0))/lp1/disk.dl2;
-	laplace_val = 0.0;
-	l2 =  laplace_const*la2*la2*(lambda-1.0)/tmp1;
-	l1 = -laplace_const*lambda*tmp2;
-	r1 =  laplace_const*(2.0*lambda+1.0)/tmp1;
-	c  = -(l2+l1+r1);
-	disk.Fj[N-2] = (laplace_val-l2*disk.Fj[N-4]-l1*disk.Fj[N-3]-r1*disk.Fj[N-1])/c;
- 
-	if( NEUMANN == disk.outer_bndry_type ){			// fixed gradient
-		grad_const = pow(lambda,-(N-1.0))/tmp1/disk.dl;
-		l2 = -grad_const*la2*la2/lp1;
-		l1 =  grad_const*lp1;
-		c  = -(M[N-1][L2]+M[N-1][L1]);
-		disk.Fj[N-1] = (disk.outer_bndry_value-l2*disk.Fj[N-3]-l1*disk.Fj[N-2])/c;
-	} else if( DIRICHLET == disk.outer_bndry_type){  // Constant Value
-		disk.Fj[N-1] = disk.outer_bndry_value;
-	} else { // none specified
+		tmp = disk.dl*pow(lambda,N-2);
+	
+		// fixed laplacian
+		disk.Fj[N-2] = (   tmp*(tmp*disk.outer_bndry_laplacian - bndry_laplace[C]*disk.outer_bndry_value)
+		                 - bndry_laplace[A]*disk.Fj[N-3] )/( bndry_laplace[B] + bndry_laplace[C] );
+
+		// fixed gradient
+		disk.Fj[N-1] = disk.Fj[N-2] + tmp*disk.outer_bndry_value;
+		
+	} else if( DIRICHLET == disk.outer_bndry_type ){
+		
+		// fixed laplacian
+		tmp = disk.dl*pow(lambda,N-2);
+		disk.Fj[N-2] = (   tmp*tmp*disk.outer_bndry_laplacian - bndry_laplace[A]*disk.Fj[N-3]
+		                 - bndry_laplace[C]*disk.Fj[N-1] )/bndry_laplace[B]; 
+
+	} else {
 		cerr << "ERROR --- Outer Bndry Type Improperly Specified as " 
 			<< disk.outer_bndry_type << endl;
 		return EXIT_FAILURE;
-	} // end outer BC if/else
+	} // end outer BC if/els
 
 	// Check for negative
 	for( int j = 0 ; j < N ; j++ ){
