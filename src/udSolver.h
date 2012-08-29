@@ -1,3 +1,17 @@
+/*
+ *		UPWIND DIFFERENCING SOLVER
+ *
+ *		August, 2012
+ *
+ *			Solves the disk-secondary system using an explicit, first-order
+ *		accurate upwind differncing scheme. The method is slower than the 
+ *		semi-implicit cnSolver.h method, due to the timestep constraint:
+ *
+ *				dt ~ dr^2
+ *
+ *		however, it is a more straightforward way to implement disk physics.
+ */
+
 #include "problemDomain.h"
 #include "gasDisk.h"
 #include "secondaryBH.h"
