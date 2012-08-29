@@ -69,8 +69,8 @@ udSolver::udSolver(const gasDisk& disk)
 
 	// for boundary laplace:
 	bndry_laplace[A] = 2.0*la2/lp1;
-	bndry_laplace[B] = 2.0*lambda/lp1;
-	bndry_laplace[C] = -(bndry_laplace[0]+bndry_laplace[2]);
+	bndry_laplace[C] = 2.0*lambda/lp1;
+	bndry_laplace[B] = -(bndry_laplace[A]+bndry_laplace[C]);
 
 	// for gradient term ...
 	grad_coeffs[JP2] = -1.0/(lambda*lp1*(1.0+la2)*tmp1);
@@ -144,7 +144,7 @@ int udSolver::step( problemDomain &domain,
 	if( NEUMANN == disk.inner_bndry_type ){		// INNER BNDRY SWITCH
 		
 		// fixed laplacian
-		laplace_val = disk.inner_bndry_laplacian;
+		laplace_val = 0.0;
 		if( disk.inner_bndry_laplacian == SELF_SIM && domain.t > 0.0){	// for Rafikov, 2012 solt'n
 			double x = disk.dl/sqrt(4.0*disk.D0*domain.t);
 			laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.Dj(1)*domain.t))*exp(-x*x);
@@ -159,7 +159,7 @@ int udSolver::step( problemDomain &domain,
 	} else if( DIRICHLET == disk.inner_bndry_type ){
 
 		// fixed laplacian
-		laplace_val = disk.inner_bndry_laplacian;
+		laplace_val = 0.0;
 		if( disk.inner_bndry_laplacian == SELF_SIM && domain.t > 0.0){  // for Rafikov, 2012 solt'n
 			double x = disk.dl/sqrt(4.0*disk.D0*domain.t);
 			laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.Dj(1)*domain.t))*exp(-x*x);
@@ -177,9 +177,10 @@ int udSolver::step( problemDomain &domain,
 	if( NEUMANN == disk.outer_bndry_type ){		// OUTER BNDRY SWITCH
 
 		tmp = disk.dl*pow(lambda,N-2);
+		laplace_val = 0.0;
 	
 		// fixed laplacian
-		disk.Fj[N-2] = (   tmp*(tmp*disk.outer_bndry_laplacian - bndry_laplace[C]*disk.outer_bndry_value)
+		disk.Fj[N-2] = (   tmp*(tmp*laplace_val - bndry_laplace[C]*disk.outer_bndry_value)
 		                 - bndry_laplace[A]*disk.Fj[N-3] )/( bndry_laplace[B] + bndry_laplace[C] );
 
 		// fixed gradient
@@ -189,7 +190,8 @@ int udSolver::step( problemDomain &domain,
 		
 		// fixed laplacian
 		tmp = disk.dl*pow(lambda,N-2);
-		disk.Fj[N-2] = (   tmp*tmp*disk.outer_bndry_laplacian - bndry_laplace[A]*disk.Fj[N-3]
+		laplace_val = 0.0;
+		disk.Fj[N-2] = (   disk.dl2*pow(lambda,2*N-4)*laplace_val - bndry_laplace[A]*disk.Fj[N-3]
 		                 - bndry_laplace[C]*disk.Fj[N-1] )/bndry_laplace[B]; 
 
 	} else {
