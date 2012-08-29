@@ -1,3 +1,7 @@
+mkdir outputFiles
+mkdir savedOutputs
+mkdir images
+
 rm outputFiles/*
 rm savedOutputs/*
 

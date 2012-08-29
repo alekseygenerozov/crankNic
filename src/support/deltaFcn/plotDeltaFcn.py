@@ -38,7 +38,7 @@ onePlot(3)
 onePlot(15)
 onePlot(63)
 
-plt.savefig("numerical")
+plt.savefig("images/deltaFcn")
 plt.clf()
 
 """

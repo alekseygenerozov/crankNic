@@ -135,12 +135,10 @@ int udSolver::step( problemDomain &domain,
 			dFoDdt -= (   disk.Fj[j+1]*secondary.torque(disk,disk.l[j+1],domain.M)/disk.Dj(j+1)
 			            - disk.Fj[j  ]*secondary.torque(disk,disk.l[j  ],domain.M)/disk.Dj(j  )
 			          )/( disk.l[j+1]-disk.l[j]);
-			cout << "change @ " << j << ": " << dFoDdt - old << endl;
 		} else {
 			dFoDdt -= (   disk.Fj[j  ]*secondary.torque(disk,disk.l[j  ],domain.M)/disk.Dj(j  )
 			            - disk.Fj[j-1]*secondary.torque(disk,disk.l[j-1],domain.M)/disk.Dj(j-1)
 			          )/( disk.l[j]-disk.l[j-1]);
-			cout << "change @ " << j << ": " << dFoDdt - old << endl;
 		} // end upwind if/else
 
 		// find new Fj/Dj
@@ -168,7 +166,7 @@ int udSolver::step( problemDomain &domain,
 		}
 		disk.Fj[1] = (   laplace_val*disk.dl2*l2
 		               + bndry_laplace[A]*disk.inner_bndry_value*disk.dl
-		               - bndry_laplace[C]*disk.Fj[2] )/( bndry_laplace[A] + bndry_laplace[C] );
+		               - bndry_laplace[C]*disk.Fj[2] )/( bndry_laplace[A] + bndry_laplace[B] );
 
 		// fixed gradient
 		disk.Fj[0] = disk.Fj[1] - disk.inner_bndry_value*disk.dl;

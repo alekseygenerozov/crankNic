@@ -87,8 +87,8 @@ plt.title('Self Similar Solution')
 
 handles, labels = ax.get_legend_handles_labels()
 ax.legend(handles[::4],labels[::4],'lower right')
-plt.savefig("numerical")
-plt.savefig("numerical.ps")
+plt.savefig("images/selfSim")
+plt.savefig("images/selfSim.ps")
 
 #
 # Plot Residuals
@@ -104,5 +104,5 @@ plt.xlabel('$l / l_{\\rm in}$')
 plt.ylabel('residuals')
 plt.title('Residuals for Self-similar solution')
 
-plt.savefig("resids")
-plt.savefig("resids.ps")
+plt.savefig("images/selfSim_resids")
+plt.savefig("images/selfSim_resids.ps")

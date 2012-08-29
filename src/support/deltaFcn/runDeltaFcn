@@ -3,5 +3,5 @@ rm analytic/*
 rm images/*.png
 
 python makeDeltaFcn.py
-./Tango analytic/T000.dat
+./Tango analytic/T000.dat > tango.out
 python plotDeltaFcn.py
