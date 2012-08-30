@@ -28,7 +28,9 @@ int main(int argc, char *argv[])
 			return status;
 	} else
 		domain.writePlus();
-	
+
+	// print units and initial mass and secondary info
+	domain.units.writeOut();
 	writeMass(domain,disk,secondary,solver);
 	secondary.writeOut(domain);
 

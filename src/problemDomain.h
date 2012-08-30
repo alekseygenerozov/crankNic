@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "mr.h"
+#include "unitFactors.h"
 
 using std::string;
 using std::stringstream;
@@ -27,7 +28,6 @@ const int ON  = 1;
 const double PI = 3.14159265358979323846; // Pi 
 const double twoPI = 2*PI;      // 2*Pi
 
-
 inline double max(const double x, const double y){return (x>y)?x:y;};
 inline double min(const double x, const double y){return (x<y)?x:y;};
 inline double omega_k(const double l, const double M){ return M*M/(l*l*l);};
@@ -41,6 +41,7 @@ public:
 	bool keepOn() const { return t < tEnd; };
 	void advance() { t += dt; }
 
+	const unitFactors units;						 // holds units of problem
 	string initial_data_file;
 	int problemType, debug_mode;         // verbose printing (default off)
 	int fileCount;
