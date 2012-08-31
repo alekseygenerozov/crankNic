@@ -20,7 +20,7 @@ public:
 	double Dj(const size_t j) const {return D0*pow(Fj[j],nd)*pow(l[j],np);};
 	double Dj(const double Fj, const double l ) const;
 	double dmdl(const size_t j) const {return Fj[j]/Dj(j);};
-
+	
 	// RESOLUTION PARAMETERS
 	size_t N;         // Size of Simulation
 	double lambda; // stretch factor of log grid
@@ -36,7 +36,7 @@ public:
 	double np;   // diffsn l pwr-law indx (dflt = Om_k, const visc)
 	double dhdr; // r/h for disk scale height
 
-	vDoub Fj,l;
+	vDoub Fj,l,T,H,DJ;
 
 	int outer_bndry_type, inner_bndry_type, outer_bndry_laplacian, inner_bndry_laplacian;
 	double outer_bndry_value, inner_bndry_value;
@@ -56,11 +56,6 @@ gasDisk::gasDisk()
 	  outer_bndry_laplacian(ZERO), inner_bndry_laplacian(ZERO),
 	  outer_bndry_value(UNSET),    inner_bndry_value(UNSET)
 {
-	Fj.resize(N);
-	l.resize(N);
-	dl = (lMax - lMin)/(N-1.0);
-	dl2 = dl*dl;
-
 	buildGrid();
 }// end default constructor
 
@@ -128,6 +123,9 @@ void gasDisk::buildGrid()
 {
 	l.resize(N);
 	Fj.resize(N);   // clears current values
+	T.resize(N);		// ""
+	H.resize(N);    // ""
+	DJ.resize(N);		// "" 
 	
 	// calcualte innermost grid cell size
 	if( lambda == 1.0 ){

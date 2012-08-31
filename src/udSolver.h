@@ -110,20 +110,14 @@ int udSolver::step( problemDomain &domain,
 	size_t N = disk.N;
 	double tmp0,lambda=disk.lambda,dFoDdt,FoD,l2=lambda*lambda;
 
-	if( domain.debug_mode && domain.isWriteCycle() ){
-//		cout << endl << endl << "# -----------------------" 
-//			<< "----------------------------------" << endl
-//			<< "#l		D_J		tmp0		tmp1" << endl;
-	} // end debug if
+	/*
+ 	 *  =============== UPDATE SURFACE DENSITY
+	 */
 
 	for( int j = 2 ; j < disk.N-2 ; j++ ){
 
 		dFoDdt = 0.0;
 		tmp0 = pow(lambda,-2.0*j)/disk.dl2;
-
-		if( domain.debug_mode && domain.isWriteCycle() ){	
-//			cout << disk.l[j] << "	" << disk.Dj(j) << "	" << tmp0 << "	" << tmp1 << endl;
-		}// end debug if
 
 		// diffusion term
 		for( int k = 0 ; k < STENCIL_SIZE ; ++k )
@@ -230,7 +224,7 @@ int udSolver::step( problemDomain &domain,
 			} // end floor if/else
 		}// end negative density if
 	} // end j for
-	
+
 	return status;
 } // end solve
 
@@ -261,5 +255,49 @@ double udSolver::Mdot( const problemDomain &domain,
 	
 	return tmp;
 } // end mDOt
+
+
+
+/*
+ *	UPDATE DISK
+ *
+ *		Given FJ/DJ, finds T,H,DJ and FJ at the new
+ *		timestep using beta disk physics:
+ *
+ *		nu = alpha*beta*c_s*H
+ */
+void udSolver::updateDisk( double FoD,
+                           size_t j,
+                           problemDomain &domain,
+                           gasDisk &disk,
+                           secondaryBH &secondary )
+{
+	double l = disk.l[j],T,H,P,omk = omega_k(l,1.0),
+		sigma = FoD*omk/(4.0*PI),tmp,b,c,nu,beta,
+		eta = domain.units.eta,T4,gamma=domain.units.gamma;
+
+	// update temperature
+	tmp = eta*domain.units.ks*sigma*sigma;
+	b = tmp*9.0*disk.alpha/8.0*omk;
+	c = tmp/4.0*(omega_k(secondary.l_a,1.0)-omk)*secondary.torque(disk,l,1.0);
+	T = quartic(1.0,b,c);
+	disk.T[j] = T;
+	T4 = T*T*T*T;
+
+	// update scale height
+	b = -2.0*eta*T4/(gamma*omk*omk*sigma);
+	c = -2.0*T/(gamma*omk*omk);
+	H = quadratic(1.0,b,c);	
+	disk.H[j] = H;
+
+	// update DJ
+	beta = 1.0/(1.0+eta*H*T4/sigma/T);
+	P = sigma*T/H+eta*T4;
+	tmp = P/(gamma*omk*sigma);
+	disk.DJ[j] = 3.0*disk.alpha*beta*tmp*tmp;
+	
+	// update FJ
+	disk.FJ[j] = FoD*disk.DJ[j];
+} // end update disk
 
 #endif

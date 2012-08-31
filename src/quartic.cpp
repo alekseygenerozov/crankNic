@@ -1,23 +1,27 @@
 #include <math.h>
-#include <iostream>
 
-using std::cout;
-using std::endl;
-
+/*
+ *	QUARTIC 
+ *
+ *		Finds solutions to the equation:
+ *
+ *			Ax^4 - Bx - C = 0.0
+ *
+ *				!!!!! Assumes A,B > 0.0 !!!!!
+ */
 double quartic( double A, double B, double C ){
+
+	static const double c0=sqrt(3.0),c1=pow(18.0,1.0/3.0),c2=4.0*pow(2.0/3.0,1.0/3.0);
+	static double t0,t1,t2,t3,A2,B2,tmp;
 	
-	double t0 = pow( sqrt(3)*sqrt( 256.0*A*A*A*C*C*C + 27.0*A*A*B*B*B*B)
-	                 + 9.0*A*B*B , 1.0/3.0 );
-	double t1 = pow( 18.0 , 1.0/3.0 ) * A;
-	double t2 = 4.0 * pow( 2.0/3.0 , 1.0/3.0 ) * C;
-	double t3 = sqrt( t0/t1 - t2/t0 );
+	A2 = A*A;
+	B2 = B*B;
 	
-	return .5*t3*(1.0+sqrt(2.0*B/(A*pow(t3,1.5))-1.0));
+	t0 = pow(c0*sqrt( A2*(256.0*A*C*C*C + 27.0*B2*B2))
+	                 + 9.0*A*B2 , 1.0/3.0 );
+	t1 = c1*A;
+	t2 = c2*C;
+	t3 = sqrt( t0/t1 - t2/t0 );
+
+	return .5*t3*(1.0+sqrt(2.0*B/(A*t3*t3*t3)-1.0));
 }// end quartic
-
-int main(){
-
-	cout << quartic(1.0,1.0,1.0) << endl
-
-	return 0;
-} // end main

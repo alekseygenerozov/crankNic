@@ -6,6 +6,7 @@
 
 #include "mr.h"
 #include "unitFactors.h"
+#include "polySolve.h"
 
 using std::string;
 using std::stringstream;
