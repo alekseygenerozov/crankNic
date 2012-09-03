@@ -35,6 +35,7 @@ public:
 	double nd;   // diffsn Fj power-law index
 	double np;   // diffsn l pwr-law indx (dflt = Om_k, const visc)
 	double dhdr; // r/h for disk scale height
+	double alpha,beta; // disk physics
 
 	vDoub Fj,l,T,H,DJ;
 

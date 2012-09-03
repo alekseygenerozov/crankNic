@@ -26,6 +26,8 @@ public:
 	int step(problemDomain &domain, gasDisk &disk, secondaryBH &secondary);
 	double Mdot(const problemDomain &domain, const gasDisk &disk, 
 		const secondaryBH &secondary, const int j ) const;
+
+	void updateDisk(double FoD,size_t j,problemDomain &domain,gasDisk &disk,secondaryBH &secondary );
 private:
 	static const unsigned int STENCIL_SIZE = 5;              // # of cells in stencil (per time step)
 	static const unsigned int CNTR = 2;                      // center of stencil (jth grid cell)
@@ -297,7 +299,7 @@ void udSolver::updateDisk( double FoD,
 	disk.DJ[j] = 3.0*disk.alpha*beta*tmp*tmp;
 	
 	// update FJ
-	disk.FJ[j] = FoD*disk.DJ[j];
+	disk.Fj[j] = FoD*disk.DJ[j];
 } // end update disk
 
 #endif

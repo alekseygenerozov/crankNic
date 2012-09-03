@@ -7,7 +7,7 @@ rm outputFiles/*
 rm images/*/*.png
 
 ./LNS > analytic.dat
-./Tango -i analytic.dat
+./Tango -i analytic.dat > tango.out
 python plot.py
 
 mv images/*sigma.png images/sigma/
