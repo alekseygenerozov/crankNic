@@ -24,6 +24,7 @@ private:
 	VecDoub FjNew;                       // angular momentum flux of new timestep
 	double left_grad_coeffs[STENCIL_SIZE];    // finite diff coefficients for 1st deriv
 	double right_grad_coeffs[STENCIL_SIZE];   // finite diff coefficients for 1st deriv
+	double grad_coeffs[STENCIL_SIZE];
 	double laplace_coeffs[STENCIL_SIZE]; // ""                           2nd deriv
 	double const_coeffs[STENCIL_SIZE];   // ""                           0th deriv
 	MatDoub M;                           // Matrix of Crank-Nicolson Scheme
@@ -86,6 +87,13 @@ cnSolver::cnSolver(const gasDisk& disk)
 	right_grad_coeffs[J  ] = 1.0;
 	right_grad_coeffs[JM1] = -1.0; 
 	right_grad_coeffs[JM2] = 0.0;
+
+	grad_coeffs[JP2] = -1.0/(lambda*lp1*(1.0+la2)*tmp1);
+	grad_coeffs[JP1] = lp1/(lambda*tmp1);
+	grad_coeffs[JM1] = -pow(lambda,3)*lp1/tmp1;
+	grad_coeffs[JM2] = pow(lambda,7)/(lp1*(1.0+la2)*tmp1);
+	grad_coeffs[J  ] = -( grad_coeffs[JM2] + grad_coeffs[JM1]
+	                      +grad_coeffs[JP1] + grad_coeffs[JP2] );
 
 	// for constant term ...
 	const_coeffs[JP2] = 0.0;
