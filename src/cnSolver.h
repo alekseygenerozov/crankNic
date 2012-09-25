@@ -22,7 +22,8 @@ private:
 
 	VecDoub	d;                           // RHS of matrix eq
 	VecDoub FjNew;                       // angular momentum flux of new timestep
-	double grad_coeffs[STENCIL_SIZE];    // finite diff coefficients for 1st deriv
+	double left_grad_coeffs[STENCIL_SIZE];    // finite diff coefficients for 1st deriv
+	double right_grad_coeffs[STENCIL_SIZE];   // finite diff coefficients for 1st deriv
 	double laplace_coeffs[STENCIL_SIZE]; // ""                           2nd deriv
 	double const_coeffs[STENCIL_SIZE];   // ""                           0th deriv
 	MatDoub M;                           // Matrix of Crank-Nicolson Scheme
@@ -74,12 +75,17 @@ cnSolver::cnSolver(const gasDisk& disk)
 	} // end STENCIL if for gradient term	
 
 	// for gradient term ...
-	grad_coeffs[JP2] = -1.0/(lambda*lp1*(1.0+la2)*tmp1);
-	grad_coeffs[JP1] = lp1/(lambda*tmp1);
-	grad_coeffs[JM1] = -pow(lambda,3)*lp1/tmp1;
-	grad_coeffs[JM2] = pow(lambda,7)/(lp1*(1.0+la2)*tmp1);
-	grad_coeffs[J  ] = -( grad_coeffs[JM2] + grad_coeffs[JM1]
-	                     +grad_coeffs[JP1] + grad_coeffs[JP2] );
+	left_grad_coeffs[JP2] = 0.0;
+	left_grad_coeffs[JP1] = 1.0;
+	left_grad_coeffs[J  ] = -1.0;
+	left_grad_coeffs[JM1] = 0.0;
+	left_grad_coeffs[JM2] = 0.0;
+	
+	right_grad_coeffs[JP2] = 0.0;
+	right_grad_coeffs[JP1] = 0.0;
+	right_grad_coeffs[J  ] = 1.0;
+	right_grad_coeffs[JM1] = -1.0; 
+	right_grad_coeffs[JM2] = 0.0;
 
 	// for constant term ...
 	const_coeffs[JP2] = 0.0;
@@ -120,20 +126,31 @@ int cnSolver::step( problemDomain &domain,
 	for( int j = 2 ; j < disk.N-2 ; j++ ){
 	
 		tmp0 = pow(lambda,-2.0*j)*.5*domain.dt/disk.dl2*disk.Dj(j)/(1.0-disk.nd);
-		tmp1 = -pow(lambda,-1.0*j)*.5*domain.dt/disk.dl*disk.Dj(j)/(1.0-disk.nd);
 
 		if( domain.debug_mode && domain.isWriteCycle() ){	
 			cout << disk.l[j] << "	" << disk.Dj(j) << "	" << tmp0 << "	" << tmp1 << endl;
 		}// end debug if
 
 		d[j] = 0.0;
-		for( int k = 0 ; k < STENCIL_SIZE ; ++k ){
-			offset = j - CNTR + k;
-			tmp2 = tmp1*secondary.torque(disk,disk.l[offset],domain.M)/disk.Dj(offset);
-
-			M[j][k] = -tmp0*laplace_coeffs[k] - tmp2*grad_coeffs[k] + const_coeffs[k];
-			d[j] +=  ( tmp0*laplace_coeffs[k] + tmp2*grad_coeffs[k] + const_coeffs[k] )*disk.Fj[offset];
-		}// end k for
+		if( disk.l[j] < secondary.l_a ){	// upwind splitting
+			tmp1 = -(disk.l[j+1] - disk.l[j])*disk.Dj(j)/(1.0-disk.nd);
+			for( int k = 0 ; k < STENCIL_SIZE ; ++k ){
+				offset = j - CNTR + k;
+				tmp2 = tmp1*secondary.torque(disk,disk.l[offset],domain.M)/disk.Dj(offset);
+	
+				M[j][k] = -tmp0*laplace_coeffs[k] - tmp2*left_grad_coeffs[k] + const_coeffs[k];
+				d[j] +=  ( tmp0*laplace_coeffs[k] + tmp2*left_grad_coeffs[k] + const_coeffs[k] )*disk.Fj[offset];
+			}// end k for
+		} else {
+      tmp1 = -(disk.l[j] - disk.l[j-1])*disk.Dj(j)/(1.0-disk.nd);
+      for( int k = 0 ; k < STENCIL_SIZE ; ++k ){
+        offset = j - CNTR + k;
+        tmp2 = tmp1*secondary.torque(disk,disk.l[offset],domain.M)/disk.Dj(offset);
+  
+        M[j][k] = -tmp0*laplace_coeffs[k] - tmp2*right_grad_coeffs[k] + const_coeffs[k];
+        d[j] +=  ( tmp0*laplace_coeffs[k] + tmp2*right_grad_coeffs[k] + const_coeffs[k] )*disk.Fj[offset];
+      }// end k for
+		} // end left/right if/else
 
 	} // end j for
 
