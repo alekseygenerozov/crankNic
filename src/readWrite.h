@@ -200,8 +200,9 @@ int writeStandard(	problemDomain &domain,
 
 	// print data
 	for( size_t j = 0 ; j < disk.N ; j++ ){
-		fprintf(fp,"%e\t%e\t%e\t%e\n",disk.l[j],disk.Fj[j],secondary.torque(disk,disk.l[j],domain.M),
-		         solver.Mdot(domain,disk,secondary,j));
+		fprintf(fp,"%e\t%e\t%e\t%e\n",disk.l[j],disk.Fj[j],
+			secondary.torque(disk,disk.l[j],domain.M),
+			solver.Mdot(domain,disk,secondary,j));
 	}// end j for
 
 	if(EXIT_SUCCESS == (status = fclose(fp)))
