@@ -27,7 +27,7 @@ public:
 	double Mdot(const problemDomain &domain, const gasDisk &disk, 
 		const secondaryBH &secondary, const int j ) const;
 
-	void updateDisk(double FoD,size_t j,problemDomain &domain,gasDisk &disk,secondaryBH &secondary );
+	int updateDisk(double FoD,size_t j,problemDomain &domain,gasDisk &disk,secondaryBH &secondary );
 private:
 	static const unsigned int STENCIL_SIZE = 5;              // # of cells in stencil (per time step)
 	static const unsigned int CNTR = 2;                      // center of stencil (jth grid cell)
@@ -98,6 +98,8 @@ udSolver::udSolver(const gasDisk& disk)
 
 }// end constructor 
 
+
+
 /*
  *	STEP
  *
@@ -140,11 +142,8 @@ int udSolver::step( problemDomain &domain,
 		// find new Fj/Dj
 		FoD = disk.Fj[j]/disk.Dj(j) + domain.dt*dFoDdt;
 
-		// Find Fj via Dj
-		if( disk.nd == 0 )
-			disk.Fj[j] = FoD*disk.D0*pow(disk.l[j],disk.np);
-		else 
-			disk.Fj[j] = pow(FoD*disk.D0*pow(disk.l[j],disk.np),1.0/(1.0-disk.nd));
+		// Update Fj, DJ, H, T etc ...
+		if( EXIT_SUCCESS != (status = updateDisk(FoD,j,domain,disk,secondary))) return status;
 	} // end j for
 
 	/*
@@ -230,6 +229,8 @@ int udSolver::step( problemDomain &domain,
 	return status;
 } // end solve
 
+
+
 /*
  *	MDOT
  *	
@@ -263,43 +264,73 @@ double udSolver::Mdot( const problemDomain &domain,
 /*
  *	UPDATE DISK
  *
- *		Given FJ/DJ, finds T,H,DJ and FJ at the new
- *		timestep using beta disk physics:
+ *		Given FJ/DJ, finds FJ (and DJ,T and H for beta-disk case) 
+ *		at the new timestep using beta disk physics:
  *
- *		nu = alpha*beta*c_s*H
+ *		PWR_LAW (Rafikov 2012):
+ *			DJ = D0 * l^np * FJ^nd
+ *
+ *		BETA_DISK:
+ *			nu = alpha*beta*c_s*H
  */
-void udSolver::updateDisk( double FoD,
+int udSolver::updateDisk( double FoD,
                            size_t j,
                            problemDomain &domain,
                            gasDisk &disk,
                            secondaryBH &secondary )
 {
-	double l = disk.l[j],T,H,P,omk = omega_k(l,1.0),
-		sigma = FoD*omk/(4.0*PI),tmp,b,c,nu,beta,
-		eta = domain.units.eta,T4,gamma=domain.units.gamma;
 
-	// update temperature
-	tmp = eta*domain.units.ks*sigma*sigma;
-	b = tmp*9.0*disk.alpha/8.0*omk;
-	c = tmp/4.0*(omega_k(secondary.l_a,1.0)-omk)*secondary.torque(disk,l,1.0);
-	T = quartic(1.0,b,c);
-	disk.T[j] = T;
-	T4 = T*T*T*T;
+	/*
+	 * -----  POWER LAW VISCOSITY (Rafikov 2012)
+	 */
+	if( disk.visc_model == PWR_LAW ){
+		if( disk.nd == 0 )
+			disk.Fj[j] = FoD*disk.D0*pow(disk.l[j],disk.np);
+		else
+			disk.Fj[j] = pow(FoD*disk.D0*pow(disk.l[j],disk.np),1.0/(1.0-disk.nd));
+	} 
+	/*
+	 * ----- BETA DISK VISCOSITY (Kocsis 2012)
+	 */
+	else if( disk.visc_model == BETA_DISK ){
 
-	// update scale height
-	b = -2.0*eta*T4/(gamma*omk*omk*sigma);
-	c = -2.0*T/(gamma*omk*omk);
-	H = quadratic(1.0,b,c);	
-	disk.H[j] = H;
-
-	// update DJ
-	beta = 1.0/(1.0+eta*H*T4/sigma/T);
-	P = sigma*T/H+eta*T4;
-	tmp = P/(gamma*omk*sigma);
-	disk.DJ[j] = 3.0*disk.alpha*beta*tmp*tmp;
+		double l = disk.l[j],T,H,P,omk = omega_k(l,1.0),
+			sigma = FoD*omk/(4.0*PI),tmp,b,c,nu,beta,
+			eta = domain.units.eta,T4,gamma=domain.units.gamma;
 	
-	// update FJ
-	disk.Fj[j] = FoD*disk.DJ[j];
+		// update temperature
+		tmp = eta*domain.units.ks*sigma*sigma;
+		b = tmp*9.0*disk.alpha/8.0*omk;
+		c = tmp/4.0*(omega_k(secondary.l_a,1.0)-omk)*secondary.torque(disk,l,1.0);
+		T = quartic(1.0,b,c);
+		disk.T[j] = T;
+		T4 = T*T*T*T;
+	
+		// update scale height
+		b = -2.0*eta*T4/(gamma*omk*omk*sigma);
+		c = -2.0*T/(gamma*omk*omk);
+		H = quadratic(1.0,b,c);	
+		disk.H[j] = H;
+
+		// update DJ
+		beta = 1.0/(1.0+eta*H*T4/sigma/T);
+		P = sigma*T/H+eta*T4;
+		tmp = P/(gamma*omk*sigma);
+		disk.DJ[j] = 3.0*disk.alpha*beta*tmp*tmp;
+		
+		// update FJ
+		disk.Fj[j] = FoD*disk.DJ[j];
+	}
+	/*
+	 * ---- ERROR CATCH
+	 */
+	else {
+		cerr << "ERROR IN EXPLICIT SOLVER:\n\tViscosity Model Improperly set to "
+			<< disk.visc_model << endl;
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
 } // end update disk
 
 #endif
