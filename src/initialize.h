@@ -13,6 +13,8 @@ int initialize( int argc,
                 secondaryBH &secondary )
 {
 	
+	int status = EXIT_SUCCESS;
+	
 	/*
  	 *	----------- Process command-line arguments
 	 */
@@ -128,6 +130,15 @@ int initialize( int argc,
 			fgets(line,MAX_STRING_LENGTH,fp);
 			sscanf(line,"%lg\t%lg",&tmp1,&tmp2);
 			disk.Fj[j] = tmp2;
+			if( disk.visc_model == PWR_LAW ){
+				disk.DJ[j] = disk.D0*pow(disk.l[j],disk.np)*pow(disk.Fj[j],disk.nd);
+				disk.H[j]  = disk.dhdr*disk.l[j]*disk.l[j];	// ASSUMES M = 1
+			}
+			else if( disk.visc_model == BETA_DISK ){	// FIXME !!!
+				disk.DJ[j] = 1.0;
+				disk.T[j]  = 1.0;
+				disk.H[j]  = 1.0;
+			}
 		}// end j for
 
 		fclose(fp);
@@ -168,7 +179,6 @@ int initialize( int argc,
 		return EXIT_FAILURE;
 	}
 
-
 	/*
 	 *  ------- Initialize Timing
 	 */
@@ -188,7 +198,7 @@ int initialize( int argc,
 		<< "tWrite = " << domain.tWrite << endl
 		<< "Initial dt = " << calculateTimeStep(domain,disk,secondary) << endl;
 
-	return EXIT_SUCCESS;
+	return status;
 } // end initialize
 
 #endif

@@ -11,7 +11,7 @@ const int DYNAMIC = 1;
 class secondaryBH {
 public:
 	secondaryBH();
-	double torque(const gasDisk&,const double,const double) const;
+	double torque(const gasDisk&,const int) const;
 	void moveSecondary(const gasDisk&,const double,const double);
 	double gaussTorqueInt(cubicSpline&,const gasDisk&,const double,const double,const double);
 	int writeOut(const problemDomain&) const;
@@ -37,21 +37,20 @@ secondaryBH::secondaryBH()
  *
  *		Smoothed torque density of secondary on disk, due to
  *		to linblad resonances.
+ *
+ *			assumes M = 1
  */
-double secondaryBH::torque( const gasDisk &disk, const double l , const double M) const
+double secondaryBH::torque( const gasDisk &disk, const int j ) const
 {
-#ifdef _QUAD_CHECK_
-	if( l < 7.0 || l > 16.0 ) return 0.0;
-	return 10.0;
-#endif
-
+	
 	if( q == 0.0 ){
 		return 0.0;
 	}// end simple cas if
-	double	tmp1 = f*q*q*M*M*0.5,
-					l2 = l*l,
+
+	double	tmp1 = f*q*q*0.5,
+					l2 = disk.l[j]*disk.l[j],
 					la2 = l_a*l_a,
-					lh2 = disk.h(l,M)*M,
+					lh2 = disk.H[j],
 					tmp2;
 
 	if( l2 < la2 - lh2 ){
@@ -107,7 +106,8 @@ double secondaryBH::gaussTorqueInt( cubicSpline &FJ_cSpline,
 // ---------------- FIXME
 */
 
-
+/*
+	--- FIXME FIXME FIXME FIXME ---
 	static const size_t N_GAUSS = 48;
 	double bMao2 = 0.5*(b-a), bPao2 = 0.5*(b+a),
 		sum = 0.0,x,Ftmp;
@@ -129,6 +129,10 @@ double secondaryBH::gaussTorqueInt( cubicSpline &FJ_cSpline,
 
 	return sum*bMao2;
 
+	--- FIXME FIXME FIXME FIXME ---
+*/
+
+	return 0.0;
 }// end gaussTorqueInt
 
 
@@ -147,7 +151,13 @@ void secondaryBH::moveSecondary( const gasDisk &disk, const double dt , const do
 {
 	if( position == STATIC || q == 0.0 ) return;  // do nothing
 
-	const double LL = sqrt(disk.h(l_a,M));
+	size_t tmp;
+	for( size_t j = 0 ; j < disk.N ; j++ )
+		if( disk.l[j] > l_a ){
+			tmp = j;
+			break;
+		}
+	const double LL = sqrt(disk.H[tmp]);
 
 	// interpolate data
 	cubicSpline FJ_cSpline(disk.l,disk.Fj);

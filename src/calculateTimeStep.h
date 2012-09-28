@@ -18,7 +18,7 @@ double calculateTimeStep( problemDomain &domain,
 	double dt=0.0, dtMin=1E5;
 
 	for( size_t j = 0 ; j < disk.N ; j++ ){
-		dt = .05*disk.dl*disk.dl/disk.Dj(j)*pow(disk.lambda,(int)j); // only accounts for visc
+		dt = .05*disk.dl*disk.dl/disk.DJ[j]*pow(disk.lambda,(int)j); // only accounts for visc
 		dtMin = min(dtMin,dt);
 	} // end j for
 

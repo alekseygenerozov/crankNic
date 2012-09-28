@@ -130,17 +130,17 @@ int udSolver::step( problemDomain &domain,
 		// upwind differencing for the advective term
 		double old = dFoDdt;
 		if( disk.l[j] < secondary.l_a ){ 
-			dFoDdt -= (   disk.Fj[j+1]*secondary.torque(disk,disk.l[j+1],domain.M)/disk.Dj(j+1)
-			            - disk.Fj[j  ]*secondary.torque(disk,disk.l[j  ],domain.M)/disk.Dj(j  )
+			dFoDdt -= (   disk.Fj[j+1]*secondary.torque(disk,j+1)/disk.DJ[j+1]
+			            - disk.Fj[j  ]*secondary.torque(disk,j  )/disk.DJ[j  ]
 			          )/( disk.l[j+1]-disk.l[j]);
 		} else {
-			dFoDdt -= (   disk.Fj[j  ]*secondary.torque(disk,disk.l[j  ],domain.M)/disk.Dj(j  )
-			            - disk.Fj[j-1]*secondary.torque(disk,disk.l[j-1],domain.M)/disk.Dj(j-1)
+			dFoDdt -= (   disk.Fj[j  ]*secondary.torque(disk,j  )/disk.DJ[j  ]
+			            - disk.Fj[j-1]*secondary.torque(disk,j-1)/disk.DJ[j-1]
 			          )/( disk.l[j]-disk.l[j-1]);
 		} // end upwind if/else
 
 		// find new Fj/Dj
-		FoD = disk.Fj[j]/disk.Dj(j) + domain.dt*dFoDdt;
+		FoD = disk.Fj[j]/disk.DJ[j] + domain.dt*dFoDdt;
 
 		// Update Fj, DJ, H, T etc ...
 		if( EXIT_SUCCESS != (status = updateDisk(FoD,j,domain,disk,secondary))) return status;
@@ -157,7 +157,7 @@ int udSolver::step( problemDomain &domain,
 		laplace_val = 0.0;
 		if( disk.inner_bndry_laplacian == SELF_SIM && domain.t > 0.0){	// for Rafikov, 2012 solt'n
 			double x = disk.dl/sqrt(4.0*disk.D0*domain.t);
-			laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.Dj(1)*domain.t))*exp(-x*x);
+			laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.DJ[1]*domain.t))*exp(-x*x);
 		}
 		disk.Fj[1] = (   laplace_val*disk.dl2*l2
 		               + bndry_laplace[A]*disk.inner_bndry_value*disk.dl
@@ -172,7 +172,7 @@ int udSolver::step( problemDomain &domain,
 		laplace_val = 0.0;
 		if( disk.inner_bndry_laplacian == SELF_SIM && domain.t > 0.0){  // for Rafikov, 2012 solt'n
 			double x = disk.dl/sqrt(4.0*disk.D0*domain.t);
-			laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.Dj(1)*domain.t))*exp(-x*x);
+			laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.DJ[1]*domain.t))*exp(-x*x);
 		}
 		disk.Fj[1] = (   laplace_val*disk.dl2*l2
 		               - bndry_laplace[A]*disk.Fj[0]
@@ -254,7 +254,7 @@ double udSolver::Mdot( const problemDomain &domain,
 	for( int k = 0 ; k < STENCIL_SIZE ; ++k )
 		tmp += grad_const*grad_coeffs[k]*disk.Fj[ j - CNTR + k ];
 
-	tmp -= disk.Fj[j]*secondary.torque(disk,disk.l[j],domain.M)/disk.Dj(j);
+	tmp -= disk.Fj[j]*secondary.torque(disk,j)/disk.DJ[j];
 	
 	return tmp;
 } // end mDOt
@@ -284,10 +284,14 @@ int udSolver::updateDisk( double FoD,
 	 * -----  POWER LAW VISCOSITY (Rafikov 2012)
 	 */
 	if( disk.visc_model == PWR_LAW ){
-		if( disk.nd == 0 )
-			disk.Fj[j] = FoD*disk.D0*pow(disk.l[j],disk.np);
-		else
-			disk.Fj[j] = pow(FoD*disk.D0*pow(disk.l[j],disk.np),1.0/(1.0-disk.nd));
+		if( disk.nd == 0 ){
+			disk.DJ[j] = disk.D0*pow(disk.l[j],disk.np);
+			disk.Fj[j] = FoD*disk.DJ[j];
+		} else {
+			double tmp = disk.D0*pow(disk.l[j],disk.np);
+			disk.Fj[j] = pow(FoD*tmp,1.0/(1.0-disk.nd));
+			disk.DJ[j] = tmp*pow(disk.Fj[j],disk.nd);
+		}// end nd if/else
 	} 
 	/*
 	 * ----- BETA DISK VISCOSITY (Kocsis 2012)
@@ -301,7 +305,7 @@ int udSolver::updateDisk( double FoD,
 		// update temperature
 		tmp = eta*domain.units.ks*sigma*sigma;
 		b = tmp*9.0*disk.alpha/8.0*omk;
-		c = tmp/4.0*(omega_k(secondary.l_a,1.0)-omk)*secondary.torque(disk,l,1.0);
+		c = tmp/4.0*(omega_k(secondary.l_a,1.0)-omk)*secondary.torque(disk,j);
 		T = quartic(1.0,b,c);
 		disk.T[j] = T;
 		T4 = T*T*T*T;

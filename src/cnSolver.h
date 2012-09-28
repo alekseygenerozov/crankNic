@@ -119,17 +119,17 @@ int cnSolver::step( problemDomain &domain,
 	 */
 	for( int j = 2 ; j < disk.N-2 ; j++ ){
 	
-		tmp0 = pow(lambda,-2.0*j)*.5*domain.dt/disk.dl2*disk.Dj(j)/(1.0-disk.nd);
-		tmp1 = -pow(lambda,-1.0*j)*.5*domain.dt/disk.dl*disk.Dj(j)/(1.0-disk.nd);
+		tmp0 = pow(lambda,-2.0*j)*.5*domain.dt/disk.dl2*disk.DJ[j]/(1.0-disk.nd);
+		tmp1 = -pow(lambda,-1.0*j)*.5*domain.dt/disk.dl*disk.DJ[j]/(1.0-disk.nd);
 
 		if( domain.debug_mode && domain.isWriteCycle() ){	
-			cout << disk.l[j] << "	" << disk.Dj(j) << "	" << tmp0 << "	" << tmp1 << endl;
+			cout << disk.l[j] << "	" << disk.DJ[j] << "	" << tmp0 << "	" << tmp1 << endl;
 		}// end debug if
 
 		d[j] = 0.0;
 		for( int k = 0 ; k < STENCIL_SIZE ; ++k ){
 			offset = j - CNTR + k;
-			tmp2 = tmp1*secondary.torque(disk,disk.l[offset],domain.M)/disk.Dj(offset);
+			tmp2 = tmp1*secondary.torque(disk,offset)/disk.DJ[offset];
 
 			M[j][k] = -tmp0*laplace_coeffs[k] - tmp2*grad_coeffs[k] + const_coeffs[k];
 			d[j] +=  ( tmp0*laplace_coeffs[k] + tmp2*grad_coeffs[k] + const_coeffs[k] )*disk.Fj[offset];
@@ -159,7 +159,7 @@ int cnSolver::step( problemDomain &domain,
 		laplace_val = 0.0;
 		if( disk.inner_bndry_laplacian == SELF_SIM && domain.t > 0.0){
 			double x = disk.dl/sqrt(4.0*disk.D0*domain.t);
-			laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.Dj(1)*domain.t))*exp(-x*x);
+			laplace_val = (1.0-disk.inner_bndry_value)*sqrt(1.0/(PI*disk.DJ[1]*domain.t))*exp(-x*x);
 		}
 
 		M[1][L1] =  laplace_const*pow(lambda,3)*(lambda+2.0)/tmp1;
@@ -280,7 +280,7 @@ double cnSolver::Mdot( const problemDomain &domain,
 	for( int k = 0 ; k < STENCIL_SIZE ; ++k )
 		tmp += grad_const*grad_coeffs[k]*disk.Fj[ j - CNTR + k ];
 
-	tmp -= disk.Fj[j]*secondary.torque(disk,disk.l[j],domain.M)/disk.Dj(j);
+	tmp -= disk.Fj[j]*secondary.torque(disk,j)/disk.Dj[j];
 	
 	return tmp;
 } // end mDOt
