@@ -130,15 +130,6 @@ int initialize( int argc,
 			fgets(line,MAX_STRING_LENGTH,fp);
 			sscanf(line,"%lg\t%lg",&tmp1,&tmp2);
 			disk.Fj[j] = tmp2;
-			if( disk.visc_model == PWR_LAW ){
-				disk.DJ[j] = disk.D0*pow(disk.l[j],disk.np)*pow(disk.Fj[j],disk.nd);
-				disk.H[j]  = disk.dhdr*disk.l[j]*disk.l[j];	// ASSUMES M = 1
-			}
-			else if( disk.visc_model == BETA_DISK ){	// FIXME !!!
-				disk.DJ[j] = 1.0;
-				disk.T[j]  = 1.0;
-				disk.H[j]  = 1.0;
-			}
 		}// end j for
 
 		fclose(fp);
@@ -178,6 +169,20 @@ int initialize( int argc,
 			<< "	>> Inner boundry type improperly set" << endl;
 		return EXIT_FAILURE;
 	}
+
+	// Initialize DJ, H and T
+	for( int j = 0 ; j < disk.N ; ++j ){
+		if( disk.visc_model == PWR_LAW ){
+			disk.DJ[j] = disk.D0*pow(disk.l[j],disk.np)*pow(disk.Fj[j],disk.nd);
+			disk.H[j]  = disk.dhdr*disk.l[j]*disk.l[j]; // ASSUMES M = 1
+		}
+		else if( disk.visc_model == BETA_DISK ){  // FIXME !!!
+			disk.DJ[j] = 1.0;
+			disk.T[j]  = 1.0;
+			disk.H[j]  = 1.0;
+		} // end visc_model if/else
+	}// end j for
+
 
 	/*
 	 *  ------- Initialize Timing

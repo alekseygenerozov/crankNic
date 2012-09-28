@@ -280,7 +280,7 @@ double cnSolver::Mdot( const problemDomain &domain,
 	for( int k = 0 ; k < STENCIL_SIZE ; ++k )
 		tmp += grad_const*grad_coeffs[k]*disk.Fj[ j - CNTR + k ];
 
-	tmp -= disk.Fj[j]*secondary.torque(disk,j)/disk.Dj[j];
+	tmp -= disk.Fj[j]*secondary.torque(disk,j)/disk.DJ[j];
 	
 	return tmp;
 } // end mDOt
