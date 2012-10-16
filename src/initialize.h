@@ -82,20 +82,26 @@ int initialize( int argc,
 	 *		a datafile
 	 */
 	else if( domain.problemType == FROM_FILE ){
-		
+	
+		const size_t MAX_STRING_LENGTH = 500;
+		char line[MAX_STRING_LENGTH];
+	
 		FILE *fp = fopen(domain.initial_data_file.c_str(),"r");
 		if(!fp){
 			cerr << "ERROR IN INITIALIZE.H --- Failed to Open IC file" << domain.initial_data_file << endl;
 			return EXIT_FAILURE;
 		} // end error if
 		
-		double tmp1,tmp2;
-		for( size_t j = 0 ; j < disk.N ; ++j ){
-			fscanf(fp,"%lg",&tmp1);
-			fscanf(fp,"%lg",&tmp2);
-			disk.Fj[j] = tmp2;
-		}// end i for 
-		
+		double tmp1,tmp2,tmp3,tmp4,tmp5,tmp6,tmp7;
+		for( int j = 0 ; j < disk.N ; ++j ){
+			fgets(line,MAX_STRING_LENGTH,fp);
+			sscanf(line,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg",&tmp1,&tmp2,&tmp3,&tmp4,&tmp5,&tmp6,&tmp7);
+      disk.Fj[j] = tmp2;
+			disk.DJ[j] = tmp5;
+			disk.T[j]  = tmp6;
+			disk.H[j]  = tmp7;
+    }// end j for
+
 		fclose(fp);
 	}
 
@@ -177,9 +183,7 @@ int initialize( int argc,
 			disk.H[j]  = disk.dhdr*disk.l[j]*disk.l[j]; // ASSUMES M = 1
 		}
 		else if( disk.visc_model == BETA_DISK ){  // FIXME !!!
-			disk.DJ[j] = 1.0;
-			disk.T[j]  = 1.0;
-			disk.H[j]  = 1.0;
+			;
 		} // end visc_model if/else
 	}// end j for
 

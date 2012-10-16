@@ -37,6 +37,7 @@ int readParams( problemDomain &domain,
 		nV += sscanf(line, "M = %lg",  &domain.M);
 
 		nV += sscanf(line, "visc_model = %d",  &disk.visc_model);
+		nV += sscanf(line, "alpha = %lg",      &disk.alpha);
 		nV += sscanf(line, "D0 = %lg",         &disk.D0);
 		nV += sscanf(line, "nd = %lg",         &disk.nd);
 		nV += sscanf(line, "np = %lg",         &disk.np);
@@ -112,6 +113,7 @@ int writeParams( problemDomain &domain,
 	fprintf(fp,"M    = %g\n", domain.M);
 
 	fprintf(fp,"visc_model = %d\n", disk.visc_model);
+	fprintf(fp,"alpha      = %g\n", disk.alpha);
 	fprintf(fp,"D0         = %g\n", disk.D0);
 	fprintf(fp,"nd         = %g\n", disk.nd);
 	fprintf(fp,"np         = %g\n", disk.np);
