@@ -1,12 +1,14 @@
 import tangoPlot as tp
 import numpy as np
 import matplotlib.pyplot as plt
-
-alpha = 0.1    # viscosity param
-M7    = 1.0    # primary mass (in 10^7 solar masses)
-Md7   = 1E-4   # mass inflow  (normalized for eddington limit for ^^ )
+from numpy import pi
 
 params = tp.readParams('params.in')
+
+alpha = params['alpha']    # viscosity param
+M7    = params['M']        # primary mass (in 10^7 solar masses)
+Md7   = params['Md7']      # mass inflow  (normalized for eddington limit for ^^ )
+
 l = tp.genGrid(params)
 r = l*l
 isco = r[0]
@@ -28,10 +30,18 @@ onePlot(plt.subplot(2,2,2),nu,'nu/(GM/c)')
 onePlot(plt.subplot(2,2,3),T,'T (10^5 K)')
 onePlot(plt.subplot(2,2,4),H,'H/(GM/c^2)')
 
-plt.savefig('sigma.ps')
+plt.savefig('sigma')
 
 plt.clf()
 plt.semilogy(r,beta,'k-',linewidth=2)
 plt.xlabel('gravitational radii')
 plt.ylabel('log( beta )')
 plt.savefig('beta')
+
+# Make Fj and Dj ...
+FJ = 3.0*pi*l*nu*sigma
+DJ = .75*nu*(l/r)**2
+
+# print data ...
+for ll, FF, DD, TT, HH in zip(l,FJ,DJ,T,H):
+	print str(ll) + "\t" + str(FF) + "\t0.0\t0.0\t" + str(DD) + "\t" + str(TT) + "\t" + str(HH)
