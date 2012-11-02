@@ -4,8 +4,8 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 from math import pow, pi
 
-mpl.rcParams['figure.subplot.hspace'] = 0.0
-mpl.rcParams['figure.subplot.wspace'] = 0.0
+mpl.rcParams['figure.subplot.hspace'] = .5
+mpl.rcParams['figure.subplot.wspace'] = .5
 
 #
 #		NORMALIZE
@@ -62,6 +62,13 @@ def n2IName(n):
 		return "ERROR"
 	return "images/T" + strFN(n)
 
+def n2RName(n):
+	if(type(n) is str ):
+		return n
+	if( n < 0 ):
+		return "ERROR"
+	return "images/T" + strFN(n) + "_resids"	
+
 #
 #		FAKE LOG
 #			Allows you to take logarithm of negative
@@ -91,10 +98,15 @@ def DJ(params,FJ,l):
 def omega(r):
 	return r**-1.5
 
-def convert(params,l,FJ):
+def convert(params,l,FJ,Dj=False):
+
 	r = l**2	# assumes M = 1.0
 	Ok = omega(r)
-	sigma = Ok*FJ/(4.0*pi*DJ(params,FJ,l))
+
+	if( type(Dj) is bool ):
+		sigma = Ok*FJ/(4.0*pi*DJ(params,FJ,l))
+	else:
+		sigma = Ok*FJ/(4.0*pi*Dj)
 	return (r,sigma)
 
 #
@@ -457,3 +469,70 @@ def secondaryPlot(fName="secondary.out",iName="images/secondary"):
 	plt.xlabel('t')
 	plt.ylabel('l_a/M')
 	plt.savefig(iName)
+
+
+#
+#	PLOT ALPHA DISK
+#
+#		Produces disk profile of sigma, nu, H and T
+#
+#		Not exclusively useful for alpha disk, but 
+#		it is a linear plot soooo
+#
+def plotAlphaDisk(n):
+
+	# pull data from file
+	params = readParams()
+	data   = readDataFile(n)
+
+	if( type(data) is bool ):
+		return False;
+
+	# convert to physical quantities
+	Dj = data[:,4]
+	l = data[:,0]
+	(r,sigma) = convert(params,l,data[:,1],Dj)
+	nu = 4.0*Dj*(r/l)**2/3.0
+	T = data[:,5]
+	H = data[:,6]
+
+	# plot current time-step
+	plt.clf()
+
+	def sPlt(pNum,var,lbl):
+		ax = plt.subplot(2,2,pNum)
+		ax.plot(r,var,'k-',linewidth=2)
+		plt.xlabel('r')
+		plt.ylabel(lbl)
+
+	sPlt(1,sigma,'sigma')
+	sPlt(2,nu,'nu')
+	sPlt(3,T,'T')
+	sPlt(4,H,'H')
+
+	plt.savefig(n2IName(n))
+	
+	# plot residuals
+	plt.clf()
+	d0 = readDataFile(0)
+	
+	if( type(d0) is bool ):
+		return False;
+	
+	# convert to physical quantities
+	D0 = d0[:,4]
+	l0 = d0[:,0]
+	(r0,s0) = convert(params,l0,d0[:,1],D0)
+	nu0 = 4.0*D0*(r0/l0)**2/3.0
+	T0 = d0[:,5]
+	H0 = d0[:,6]
+
+	sPlt(1,(sigma-s0),'sigma')
+	sPlt(2,(nu-nu0),'nu')
+	sPlt(3,(T-T0),'T')
+	sPlt(4,(H-H0),'H')
+
+	plt.savefig(n2RName(n))
+
+	return True
+
