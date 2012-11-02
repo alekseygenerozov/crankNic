@@ -12,7 +12,8 @@ const int UNSET = -1;
 
 // DISK PHYSICS OPTIONS
 const int PWR_LAW   = 0;
-const int BETA_DISK = 1;
+const int ALPHA_DISK = 1;
+const int BETA_DISK = 2;
 
 class gasDisk {
 public:

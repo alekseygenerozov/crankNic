@@ -296,7 +296,8 @@ int udSolver::updateDisk( double FoD,
 	/*
 	 * ----- BETA DISK VISCOSITY (Kocsis 2012)
 	 */
-	else if( disk.visc_model == BETA_DISK ){
+	else if( disk.visc_model == BETA_DISK ||
+	         disk.visc_model == ALPHA_DISK ){
 
 		double l = disk.l[j],T,H,P,omk = omega_k(l,1.0),
 			sigma = FoD*omk/(4.0*PI),tmp,b,c,nu,beta,
@@ -317,7 +318,8 @@ int udSolver::updateDisk( double FoD,
 		disk.H[j] = H;
 
 		// update DJ
-		beta = 1.0/(1.0+eta*H*T4/sigma/T);
+		beta = 1.0;
+		if( disk.visc_model==BETA_DISK ) beta = 1.0/(1.0+eta*H*T4/sigma/T);
 		P = sigma*T/H+eta*T4;
 		tmp = P/(gamma*omk*sigma);
 		disk.DJ[j] = 3.0*disk.alpha*beta*tmp*tmp*l;
