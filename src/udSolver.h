@@ -303,9 +303,9 @@ int udSolver::updateDisk( double FoD,
 			eta = domain.units.eta,T4,gamma=domain.units.gamma;
 	
 		// update temperature
-		tmp = eta*domain.units.ks*sigma*sigma;
-		b = tmp*9.0*disk.alpha/8.0*omk;
-		c = tmp/4.0*(omega_k(secondary.l_a,1.0)-omk)*secondary.torque(disk,j);
+		tmp = domain.units.ks*sigma*sigma/(4.0*eta);
+		b = tmp*4.5*disk.alpha*omk;
+		c = gamma*tmp*(omega_k(secondary.l_a,1.0)-omk)*secondary.torque(disk,j);
 		T = quartic(1.0,b,c);
 		disk.T[j] = T;
 		T4 = T*T*T*T;
@@ -320,7 +320,8 @@ int udSolver::updateDisk( double FoD,
 		beta = 1.0/(1.0+eta*H*T4/sigma/T);
 		P = sigma*T/H+eta*T4;
 		tmp = P/(gamma*omk*sigma);
-		disk.DJ[j] = 3.0*disk.alpha*beta*tmp*tmp;
+plt.savefig('check')
+		disk.DJ[j] = 3.0*disk.alpha*beta*tmp*tmp*l;
 		
 		// update FJ
 		disk.Fj[j] = FoD*disk.DJ[j];
