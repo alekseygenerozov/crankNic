@@ -320,7 +320,6 @@ int udSolver::updateDisk( double FoD,
 		beta = 1.0/(1.0+eta*H*T4/sigma/T);
 		P = sigma*T/H+eta*T4;
 		tmp = P/(gamma*omk*sigma);
-plt.savefig('check')
 		disk.DJ[j] = 3.0*disk.alpha*beta*tmp*tmp*l;
 		
 		// update FJ
