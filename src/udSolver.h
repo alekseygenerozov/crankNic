@@ -312,9 +312,13 @@ int udSolver::updateDisk( double FoD,
 		T4 = T*T*T*T;
 	
 		// update scale height
-		b = -2.0*eta*T4/(gamma*omk*omk*sigma);
-		c = -2.0*T/(gamma*omk*omk);
-		H = quadratic(1.0,b,c);	
+		if( disk.visc_model==BETA_DISK ){
+			b = -2.0*eta*T4/(gamma*omk*omk*sigma);
+			c = -2.0*T/(gamma*omk*omk);
+			H = quadratic(1.0,b,c);	
+		} else {	// alpha disk w/ ONLY GAS PRESSURE
+			H = sqrt(2*T/gamma)/omk;
+		} // end beta/alpha if/else
 		disk.H[j] = H;
 
 		// update DJ
