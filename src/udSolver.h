@@ -323,8 +323,13 @@ int udSolver::updateDisk( double FoD,
 
 		// update DJ
 		beta = 1.0;
-		if( disk.visc_model==BETA_DISK ) beta = 1.0/(1.0+eta*H*T4/sigma/T);
-		P = sigma*T/H+eta*T4;
+		if( disk.visc_model==BETA_DISK ){
+			beta = 1.0/(1.0+eta*H*T4/sigma/T);
+			P = sigma*T/H+eta*T4;
+		} else {	// alpha disk
+			beta = 1.0;
+			P = sigma*T/H;
+		} // end alpha/beta if/else
 		tmp = P/(gamma*omk*sigma);
 		disk.DJ[j] = 3.0*disk.alpha*beta*tmp*tmp*l;
 		
