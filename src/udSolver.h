@@ -331,6 +331,30 @@ int udSolver::updateDisk( double FoD,
 		
 		// update FJ
 		disk.Fj[j] = FoD*disk.DJ[j];
+
+		if( disk.Fj[j] < 0.0 ){
+			if( disk.density_floor < 0.0 ){
+				cerr << "ERROR IN UD_SOLVER.UPDATE_DISK:\n\t>> Negartive density found at j = "
+					<< j << " at time t = " << domain.t << endl;
+			} else {
+				disk.Fj[j] = disk.density_floor;
+				cout << "WARNING IN UD_SOLVER.UPDATE_DISK:\n\t>> Negative density found at j = "
+					<< j << " at time t = " << domain.t << "\t\t\tsetting to floor value of "
+					<< disk.density_floor << endl;				
+			} // end dfloor if/else
+		}// end negative density if	
+
+//		cout << disk.l[j] << "\t" << disk.Fj[j] << "\t" << disk.H[j]
+//			<< "\t" << P << "\t" << T << endl;		// FIXME 
+
+		if( disk.H[j] < 0.0 ||
+				disk.T[j] < 0.0 || 
+				disk.Fj[j] < 0.0 ){	
+			cerr << "H		DJ		T		FJ" << endl;
+			cerr << disk.H[j] << "\t" << disk.DJ[j] << "\t" << disk.T[j] << "\t" << disk.Fj[j] << endl;
+			return EXIT_FAILURE;
+		} // end err if
+
 	}
 	/*
 	 * ---- ERROR CATCH

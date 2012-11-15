@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 		secondary.moveSecondary(disk,domain.dt,domain.M);   // update secondary's position
 		domain.advance();                                   // update current time
 
-		if( domain.isWriteCycle() ){		// write out data
+		if( domain.write_all || domain.isWriteCycle() ){		// write out data
 			cerr << "		>> dt = " << domain.dt << endl;
 			if(EXIT_SUCCESS != (status = writeStandard(domain,disk,secondary,solver))) return status;
 			writeMass(domain,disk,secondary,solver);

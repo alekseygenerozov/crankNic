@@ -39,15 +39,16 @@ public:
 	double update_dt(double new_dt);
 	bool isWriteCycle(){ return ( (t + dt) >= nextWrite ); }
 	void writePlus(){ fileCount++; nextWrite += tWrite; };
-	bool keepOn() const { return t < tEnd; };
+	bool keepOn() const { return ((t<tEnd)&&(fileCount<=max_prints)); };
 	void advance() { t += dt; }
 
 	const unitFactors units;						 // holds units of problem
 	string initial_data_file;
 	int problemType, debug_mode;         // verbose printing (default off)
-	int fileCount;
+	int fileCount, max_prints;
 	double nextWrite;                    // for data IO
 	double tStart, tEnd, tWrite, t,dt;   // timing
+	int write_all;                       // write all time steps (usually want this OFF)
 	double SAFETY_NUMBER;	               // diminishes timestep
 	double l0;                           // where delta-fcn starts
 	double M;                            // primary mass
@@ -57,7 +58,7 @@ public:
 problemDomain::problemDomain()
 	: tStart(0.0), tEnd(1.0), tWrite(1.0), SAFETY_NUMBER(1.0), dt(0.0), t(0.0),
 	  l0(1.0), M(1.0), debug_mode(OFF), problemType(RAMPED), fileCount(0),
-	  initial_data_file("UNSET"), nextWrite(0.1) {}
+	  initial_data_file("UNSET"), nextWrite(0.1), write_all(0), max_prints(100) {}
 
 
 

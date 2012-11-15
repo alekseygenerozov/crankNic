@@ -53,6 +53,8 @@ int readParams( problemDomain &domain,
 		nV += sscanf(line, "tStart = %lg",        &domain.tStart);
 		nV += sscanf(line, "tEnd = %lg",          &domain.tEnd);
 		nV += sscanf(line, "tWrite = %lg",        &domain.tWrite);
+		nV += sscanf(line, "write_all = %d",        &domain.write_all);
+		nV += sscanf(line, "max_prints = %d",        &domain.max_prints);
 		nV += sscanf(line, "SAFETY_NUMBER = %lg", &domain.SAFETY_NUMBER);
 
 		// Boundary Conditions
@@ -130,6 +132,8 @@ int writeParams( problemDomain &domain,
 	fprintf(fp,"tStart        = %g\n", domain.tStart);
 	fprintf(fp,"tEnd          = %g\n", domain.tEnd);
 	fprintf(fp,"tWrite        = %g\n", domain.tWrite);
+	fprintf(fp,"write_all     = %d\n", domain.write_all);
+	fprintf(fp,"max_prints    = %d\n", domain.max_prints);
 	fprintf(fp,"SAFETY_NUMBER = %g\n", domain.SAFETY_NUMBER);
 	fprintf(fp,"\n");
 
