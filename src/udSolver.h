@@ -28,6 +28,8 @@ public:
 		const secondaryBH &secondary, const int j ) const;
 
 	int updateDisk(double FoD,size_t j,problemDomain &domain,gasDisk &disk,secondaryBH &secondary );
+	static const double FTOL=1E-10, XTOL=1E-10; 
+	static const unsigned int MAX_NR_ITERS = 100;
 private:
 	static const unsigned int STENCIL_SIZE = 5;              // # of cells in stencil (per time step)
 	static const unsigned int CNTR = 2;                      // center of stencil (jth grid cell)
@@ -328,30 +330,80 @@ int udSolver::updateDisk( double FoD,
 	else if( disk.visc_model == BETA_DISK ){
 
 		double l = disk.l[j],T,H,P,omk = omega_k(l,1.0),
-			sigma = FoD*omk/(4.0*PI),tmp,b,c,nu,beta,
-			eta = domain.units.eta,T4,gamma=domain.units.gamma;
+			sigma = FoD*omk/(4.0*PI),b,c,nu,beta,
+			eta = domain.units.eta,T4,gamma=domain.units.gamma,
+			tmp = domain.units.ks*sigma*sigma/(4.0*eta);
+
+		/*
+		 *	If there's no tidal heating OR we're beyond a scale
+		 *	height from the secondary, we can solve for temperature
+		 *	and scale height sequentially. Otherwise we resort to
+		 *	to a Newton-Raphson scheme.
+		 */
+		double la2 = secondary.l_a*secondary.l_a,
+			l2 = l*l, lh2 = disk.H[j];
+		if(!disk.tidal_heating || ((l2 < la2-lh2) || (l2 > la2+lh2))){
+			// update temperature
+			b = tmp*4.5*disk.alpha*omk;
+			if( disk.tidal_heating ){
+				c = gamma*tmp*(omega_k(secondary.l_a,1.0)-omk)*secondary.torque(disk,j);
+				T = quartic(1.0,b,c);
+			} else {
+				T = pow(b,1.0/3.0);
+			} // end tidal if/else
+			disk.T[j] = T;
+			T4 = T*T*T*T;
 	
-		// update temperature
-		tmp = domain.units.ks*sigma*sigma/(4.0*eta);
-		b = tmp*4.5*disk.alpha*omk;
-		if( disk.tidal_heating ){
-			c = gamma*tmp*(omega_k(secondary.l_a,1.0)-omk)*secondary.torque(disk,j);
-			T = quartic(1.0,b,c);
+			// update scale height
+			b = -2.0*eta*T4/(gamma*omk*omk*sigma);
+			c = -2.0*T/(gamma*omk*omk);
+			H = quadratic(1.0,b,c);	
+			disk.H[j] = H;
 		} else {
-			T = pow(b,1.0/3.0);
-		} // end tidal if/else
-		disk.T[j] = T;
-		T4 = T*T*T*T;
-	
-		// update scale height
-		b = -2.0*eta*T4/(gamma*omk*omk*sigma);
-		c = -2.0*T/(gamma*omk*omk);
-		H = quadratic(1.0,b,c);	
-		beta = 1.0/(1.0+eta*H*T4/sigma/T);
-		P = sigma*T/H+eta*T4;
-		disk.H[j] = H;
+
+			// use newton-raphson
+			double a,d,c1,c2,c3,c4,F1,F2,dT,dH,Lambda,det;
+			int i = 0;
+			
+			c1 = 4.5*tmp*disk.alpha*omk;
+			c2 = gamma*tmp*(omega_k(secondary.l_a,1.0)-omk);
+			c4 = 2/(gamma*omk*omk);
+			c3 = c4*eta/sigma;
+			
+			// apply newton-raphson until either dx or dF sinks
+			// below set tolerance values XTOL or FTOL
+			while(i++ < MAX_NR_ITERS){
+				T = disk.T[j];
+				H = disk.H[j];
+				T4 = T*T*T*T;
+				Lambda = secondary.torque(disk,j);
+				
+				F1 = T4 - c1*T - c2*Lambda;
+				F2 = H*H - c3*T4*H - c4*T;
+				if( abs(F1) + abs(F2) <= FTOL ) break;
+
+				a = 4.0*T4/T - c1;
+				b = -4.0*c2*Lambda/H;
+				c = -4.0*c3*T4/T*H - c4;
+				d = 2.0*H-c3*T4;
+				det = a*b - b*c;
+
+				dT = (b*F2 - d*F1)/det;
+				dH = (c*F1 - a*F2)/det;
+				disk.T[j] = T + dT;
+				disk.H[j] = H + dH;
+				if( abs(dT) + abs(dH) <= XTOL ) break;
+			} // end NR iterations
+			
+			T = disk.T[j];
+			H = disk.H[j];
+			T4 = T*T*T*T;
+
+		} // end NR if/else
 
 		// update Dj and Fj
+		beta = 1.0/(1.0+eta*H*T4/sigma/T);
+		P = sigma*T/H+eta*T4;
 		tmp = P/(gamma*omk*sigma);
 		disk.DJ[j] = 3.0*disk.alpha*beta*tmp*tmp*l;
 		disk.Fj[j] = FoD*disk.DJ[j];
