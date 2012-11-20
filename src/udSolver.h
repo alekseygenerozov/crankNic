@@ -28,7 +28,7 @@ public:
 		const secondaryBH &secondary, const int j ) const;
 
 	int updateDisk(double FoD,size_t j,problemDomain &domain,gasDisk &disk,secondaryBH &secondary );
-	static const double FTOL=1E-10, XTOL=1E-10; 
+	static const double FTOL=1E-10, XTOL=1E-10, MIN_DET = 1E-30;
 	static const unsigned int MAX_NR_ITERS = 100;
 private:
 	static const unsigned int STENCIL_SIZE = 5;              // # of cells in stencil (per time step)
@@ -382,11 +382,19 @@ int udSolver::updateDisk( double FoD,
 				F2 = H*H - c3*T4*H - c4*T;
 				if( abs(F1) + abs(F2) <= FTOL ) break;
 
+				// find jacobian coeffs & determinant
 				a = 4.0*T4/T - c1;
 				b = -4.0*c2*Lambda/H;
 				c = -4.0*c3*T4/T*H - c4;
 				d = 2.0*H-c3*T4;
 				det = a*b - b*c;
+
+				// check jacobian isn't singular
+				if( det < MIN_DET ){
+					cerr << "ERROR IN UPDATE DISK\n\t>> Jacobian Singular, (j,sigma,H,T) = ("
+					     << j << ", " << sigma << ", " << H << ", " << T << " )" << endl;
+					return EXIT_FAILURE;
+				} // end det err if
 
 				dT = (b*F2 - d*F1)/det;
 				dH = (c*F1 - a*F2)/det;
