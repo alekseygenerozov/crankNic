@@ -39,6 +39,7 @@ public:
 	double dhdr;        // r/h for disk scale height
 	double alpha;       // viscosity param
 	int visc_model;	    // pwr law (default) or beta disk
+	int tidal_heating;  // default off -- only for alpha/beta disks
 
 	vDoub Fj,l,T,H,DJ;
 
@@ -56,7 +57,7 @@ public:
 gasDisk::gasDisk()
 	: N(500), lambda(1.0), lMax(2.0), lMin(0.1), STENCIL(0), D0(1.0/16.0),
 	  nd(0.0), np(-2.0), dhdr(0.1), visc_model(PWR_LAW), alpha(0.1),
-		density_floor(UNSET),
+		density_floor(UNSET), tidal_heating(OFF),
 	  outer_bndry_type(NEUMANN),   inner_bndry_type(NEUMANN),
 	  outer_bndry_laplacian(ZERO), inner_bndry_laplacian(ZERO),
 	  outer_bndry_value(UNSET),    inner_bndry_value(UNSET)

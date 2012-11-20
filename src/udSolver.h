@@ -292,12 +292,40 @@ int udSolver::updateDisk( double FoD,
 			disk.Fj[j] = pow(FoD*tmp,1.0/(1.0-disk.nd));
 			disk.DJ[j] = tmp*pow(disk.Fj[j],disk.nd);
 		}// end nd if/else
-	} 
+	}
+	/*
+	 * ----- ALPHA DISK VISCOSITY
+	 */ 
+	else if( disk.visc_model == ALPHA_DISK ){
+		double l = disk.l[j],T,H,P,omk = omega_k(l,1.0),
+			sigma = FoD*omk/(4.0*PI),tmp,b,c,nu,
+			eta = domain.units.eta,gamma=domain.units.gamma;
+
+		// update temperature
+		tmp = domain.units.ks*sigma*sigma/(4.0*eta);
+		b = tmp*4.5*disk.alpha*omk;
+		if( disk.tidal_heating ) {
+			c = gamma*tmp*(omega_k(secondary.l_a,1.0)-omk)*secondary.torque(disk,j);
+			T = quartic(1.0,b,c);
+		} else {
+			T = pow(b,1.0/3.0);
+		} // end tidal if/else
+		disk.T[j] = T;
+
+		// update scale height
+		H = sqrt(2*T/gamma)/omk;
+		P = sigma*T/H;
+		disk.H[j] = H;
+
+		// update Dj and Fj
+		tmp = P/(gamma*omk*sigma);
+		disk.DJ[j] = 3.0*disk.alpha*tmp*tmp*l;
+		disk.Fj[j] = FoD*disk.DJ[j];
+	}
 	/*
 	 * ----- BETA DISK VISCOSITY (Kocsis 2012)
 	 */
-	else if( disk.visc_model == BETA_DISK ||
-	         disk.visc_model == ALPHA_DISK ){
+	else if( disk.visc_model == BETA_DISK ){
 
 		double l = disk.l[j],T,H,P,omk = omega_k(l,1.0),
 			sigma = FoD*omk/(4.0*PI),tmp,b,c,nu,beta,
@@ -306,55 +334,27 @@ int udSolver::updateDisk( double FoD,
 		// update temperature
 		tmp = domain.units.ks*sigma*sigma/(4.0*eta);
 		b = tmp*4.5*disk.alpha*omk;
-		c = gamma*tmp*(omega_k(secondary.l_a,1.0)-omk)*secondary.torque(disk,j);
-		T = quartic(1.0,b,c);
+		if( disk.tidal_heating ){
+			c = gamma*tmp*(omega_k(secondary.l_a,1.0)-omk)*secondary.torque(disk,j);
+			T = quartic(1.0,b,c);
+		} else {
+			T = pow(b,1.0/3.0);
+		} // end tidal if/else
 		disk.T[j] = T;
 		T4 = T*T*T*T;
 	
-		// update scale height & DJ
-		if( disk.visc_model==BETA_DISK ){
-			b = -2.0*eta*T4/(gamma*omk*omk*sigma);
-			c = -2.0*T/(gamma*omk*omk);
-			H = quadratic(1.0,b,c);	
-
-			beta = 1.0/(1.0+eta*H*T4/sigma/T);
-			P = sigma*T/H+eta*T4;
-		} else {	// alpha disk w/ ONLY GAS PRESSURE
-			H = sqrt(2*T/gamma)/omk;
-			
-			beta = 1.0;
-			P = sigma*T/H;
-		} // end beta/alpha if/else
+		// update scale height
+		b = -2.0*eta*T4/(gamma*omk*omk*sigma);
+		c = -2.0*T/(gamma*omk*omk);
+		H = quadratic(1.0,b,c);	
+		beta = 1.0/(1.0+eta*H*T4/sigma/T);
+		P = sigma*T/H+eta*T4;
 		disk.H[j] = H;
+
+		// update Dj and Fj
 		tmp = P/(gamma*omk*sigma);
 		disk.DJ[j] = 3.0*disk.alpha*beta*tmp*tmp*l;
-		
-		// update FJ
 		disk.Fj[j] = FoD*disk.DJ[j];
-
-		if( disk.Fj[j] < 0.0 ){
-			if( disk.density_floor < 0.0 ){
-				cerr << "ERROR IN UD_SOLVER.UPDATE_DISK:\n\t>> Negartive density found at j = "
-					<< j << " at time t = " << domain.t << endl;
-			} else {
-				disk.Fj[j] = disk.density_floor;
-				cout << "WARNING IN UD_SOLVER.UPDATE_DISK:\n\t>> Negative density found at j = "
-					<< j << " at time t = " << domain.t << "\t\t\tsetting to floor value of "
-					<< disk.density_floor << endl;				
-			} // end dfloor if/else
-		}// end negative density if	
-
-//		cout << disk.l[j] << "\t" << disk.Fj[j] << "\t" << disk.H[j]
-//			<< "\t" << P << "\t" << T << endl;		// FIXME 
-
-		if( disk.H[j] < 0.0 ||
-				disk.T[j] < 0.0 || 
-				disk.Fj[j] < 0.0 ){	
-			cerr << "H		DJ		T		FJ" << endl;
-			cerr << disk.H[j] << "\t" << disk.DJ[j] << "\t" << disk.T[j] << "\t" << disk.Fj[j] << endl;
-			return EXIT_FAILURE;
-		} // end err if
-
 	}
 	/*
 	 * ---- ERROR CATCH
@@ -364,6 +364,30 @@ int udSolver::updateDisk( double FoD,
 			<< disk.visc_model << endl;
 		return EXIT_FAILURE;
 	}
+
+	/*
+ 	 *	CHECK for negative Fj or H and T. If a density floor has 
+	 *	been implemented, apply it, otherwise exit with error
+	 */
+	if( disk.Fj[j] < 0.0 ){
+		if( disk.density_floor < 0.0 ){
+			cerr << "ERROR IN UD_SOLVER.UPDATE_DISK:\n\t>> Negartive density found at j = "
+			     << j << " at time t = " << domain.t << endl;
+		} else {
+			disk.Fj[j] = disk.density_floor;
+			cout << "WARNING IN UD_SOLVER.UPDATE_DISK:\n\t>> Negative density found at j = "
+			     << j << " at time t = " << domain.t << "\t\t\tsetting to floor value of "
+			     << disk.density_floor << endl;
+		} // end dfloor if/else
+	}// end negative density if 
+
+	if( disk.H[j] < 0.0 ||
+	    disk.T[j] < 0.0 ||
+	    disk.Fj[j] < 0.0 ){
+		cerr << "H    DJ    T   FJ" << endl;
+		cerr << disk.H[j] << "\t" << disk.DJ[j] << "\t" << disk.T[j] << "\t" << disk.Fj[j] << endl;
+		return EXIT_FAILURE;
+	} // end err if
 
 	return EXIT_SUCCESS;
 } // end update disk

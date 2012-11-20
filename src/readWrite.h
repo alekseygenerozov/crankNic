@@ -36,12 +36,13 @@ int readParams( problemDomain &domain,
 		nV += sscanf(line, "l0 = %lg", &domain.l0);
 		nV += sscanf(line, "M = %lg",  &domain.M);
 
-		nV += sscanf(line, "visc_model = %d",  &disk.visc_model);
-		nV += sscanf(line, "alpha = %lg",      &disk.alpha);
-		nV += sscanf(line, "D0 = %lg",         &disk.D0);
-		nV += sscanf(line, "nd = %lg",         &disk.nd);
-		nV += sscanf(line, "np = %lg",         &disk.np);
-		nV += sscanf(line, "dhdr = %lg",       &disk.dhdr);
+		nV += sscanf(line, "visc_model = %d",    &disk.visc_model);
+		nV += sscanf(line, "tidal_heating = %d", &disk.tidal_heating);
+		nV += sscanf(line, "alpha = %lg",        &disk.alpha);
+		nV += sscanf(line, "D0 = %lg",           &disk.D0);
+		nV += sscanf(line, "nd = %lg",           &disk.nd);
+		nV += sscanf(line, "np = %lg",           &disk.np);
+		nV += sscanf(line, "dhdr = %lg",         &disk.dhdr);
 
 		nV += sscanf(line, "l_a = %lg",     &secondary.l_a);
 		nV += sscanf(line, "q = %lg",       &secondary.q);
@@ -114,12 +115,13 @@ int writeParams( problemDomain &domain,
 	fprintf(fp,"l0   = %g\n", domain.l0);
 	fprintf(fp,"M    = %g\n", domain.M);
 
-	fprintf(fp,"visc_model = %d\n", disk.visc_model);
-	fprintf(fp,"alpha      = %g\n", disk.alpha);
-	fprintf(fp,"D0         = %g\n", disk.D0);
-	fprintf(fp,"nd         = %g\n", disk.nd);
-	fprintf(fp,"np         = %g\n", disk.np);
-	fprintf(fp,"dhdr       = %g\n", disk.dhdr);
+	fprintf(fp,"visc_model    = %d\n", disk.visc_model);
+	fprintf(fp,"tidal_heating = %d\n", disk.tidal_heating);
+	fprintf(fp,"alpha         = %g\n", disk.alpha);
+	fprintf(fp,"D0            = %g\n", disk.D0);
+	fprintf(fp,"nd            = %g\n", disk.nd);
+	fprintf(fp,"np            = %g\n", disk.np);
+	fprintf(fp,"dhdr          = %g\n", disk.dhdr);
 
 	fprintf(fp,"l_a      = %g\n", secondary.l_a);
 	fprintf(fp,"q        = %g\n", secondary.q);
