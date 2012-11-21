@@ -372,7 +372,7 @@ int udSolver::updateDisk( double FoD,
 			
 			// apply newton-raphson until either dx or dF sinks
 			// below set tolerance values XTOL or FTOL
-			while(i++ < MAX_NR_ITERS){
+			while(++i < MAX_NR_ITERS){
 				T = disk.T[j];
 				H = disk.H[j];
 				T4 = T*T*T*T;
@@ -384,10 +384,10 @@ int udSolver::updateDisk( double FoD,
 
 				// find jacobian coeffs & determinant
 				a = 4.0*T4/T - c1;
-				b = -4.0*c2*Lambda/H;
+				b = 4.0*c2*Lambda/H;
 				c = -4.0*c3*T4/T*H - c4;
 				d = 2.0*H-c3*T4;
-				det = a*b - b*c;
+				det = a*d - b*c;
 
 				// check jacobian isn't singular
 				if( det < MIN_DET ){
@@ -402,6 +402,13 @@ int udSolver::updateDisk( double FoD,
 				disk.H[j] = H + dH;
 				if( abs(dT) + abs(dH) <= XTOL ) break;
 			} // end NR iterations
+
+			if( MAX_NR_ITERS == i ) 
+				cout << "WARNING IN UPDATE DISK\n\t>> Beta Disk solution near secondary "
+				     << "failed to converge in " << MAX_NR_ITERS << " iter's."
+				     << "\n\t\t (j,sigma,H,T) = (" << j << ", " << sigma << ", " << H 
+				     << ", " << T << " )" << "\n\t\t(XTOL,FTOL) = (" << XTOL << ", "
+				     << FTOL << endl;
 			
 			T = disk.T[j];
 			H = disk.H[j];
