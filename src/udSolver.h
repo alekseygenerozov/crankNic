@@ -342,7 +342,9 @@ int udSolver::updateDisk( double FoD,
 		 */
 		double la2 = secondary.l_a*secondary.l_a,
 			l2 = l*l, lh2 = disk.H[j];
-		if(!disk.tidal_heating || ((l2 < la2-lh2) || (l2 > la2+lh2))){
+		if( 0.0 == secondary.q  || 
+		    !disk.tidal_heating || 
+		    ((l2 < la2-lh2)     ||  (l2 > la2+lh2)) ) {
 			// update temperature
 			b = tmp*4.5*disk.alpha*omk;
 			if( disk.tidal_heating ){
