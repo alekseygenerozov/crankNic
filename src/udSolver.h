@@ -31,6 +31,9 @@ public:
 	static const double FTOL=1E-10, XTOL=1E-10, MIN_DET = 1E-30;
 	static const unsigned int MAX_NR_ITERS = 100;
 private:
+	double F(const double T, gasDisk &disk, const secondaryBH &secondary, const size_t j,
+		const double c1, const double c2, const double c3, const double c4);
+
 	static const unsigned int STENCIL_SIZE = 5;              // # of cells in stencil (per time step)
 	static const unsigned int CNTR = 2;                      // center of stencil (jth grid cell)
 	static const unsigned int JP2=4,JP1=3,J=2,JM1=1,JM2=0;   // indexing for stencil
@@ -338,7 +341,7 @@ int udSolver::updateDisk( double FoD,
 		 *	If there's no tidal heating OR we're beyond a scale
 		 *	height from the secondary, we can solve for temperature
 		 *	and scale height sequentially. Otherwise we resort to
-		 *	to a Newton-Raphson scheme.
+		 *	to a bisection scheme.
 		 */
 		double la2 = secondary.l_a*secondary.l_a,
 			l2 = l*l, lh2 = disk.H[j];
@@ -361,62 +364,44 @@ int udSolver::updateDisk( double FoD,
 			c = -2.0*T/(gamma*omk*omk);
 			H = quadratic(1.0,b,c);	
 			disk.H[j] = H;
-		} else {
+		} 
+		/* 
+		 * Otehrwise, use the method of bisection, treating the 
+		 * problem as a 1D, homeogenous function of temperature, 
+		 * F (below)
+		 */
+		else {
 
-			// use newton-raphson
-			double a,d,c1,c2,c3,c4,F1,F2,dT,dH,Lambda,det;
-			int i = 0;
-			
-			c1 = 4.5*tmp*disk.alpha*omk;
-			c2 = gamma*tmp*(omega_k(secondary.l_a,1.0)-omk);
-			c4 = 2/(gamma*omk*omk);
-			c3 = c4*eta/sigma;
-			
-			// apply newton-raphson until either dx or dF sinks
-			// below set tolerance values XTOL or FTOL
-			while(++i < MAX_NR_ITERS){
-				T = disk.T[j];
-				H = disk.H[j];
-				T4 = T*T*T*T;
-				Lambda = secondary.torque(disk,j);
-				
-				F1 = T4 - c1*T - c2*Lambda;
-				F2 = H*H - c3*T4*H - c4*T;
-				if( abs(F1) + abs(F2) <= FTOL ) break;
+			double c1 = 4.5*tmp*disk.alpha*omk,
+				c2 = gamma*tmp*(omega_k(secondary.l_a,1.0)-omk),
+				c4 = 2/(gamma*omk*omk), c3 = c4*eta/sigma,
+				T1 = 1.0E8,T2 = 0.0,Tmid,dT,rtb,
+				f    = F(T1,disk,secondary,j,c1,c2,c3,c4),
+				fmid = F(T2,disk,secondary,j,c1,c2,c3,c4);
+			int MAX_BS_ITERS = 50, i;
 
-				// find jacobian coeffs & determinant
-				a = 4.0*T4/T - c1;
-				b = 4.0*c2*Lambda/H;
-				c = -4.0*c3*T4/T*H - c4;
-				d = 2.0*H-c3*T4;
-				det = a*d - b*c;
+			if(f*fmid >= 0.0 )
+				cerr << "ERROR IN UPDATE DISK:\n\t>> Bisection Method does not bracket"
+					<< "true Temperature" << endl;
 
-				// check jacobian isn't singular
-				if( det < MIN_DET ){
-					cerr << "ERROR IN UPDATE DISK\n\t>> Jacobian Singular, (j,sigma,H,T) = ("
-					     << j << ", " << sigma << ", " << H << ", " << T << " )" << endl;
-					return EXIT_FAILURE;
-				} // end det err if
+			rtb = f<0.0?(dT=T2-T1,T1):(dT=T1-T2,T2);
+			for( i = 0 ; i < MAX_BS_ITERS ; ++i ){
+				fmid = F(Tmid=rtb+(dT *= 0.5),disk,secondary,j,c1,c2,c3,c4);
+				if (fmid < 0.0) rtb=Tmid;
+				if( abs(dT) <= XTOL || fmid == 0.0 ) break;
+			} // end i for
+			disk.T[j] = rtb;
 
-				dT = (b*F2 - d*F1)/det;
-				dH = (c*F1 - a*F2)/det;
-				disk.T[j] = T + dT;
-				disk.H[j] = H + dH;
-				if( abs(dT) + abs(dH) <= XTOL ) break;
-			} // end NR iterations
-
-			if( MAX_NR_ITERS == i ) 
+			if( MAX_BS_ITERS == i ) 
 				cout << "WARNING IN UPDATE DISK\n\t>> Beta Disk solution near secondary "
-				     << "failed to converge in " << MAX_NR_ITERS << " iter's."
-				     << "\n\t\t (j,sigma,H,T) = (" << j << ", " << sigma << ", " << H 
-				     << ", " << T << " )" << "\n\t\t(XTOL,FTOL) = (" << XTOL << ", "
-				     << FTOL << endl;
-			
-			T = disk.T[j];
-			H = disk.H[j];
+				     << "failed to converge in " << MAX_BS_ITERS << " iter's."
+				     << "\n\t\t (j,sigma,H,T) = (" << j << ", " << sigma << ", " << disk.H[j] 
+				     << ", " << disk.T[j] << " )" << "\n\t\t(XTOL) = (" << XTOL << endl;
+		
+			T = disk.T[j];	
 			T4 = T*T*T*T;
 
-		} // end NR if/else
+		} // end bisection if/else
 
 		// update Dj and Fj
 		beta = 1.0/(1.0+eta*H*T4/sigma/T);
@@ -425,11 +410,9 @@ int udSolver::updateDisk( double FoD,
 		disk.DJ[j] = 3.0*disk.alpha*beta*tmp*tmp*l;
 		disk.Fj[j] = FoD*disk.DJ[j];
 	}
-	/*
-	 * ---- ERROR CATCH
-	 */
+	/* ERROR CATCH */
 	else {
-		cerr << "ERROR IN EXPLICIT SOLVER:\n\tViscosity Model Improperly set to "
+		cerr << "ERROR IN UPDATE DISK:\n\tViscosity Model Improperly set to "
 			<< disk.visc_model << endl;
 		return EXIT_FAILURE;
 	}
@@ -460,5 +443,28 @@ int udSolver::updateDisk( double FoD,
 
 	return EXIT_SUCCESS;
 } // end update disk
+
+
+
+/* 
+ *	F(T,H)
+ *		For method of bisection, casts thermo eq's for T 
+ *	and H as single scalar, homogenous function of T. Used 
+ *	only within 1 scale height of the secondary when tidal 
+ *	heating is turned on.
+ */
+double udSolver::F(const double T,
+                   gasDisk &disk, 
+                   const secondaryBH &secondary,
+                   const size_t j,
+                   const double c1, const double c2,
+                   const double c3, const double c4)
+{
+	static double b, T4;
+	T4 = T*T*T*T;
+	b = .5*c3*T4;
+	disk.H[j] = b + sqrt(b*b + c4*T);
+	return T4 - c1*T - c2*secondary.torque(disk,j);
+}
 
 #endif
